@@ -3,13 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <langversion>default</langversion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AnimatedGif" Version="1.0.5" />
     <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.370" />
     <PackageReference Include="FrameworkExtensions.System.Drawing" Version="1.0.0.35" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0" />
