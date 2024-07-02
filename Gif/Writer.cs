@@ -204,6 +204,7 @@ public static class Writer {
 
       BitmapData? bmpData = null;
       try {
+
         bmpData = frame.LockBits(new(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
         var rowPointer = (byte*)bmpData.Scan0;
         if (bmpData.Stride == width)
@@ -214,9 +215,12 @@ public static class Writer {
             offset += width;
             rowPointer += bmpData.Stride;
           }
+
       } finally {
+
         if (bmpData != null)
           frame.UnlockBits(bmpData);
+
       }
 
       return buffer[..(width * height)];
