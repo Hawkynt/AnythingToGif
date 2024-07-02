@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Gif\Gif.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Examples\PlanetDemo.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
