@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
-public class MedianCutQuantizer : IQuantizer {
+namespace AnythingToGif;
 
+public class MedianCutQuantizer : QuantizerBase {
+  
   /// <inheritdoc />
-  public Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, int count)> histogram) => this.ReduceColorsTo(numberOfColors, histogram.Select(i=>i.Item1));
-
-  /// <inheritdoc />
-  public Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<Color> usedColors) {
+  public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<Color> usedColors) {
     var colors = usedColors.ToList();
     var cubes = new List<ColorCube> { new(colors) };
 

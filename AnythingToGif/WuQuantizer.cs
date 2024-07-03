@@ -2,11 +2,13 @@
 using System.Drawing;
 using System.Linq;
 
-public class WuQuantizer : IQuantizer {
+namespace AnythingToGif;
+
+public class WuQuantizer : QuantizerBase {
 
   /// <inheritdoc />
-  public Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, int count)> histogram) {
-    var smallHistogram = new int[32, 32, 32];
+  public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
+    var smallHistogram = new uint[32, 32, 32];
 
     foreach (var (color, count) in histogram) {
       var r = color.R >> 3;
@@ -27,9 +29,7 @@ public class WuQuantizer : IQuantizer {
     return cubes.Select(c => c.AverageColor).ToArray();
   }
 
-  public Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<Color> usedColors) => this.ReduceColorsTo(numberOfColors, usedColors.Select(c => (c, 1)));
-
-  private class ColorCube(int[,,] histogram, int rMin = 0, int rMax = 31, int gMin = 0, int gMax = 31, int bMin = 0, int bMax = 31) {
+  private class ColorCube(uint[,,] histogram, int rMin = 0, int rMax = 31, int gMin = 0, int gMax = 31, int bMin = 0, int bMax = 31) {
 
     public int Volume => (rMax - rMin) * (gMax - gMin) * (bMax - bMin);
 
@@ -48,10 +48,7 @@ public class WuQuantizer : IQuantizer {
         count += histCount;
       }
 
-      if (count == 0)
-        return Color.Transparent;
-
-      return Color.FromArgb((int)(rSum / count) << 3, (int)(gSum / count) << 3, (int)(bSum / count) << 3);
+      return count == 0 ? Color.Transparent : Color.FromArgb((int)(rSum / count) << 3, (int)(gSum / count) << 3, (int)(bSum / count) << 3);
     }
 
     public IEnumerable<ColorCube> Split() {

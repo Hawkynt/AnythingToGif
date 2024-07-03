@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AnythingToGif;
 using Gif;
 
 class Program {
@@ -19,10 +20,10 @@ class Program {
       var outputFile = inputFile.WithNewExtension(".gif");
 
       var converter = new SingleImageHiColorGifConverter {
-        TotalFrameDuration = TimeSpan.FromMilliseconds(10000),
+        TotalFrameDuration = TimeSpan.FromMilliseconds(0),
         MinimumSubImageDuration = TimeSpan.FromMilliseconds(10),
         FirstSubImageInitsBackground = true,
-        Quantizer = new WuQuantizer(),
+        Quantizer = new OctreeQuantizer(),
         UseBackFilling = false,
         ColorOrdering = ColorOrderingMode.MostUsedFirst
       };
@@ -102,11 +103,9 @@ public readonly record struct MatrixBasedDitherer : IDitherer {
 
 // TODO: implement
 /*
-  Median-cut (MC)
   Octree (OC)
   Variance-based method (WAN)
   Binary splitting (BS)
-  Greedy orthogonal bi-partitioning method (WU)
   Neuquant (NQ)
   Adaptive distributing units (ADU)
   Variance-cut (VC)
@@ -289,7 +288,7 @@ public class SingleImageHiColorGifConverter {
 
   private unsafe Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram) {
 
-    var reducedColors = (quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp=>(kvp.Key,kvp.Value.Count))) ?? this._SortHistogram(histogram).Take(maxColors)).ToArray();
+    var reducedColors = (quantizer?.ReduceColorsTo(maxColors, (IEnumerable<(Color color, uint count)>)histogram.Select(kvp=>(kvp.Key, (uint)kvp.Value.Count))) ?? this._SortHistogram(histogram).Take(maxColors)).ToArray();
 
     var width = image.Width;
     var height = image.Height;
