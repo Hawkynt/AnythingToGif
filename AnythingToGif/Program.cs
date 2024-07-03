@@ -20,7 +20,7 @@ class Program {
       var outputFile = inputFile.WithNewExtension(".gif");
 
       var converter = new SingleImageHiColorGifConverter {
-        TotalFrameDuration = TimeSpan.FromSeconds(5),
+        TotalFrameDuration = TimeSpan.FromSeconds(0),
         MinimumSubImageDuration = TimeSpan.FromMilliseconds(10),
         FirstSubImageInitsBackground = true,
         Quantizer = new OctreeQuantizer(),
@@ -36,72 +36,69 @@ class Program {
 }
 
 public interface IDitherer {
-  // TODO:
+  void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, ReadOnlySpan<Color> palette);
 }
 
 public readonly record struct NoDitherer : IDitherer {
-  // TODO:
+  
   public static IDitherer Instance { get; } = new NoDitherer();
-}
 
-public readonly record struct BayesDitherer : IDitherer {
-  public readonly byte Size { get; }
+  public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, ReadOnlySpan<Color> palette) {
+    var width = source.Width;
+    var height = source.Height;
+    var stride = target.Stride;
+    var data = (byte*)target.Scan0;
 
-  // TODO:
-}
+    for (var y = 0; y < height; ++y)
+    for (var x = 0; x < width; ++x) {
+      var color = source[x, y];
+      var replacementColor = (byte)FindClosestColorIndex(color, palette);
+      data[y * stride + x] = replacementColor;
+    }
 
-public readonly record struct MatrixBasedDitherer : IDitherer {
-  public byte Divisor { get; }
-  // TODO:
-  /*
-    Floyd-Steinberg
-         X   7
-     3   5   1
-     (1/16)
+    return;
 
-    Jarvis, Judice, and Ninke
-             X   7   5
-     3   5   7   5   3
-     1   3   5   3   1
-           (1/48)
+    static int FindClosestColorIndex(Color color, ReadOnlySpan<Color> palette) {
+      var closestIndex = 0;
+      var closestDistance = double.MaxValue;
 
-    Stucki
-             X   8   4
-     2   4   8   4   2
-     1   2   4   2   1
-           (1/42)
+      var r1 = color.R;
+      var g1 = color.G;
+      var b1 = color.B;
+      for (var i = 1; i < palette.Length; ++i) {
+        var paletteColor = palette[i];
+        var r2 = paletteColor.R;
+        var g2 = paletteColor.G;
+        var b2 = paletteColor.B;
 
-    Atkinson
-        X   1   1
-    1   1   1
-        1
-      (1/8)
+        var rMean = (r1 + r2) >> 1;
+        var r = r1 - r2;
+        var g = g1 - g2;
+        var b = b1 - b2;
+        r *= r;
+        g *= g;
+        b *= b;
 
-    Burkes
-             X   8   4
-     2   4   8   4   2
-           (1/32)
+        var distance = (((512 + rMean) * r) >> 8) + 4 * g + (((767 - rMean) * b) >> 8);
+        if (distance >= closestDistance)
+          continue;
 
-    Sierra
-            X   5   3
-     2   4  5   4   2
-         2  3   2
-          (1/32)
+        if (distance <= 1)
+          return i;
 
-    Two-Row Sierra
-            X   4   3
-    1   2   3   2   1
-          (1/16)
+        closestDistance = distance;
+        closestIndex = i;
+      }
 
-    Sierra Lite
-        X   2
-        1   1
-        (1/4)
-   */
+      return closestIndex;
+    }
+
+  }
+
 }
 
 public class SingleImageHiColorGifConverter {
-  
+
   public TimeSpan? TotalFrameDuration { get; set; }
   public TimeSpan MinimumSubImageDuration { get; set; }
   public IQuantizer? Quantizer { get; set; }
@@ -112,7 +109,7 @@ public class SingleImageHiColorGifConverter {
   public bool UseBackFilling { get; set; }
 
   public void Convert(Bitmap image, FileInfo outputFile) {
-    var histogram = this._CreateHistogram(image).ToFrozenDictionary();
+    var histogram = _CreateHistogram(image).ToFrozenDictionary();
     var subImages = this._CreateSubImages(image, histogram).ToArray();
     AdjustLastFrameDurationIfNeeded();
     this._WriteGif(outputFile, (Dimensions)image.Size, subImages);
@@ -122,7 +119,7 @@ public class SingleImageHiColorGifConverter {
       var totalFrameDuration = this.TotalFrameDuration;
       if (!totalFrameDuration.HasValue)
         return;
-      
+
       var totalFrameTime = subImages.Sum(i => i.Duration);
       if (totalFrameTime >= totalFrameDuration.Value)
         return;
@@ -131,11 +128,11 @@ public class SingleImageHiColorGifConverter {
     }
   }
 
-  private Color[] _SortHistogram(IDictionary<Color, ICollection<Point>> histogram) {
+  private static Color[] _SortHistogram(IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode) {
     var result = new Color[histogram.Count];
     var index = 0;
     foreach (var color in
-             (this.ColorOrdering switch {
+             (mode switch {
                ColorOrderingMode.MostUsedFirst => histogram.OrderByDescending(kvp => kvp.Value.Count).Select(kvp => kvp.Key),
                ColorOrderingMode.LeastUsedFirst => histogram.OrderBy(kvp => kvp.Value.Count).Select(kvp => kvp.Key),
                ColorOrderingMode.HighLuminanceFirst => histogram.Keys.OrderByDescending(c => c.GetLuminance()),
@@ -163,32 +160,33 @@ public class SingleImageHiColorGifConverter {
 
     var totalFrameTime = TimeSpan.Zero;
     if (this.FirstSubImageInitsBackground) {
-      yield return new(Offset.None,_CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer, histogram), frameDuration,FrameDisposalMethod.DoNotDispose);
+      yield return new(Offset.None, _CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer ?? NoDitherer.Instance, histogram, this.ColorOrdering), frameDuration, FrameDisposalMethod.DoNotDispose);
       totalFrameTime += frameDuration;
-      if(--availableFrames<=0)
+      if (--availableFrames <= 0)
         yield break;
     }
 
-    var usedColors = _SortHistogram(histogram);
-      
+    var usedColors = _SortHistogram(histogram, this.ColorOrdering);
+
     // create segments
     var colorSegments = new List<(Color color, ICollection<Point> pixelPositions)>(totalColorCount);
     colorSegments.AddRange(usedColors.Select(color => (color, histogram[color])));
 
     // create subimages in parallel
-    foreach (var frame in ParallelEnumerable.Range(0, availableFrames).AsOrdered().Select(CreateSubImage)) { 
-      yield return new(Offset.None,frame, frameDuration, FrameDisposalMethod.DoNotDispose,0);
+    foreach (var frame in ParallelEnumerable.Range(0, availableFrames).AsOrdered().Select(CreateSubImage)) {
+      yield return new(Offset.None, frame, frameDuration, FrameDisposalMethod.DoNotDispose, 0);
       totalFrameTime += frameDuration;
     }
 
     yield break;
 
+    // TODO: if firstsubimageinitsbackground is false and usebackfilling is false, the last image always has to act like usebackfilling is true, otherwise there would be missing pixels on screen
     unsafe Bitmap CreateSubImage(int index) {
       var startIndex = index * maximumColorsPerSubImage;
       var colorSegment = colorSegments.GetRange(startIndex, Math.Min(maximumColorsPerSubImage, totalColorCount - startIndex));
       var otherSegments = this.UseBackFilling && (startIndex + maximumColorsPerSubImage < totalColorCount) ? colorSegments[(startIndex + maximumColorsPerSubImage)..] : null;
 
-      var result = new Bitmap(dimensions.Width,dimensions.Height, PixelFormat.Format8bppIndexed);
+      var result = new Bitmap(dimensions.Width, dimensions.Height, PixelFormat.Format8bppIndexed);
 
       var palette = result.Palette;
       var paletteEntries = palette.Entries;
@@ -215,59 +213,60 @@ public class SingleImageHiColorGifConverter {
         if (otherSegments != null)
           Parallel.ForEach(otherSegments, t => {
             var (color, positions) = t;
-            var closestColorIndex = (byte)SingleImageHiColorGifConverter._FindClosestColorIndex(color, paletteEntries);
+            var closestColorIndex = (byte)FindClosestColorIndex(color, paletteEntries);
             foreach (var point in positions)
               pixels[point.Y * stride + point.X] = closestColorIndex;
           });
 
       } finally {
-        if(bitmapData!=null)
+        if (bitmapData != null)
           result.UnlockBits(bitmapData);
       }
-      
+
       return result;
+
+      static int FindClosestColorIndex(Color color, ReadOnlySpan<Color> palette) {
+        var closestIndex = 0;
+        var closestDistance = double.MaxValue;
+
+        var r1 = color.R;
+        var g1 = color.G;
+        var b1 = color.B;
+        for (var i = 1; i < palette.Length; ++i) {
+          var paletteColor = palette[i];
+          var r2 = paletteColor.R;
+          var g2 = paletteColor.G;
+          var b2 = paletteColor.B;
+
+          var rMean = (r1 + r2) >> 1;
+          var r = r1 - r2;
+          var g = g1 - g2;
+          var b = b1 - b2;
+          r *= r;
+          g *= g;
+          b *= b;
+
+          var distance = (((512 + rMean) * r) >> 8) + 4 * g + (((767 - rMean) * b) >> 8);
+          if (distance >= closestDistance)
+            continue;
+
+          if (distance <= 1)
+            return i;
+
+          closestDistance = distance;
+          closestIndex = i;
+        }
+
+        return closestIndex;
+      }
+
     }
 
   }
 
-  private static int _FindClosestColorIndex(Color color, ReadOnlySpan<Color> palette) {
-    int closestIndex = 0;
-    var closestDistance = double.MaxValue;
+  private static Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode) {
 
-    var r1 = color.R;
-    var g1 = color.G;
-    var b1 = color.B;
-    for (var i = 1; i < palette.Length; ++i) {
-      var paletteColor = palette[i];
-      var r2 = paletteColor.R;
-      var g2 = paletteColor.G;
-      var b2 = paletteColor.B;
-
-      var rMean = (r1 + r2) >> 1;
-      var r = r1 - r2;
-      var g = g1 - g2;
-      var b = b1 - b2;
-      r *= r;
-      g *= g;
-      b *= b;
-          
-      var distance = (((512 + rMean) * r) >> 8) + 4 * g + (((767 - rMean) * b) >> 8);
-      if (distance>=closestDistance)
-        continue;
-
-      if (distance <= 1)
-        return i;
-
-      closestDistance = distance;
-      closestIndex = i;
-    }
-
-    return closestIndex;
-  }
-
-  private unsafe Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram) {
-
-    var reducedColors = (quantizer?.ReduceColorsTo(maxColors, (IEnumerable<(Color color, uint count)>)histogram.Select(kvp=>(kvp.Key, (uint)kvp.Value.Count))) ?? this._SortHistogram(histogram).Take(maxColors)).ToArray();
+    var reducedColors = (quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp => (kvp.Key, (uint)kvp.Value.Count))) ?? _SortHistogram(histogram, mode).Take(maxColors)).ToArray();
 
     var width = image.Width;
     var height = image.Height;
@@ -286,17 +285,8 @@ public class SingleImageHiColorGifConverter {
     try {
 
       bitmapData = result.LockBits(new(Point.Empty, result.Size), ImageLockMode.WriteOnly, result.PixelFormat);
-      var pixels = (byte*)bitmapData.Scan0;
-      var stride = bitmapData.Stride;
-
       using var locker = image.Lock(ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-
-      for (var y = 0; y < height; ++y)
-      for (var x = 0; x < width; ++x) {
-        var color = locker[x, y];
-        var replacementColor = (byte)_FindClosestColorIndex(color, reducedColors);
-        pixels[y * stride + x] = replacementColor;
-      }
+      ditherer.Dither(locker, bitmapData, reducedColors);
 
     } finally {
 
@@ -305,12 +295,10 @@ public class SingleImageHiColorGifConverter {
 
     }
 
-    // TODO: draw all pixels from the source image using the given IDitherer
-
     return result;
   }
 
-  private IDictionary<Color, ICollection<Point>> _CreateHistogram(Bitmap image) {
+  private static IDictionary<Color, ICollection<Point>> _CreateHistogram(Bitmap image) {
     var result = new Dictionary<Color, ICollection<Point>>();
 
     using var worker = image.Lock(ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
