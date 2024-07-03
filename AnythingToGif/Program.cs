@@ -20,7 +20,7 @@ class Program {
       var outputFile = inputFile.WithNewExtension(".gif");
 
       var converter = new SingleImageHiColorGifConverter {
-        TotalFrameDuration = TimeSpan.FromMilliseconds(0),
+        TotalFrameDuration = TimeSpan.FromSeconds(5),
         MinimumSubImageDuration = TimeSpan.FromMilliseconds(10),
         FirstSubImageInitsBackground = true,
         Quantizer = new OctreeQuantizer(),
@@ -100,28 +100,6 @@ public readonly record struct MatrixBasedDitherer : IDitherer {
    */
 }
 
-
-// TODO: implement
-/*
-  Octree (OC)
-  Variance-based method (WAN)
-  Binary splitting (BS)
-  Neuquant (NQ)
-  Adaptive distributing units (ADU)
-  Variance-cut (VC)
-  WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)
-  BS combined with iterative ATCQ (BSITATCQ)
- */
-
-public enum ColorOrderingMode {
-  Random = -1,
-  MostUsedFirst = 0,
-  FromCenter = 1,
-  LeastUsedFirst = 2,
-  HighLuminanceFirst=3,
-  LowLuminanceFirst=4,
-}
-
 public class SingleImageHiColorGifConverter {
   
   public TimeSpan? TotalFrameDuration { get; set; }
@@ -160,8 +138,9 @@ public class SingleImageHiColorGifConverter {
              (this.ColorOrdering switch {
                ColorOrderingMode.MostUsedFirst => histogram.OrderByDescending(kvp => kvp.Value.Count).Select(kvp => kvp.Key),
                ColorOrderingMode.LeastUsedFirst => histogram.OrderBy(kvp => kvp.Value.Count).Select(kvp => kvp.Key),
-               ColorOrderingMode.HighLuminanceFirst => histogram.Select(kvp => kvp.Key).OrderByDescending(c => c.GetLuminance()),
-               ColorOrderingMode.LowLuminanceFirst => histogram.Select(kvp => kvp.Key).OrderBy(c => c.GetLuminance()),
+               ColorOrderingMode.HighLuminanceFirst => histogram.Keys.OrderByDescending(c => c.GetLuminance()),
+               ColorOrderingMode.LowLuminanceFirst => histogram.Keys.OrderBy(c => c.GetLuminance()),
+               ColorOrderingMode.Random => histogram.Keys.Randomize(),
                _ => histogram.Select(kvp => kvp.Key).Randomize()
              })) {
       result[index++] = color;
