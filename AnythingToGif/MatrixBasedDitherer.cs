@@ -27,53 +27,66 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     --this._shift;
   }
 
-  public static IDitherer FloydSteinberg { get; } = new MatrixBasedDitherer(new byte[,] { 
-    { 0, 0, 7 }, 
+  private const byte X = 0;
+
+  public static IDitherer FloydSteinberg { get; } = new MatrixBasedDitherer(new byte[,] {
+    { 0, X, 7 },
     { 3, 5, 1 }
   }, 16);
 
+  public static IDitherer FSEqual { get; } = new MatrixBasedDitherer(new byte[,] {
+    { 0, X, 4 },
+    { 4, 4, 4 }
+  }, 16);
+
   public static IDitherer Simple { get; } = new MatrixBasedDitherer(new byte[,] {
-    { 0, 1 }
+    { X, 1 }
   }, 1);
 
   public static IDitherer JarvisJudiceNinke { get; } = new MatrixBasedDitherer(new byte[,] {
-    { 0, 0, 0, 7, 5 },
+    { 0, 0, X, 7, 5 },
     { 3, 5, 7, 5, 3 },
     { 1, 3, 5, 3, 1 }
   }, 48);
 
   public static IDitherer Stucki { get; } = new MatrixBasedDitherer(new byte[,] {
-    { 0, 0, 0, 8, 4 },
+    { 0, 0, X, 8, 4 },
     { 2, 4, 8, 4, 2 },
     { 1, 2, 4, 2, 1 }
   }, 42);
 
   public static IDitherer Atkison { get; } = new MatrixBasedDitherer(new byte[,] {
-    { 0, 0, 1, 1 },
+    { 0, X, 1, 1 },
     { 1, 1, 1, 0 },
     { 0, 1, 0, 0 }
   }, 8);
 
   public static IDitherer Burkes { get; } = new MatrixBasedDitherer(new byte[,] {
-    { 0, 0, 0, 8, 4 },
+    { 0, 0, X, 8, 4 },
     { 2, 4, 8, 4, 2 }
   }, 32);
 
   public static IDitherer Sierra { get; } = new MatrixBasedDitherer(new byte[,] {
-    { 0, 0, 0, 5, 3 },
+    { 0, 0, X, 5, 3 },
     { 2, 4, 5, 4, 2 },
     { 0, 2, 3, 2, 0 }
   }, 32);
 
   public static IDitherer TwoRowSierra { get; } = new MatrixBasedDitherer(new byte[,] {
-    { 0, 0, 0, 4, 3 },
+    { 0, 0, X, 4, 3 },
     { 1, 2, 3, 2, 1 }
   }, 16);
 
   public static IDitherer SierraLite { get; } = new MatrixBasedDitherer(new byte[,] {
-    { 0, 0, 2 },
+    { 0, X, 2 },
     { 1, 1, 0 }
   }, 4);
+
+  public static IDitherer Pigeon { get; } = new MatrixBasedDitherer(new byte[,] {
+    { 0, 0, X, 2, 1 },
+    { 0, 2, 2, 2, 0 },
+    { 1, 0, 1, 0, 1 }
+  }, 14);
 
   public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette) {
     var width = source.Width;

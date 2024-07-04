@@ -65,6 +65,7 @@ Further Links for this part:
 Dithering techniques are applied to ensure the first frame provides a good base image. Methods include:
 
 - [X] [Floyd-Steinberg](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering)
+- [X] [Floyd-Steinberg (equally distributed)](https://github.com/kgjenkins/dither-dream)
 - [X] [Jarvis, Judice, and Ninke](https://www.graphicsacademy.com/what_ditherjarvis.php) [[1](https://www.researchgate.net/figure/Difference-between-Jarvis-Judice-and-Ninke-and-Floyd-Steinberg-results-from-watch-input_fig3_342085636)]
 - [X] Stucki
 - [X] Atkinson
@@ -72,8 +73,9 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [X] Sierra
 - [X] Two-Row Sierra
 - [X] Sierra Lite
+- [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
 - [ ] [Riemersma](https://www.compuphase.com/riemer.htm)
-- [ ] Bayer-Matrix
+- [ ] [Bayer-Matrix](https://github.com/dmnsgn/bayer)
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
 
