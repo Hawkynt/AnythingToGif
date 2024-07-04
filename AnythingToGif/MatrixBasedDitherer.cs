@@ -5,58 +5,72 @@ using System.Drawing.Imaging;
 using AnythingToGif;
 
 public readonly struct MatrixBasedDitherer : IDitherer {
-  private readonly int[,] _matrix;
-  private readonly int _divider;
+  private readonly byte[,] _matrix;
+  private readonly byte _divisor;
+  private readonly byte _shift;
+  private readonly byte _rowCount;
+  private readonly byte _columnCount;
 
-  private MatrixBasedDitherer(int[,] matrix, int divider) {
+  private MatrixBasedDitherer(byte[,] matrix, byte divisor) {
     this._matrix = matrix;
-    this._divider = divider;
+    this._divisor = divisor;
+    this._rowCount = (byte)this._matrix.GetLength(0);
+    this._columnCount = (byte)this._matrix.GetLength(1);
+
+    // find the column where the current pixel would be mapped to
+    for (var i = 0; i < this._columnCount; ++i)
+      if (matrix[0, i] == 0)
+        ++this._shift;
+      else
+        break;
+    
+    --this._shift;
   }
 
-  public static IDitherer FloydSteinberg { get; } = new MatrixBasedDitherer(new[,] { 
+  public static IDitherer FloydSteinberg { get; } = new MatrixBasedDitherer(new byte[,] { 
     { 0, 0, 7 }, 
     { 3, 5, 1 }
   }, 16);
 
-  public static IDitherer Simple { get; } = new MatrixBasedDitherer(new[,] {
+  public static IDitherer Simple { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, 1 }
   }, 1);
 
-  public static IDitherer JarvisJudiceNinke { get; } = new MatrixBasedDitherer(new[,] {
+  public static IDitherer JarvisJudiceNinke { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, 0, 0, 7, 5 },
     { 3, 5, 7, 5, 3 },
     { 1, 3, 5, 3, 1 }
   }, 48);
 
-  public static IDitherer Stucki { get; } = new MatrixBasedDitherer(new[,] {
+  public static IDitherer Stucki { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, 0, 0, 8, 4 },
     { 2, 4, 8, 4, 2 },
     { 1, 2, 4, 2, 1 }
   }, 42);
 
-  public static IDitherer Atkison { get; } = new MatrixBasedDitherer(new[,] {
+  public static IDitherer Atkison { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, 0, 1, 1 },
     { 1, 1, 1, 0 },
     { 0, 1, 0, 0 }
   }, 8);
 
-  public static IDitherer Burkes { get; } = new MatrixBasedDitherer(new[,] {
+  public static IDitherer Burkes { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, 0, 0, 8, 4 },
     { 2, 4, 8, 4, 2 }
   }, 32);
 
-  public static IDitherer Sierra { get; } = new MatrixBasedDitherer(new[,] {
+  public static IDitherer Sierra { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, 0, 0, 5, 3 },
     { 2, 4, 5, 4, 2 },
     { 0, 2, 3, 2, 0 }
   }, 32);
 
-  public static IDitherer TwoRowSierra { get; } = new MatrixBasedDitherer(new[,] {
+  public static IDitherer TwoRowSierra { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, 0, 0, 4, 3 },
     { 1, 2, 3, 2, 1 }
   }, 16);
 
-  public static IDitherer SierraLite { get; } = new MatrixBasedDitherer(new[,] {
+  public static IDitherer SierraLite { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, 0, 2 },
     { 1, 1, 0 }
   }, 4);
@@ -67,29 +81,33 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     var stride = target.Stride;
     var data = (byte*)target.Scan0;
     var errors = new RgbError[width, height];
+    var divisor = this._divisor;
+    
+    for (var y = 0; y < height; ++y) {
+      var offset = y * stride;
+      for (var x = 0; x < width; ++offset, ++x) {
+        var oldColor = source[x, y];
 
-    for (var y = 0; y < height; y++)
-    for (var x = 0; x < width; x++) {
-      var oldColor = source[x, y];
+        // Apply the accumulated error to the current pixel
+        var correctedColor = Color.FromArgb(
+          Clamp(oldColor.R + errors[x, y].red / divisor),
+          Clamp(oldColor.G + errors[x, y].green / divisor),
+          Clamp(oldColor.B + errors[x, y].blue / divisor)
+        );
 
-      // Apply the accumulated error to the current pixel
-      var correctedColor = Color.FromArgb(
-        Clamp(oldColor.R + errors[x, y].red),
-        Clamp(oldColor.G + errors[x, y].green),
-        Clamp(oldColor.B + errors[x, y].blue)
-      );
+        var closestColorIndex = (byte)palette.FindClosestColorIndex(correctedColor);
 
-      var closestColorIndex = (byte)palette.FindClosestColorIndex(correctedColor);
-      var newColor = palette[closestColorIndex];
-      data[y * stride + x] = closestColorIndex;
+        var newColor = palette[closestColorIndex];
+        data[offset] = closestColorIndex;
 
-      var quantError = new RgbError {
-        red = correctedColor.R - newColor.R,
-        green = correctedColor.G - newColor.G,
-        blue = correctedColor.B - newColor.B
-      };
+        var quantError = new RgbError {
+          red = (short)(correctedColor.R - newColor.R),
+          green = (short)(correctedColor.G - newColor.G),
+          blue = (short)(correctedColor.B - newColor.B)
+        };
 
-      this.DistributeError(errors, x, y, quantError, width, height);
+        this._DistributeError(errors, x, y, quantError, width, height);
+      }
     }
 
     return;
@@ -98,28 +116,41 @@ public readonly struct MatrixBasedDitherer : IDitherer {
 
   }
 
-  // TODO: something seems off here with center index
-  private void DistributeError(RgbError[,] errors, int x, int y, RgbError error, int width, int height) {
-    var rowCount = this._matrix.GetLength(0);
-    var columnCount = this._matrix.GetLength(1);
-    for (var row = 0; row < rowCount; ++row) {
-      for (var column = 0; column < columnCount; ++column) {
-        var newX = x + column - 1;
-        var newY = y + row;
-        if (newX < 0 || newX >= width || newY < 0 || newY >= height)
-          continue;
+  private void _DistributeError(RgbError[,] errors, int x, int y, RgbError error, int width, int height) {
+    var rowCount = this._rowCount;
+    var columnCount = this._columnCount;
+    var shift = this._shift;
 
-        errors[newX, newY].red += error.red * this._matrix[row, column] / this._divider;
-        errors[newX, newY].green += error.green * this._matrix[row, column] / this._divider;
-        errors[newX, newY].blue += error.blue * this._matrix[row, column] / this._divider;
+    for (var row = 0; row < rowCount; ++row) {
+      var newY = y + row;
+      if (newY < 0)
+        continue;
+      if (newY >= height)
+        break;
+
+      for (var column = 0; column < columnCount; ++column) {
+        var newX = x + column - shift;
+        if (newX < 0)
+          continue;
+        if (newX >= width)
+          break;
+
+        var errorDiffusionFactor = this._matrix[row, column];
+        errors[newX, newY].MultiplyAdd(error, errorDiffusionFactor);
       }
     }
   }
 
   private struct RgbError {
-    public int red;
-    public int green;
-    public int blue;
+    public short red;
+    public short green;
+    public short blue;
+
+    public void MultiplyAdd(RgbError other, short factor) {
+      this.red = other.red.FusedMultiplyAdd(factor, this.red);
+      this.green = other.green.FusedMultiplyAdd(factor, this.green);
+      this.blue = other.blue.FusedMultiplyAdd(factor, this.blue);
+    }
   }
 
 }
