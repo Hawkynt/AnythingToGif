@@ -208,10 +208,10 @@ public static class Writer {
         bmpData = frame.LockBits(new(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
         var rowPointer = (byte*)bmpData.Scan0;
         if (bmpData.Stride == width)
-          new ReadOnlySpan<byte>(rowPointer, width * height).CopyTo(new(offset, width * height));
+          Buffer.MemoryCopy(rowPointer, offset, width * height, width * height);
         else
           for (var y = 0; y < height; ++y) {
-            new ReadOnlySpan<byte>(rowPointer, width).CopyTo(new(offset, width));
+            Buffer.MemoryCopy(rowPointer, offset, width, width);
             offset += width;
             rowPointer += bmpData.Stride;
           }

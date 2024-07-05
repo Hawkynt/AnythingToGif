@@ -3,18 +3,14 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using AnythingToGif;
+using FFmpeg.AutoGen;
 
 class Program {
   static void Main() {
 
+    ffmpeg.RootPath += "\\ffmpeg";
+    
     var examplesDirectory = new DirectoryInfo("Examples");
-    var f = new FileInfo(@"\\de05profiles\profiles$\de5129\Desktop\test.mp4");
-
-    var i = 0;
-    foreach(var frame in VideoFrameExtractor.GetFrames(f))
-      frame.frame.SaveToPng(examplesDirectory.File($"{f.Name}{(++i)}({frame.duration.TotalMilliseconds}ms).png"));
-
-
     foreach (var file in examplesDirectory.EnumerateFiles().Where(i=>i.Extension.IsAnyOf(".jpg",".png",".bmp",".tif")))
       ProcessFile(file);
 
