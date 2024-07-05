@@ -13,11 +13,11 @@ class Program {
     ffmpeg.RootPath += "\\ffmpeg";
     
     var examplesDirectory = new DirectoryInfo("Examples");
+    foreach (var file in examplesDirectory.EnumerateFiles().Where(i => i.Extension.IsAnyOf(".avi", ".xvid", ".divx", ".mpg", ".mp2", ".mp4", ".mkv")))
+      ProcessVideoFile(file);
     foreach (var file in examplesDirectory.EnumerateFiles().Where(i => i.Extension.IsAnyOf(".jpg", ".png", ".bmp", ".tif")))
       ProcessImageFile(file);
-    foreach (var file in examplesDirectory.EnumerateFiles().Where(i => i.Extension.IsAnyOf(".avi",".xvid",".divx",".mpg",".mp2",".mp4",".mkv")))
-      ProcessVideoFile(file);
-
+    
     return;
 
     static void ProcessVideoFile(FileInfo inputFile) {
@@ -27,7 +27,6 @@ class Program {
 
       var converter = new SingleImageHiColorGifConverter {
         FirstSubImageInitsBackground = true,
-        Quantizer = new OctreeQuantizer(),
         Ditherer = MatrixBasedDitherer.FloydSteinberg,
         UseBackFilling = false,
         ColorOrdering = ColorOrderingMode.MostUsedFirst
@@ -58,6 +57,8 @@ class Program {
         var durationDelta = TimeSpan.Zero; /* this is for keeping track how much we're behind actual timecodes in the video because of gif frame limits */
         foreach (var (image, duration) in FrameServer()) {
           dimensions ??= new() { Width = (ushort)image.Width, Height = (ushort)image.Height };
+
+          converter.Quantizer = new OctreeQuantizer();
           converter.TotalFrameDuration = duration + durationDelta; /* if we're too early, keep displaying frames longer */
           Console.WriteLine($"Processing frame {++i}");
 

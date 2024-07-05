@@ -31,6 +31,9 @@ public class MedianCutQuantizer : QuantizerBase {
     public Color AverageColor => this.GetAverageColor();
 
     private int GetVolume() {
+      if(this.colors.Count==0) 
+        return 0;
+
       int rMin = this.colors.Min(c => c.R);
       int rMax = this.colors.Max(c => c.R);
       int gMin = this.colors.Min(c => c.G);
@@ -41,6 +44,9 @@ public class MedianCutQuantizer : QuantizerBase {
     }
 
     private Color GetAverageColor() {
+      if (this.colors.Count == 0) 
+        return Color.Black;
+
       var r = (int)this.colors.Average(c => c.R);
       var g = (int)this.colors.Average(c => c.G);
       var b = (int)this.colors.Average(c => c.B);

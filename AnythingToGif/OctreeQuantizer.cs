@@ -47,17 +47,21 @@ public class OctreeQuantizer : QuantizerBase {
   }
 
   private void _MergeLeast(Node currentNode, uint minCount, uint maxColors) {
-    if (currentNode.ReferencesCount > minCount || this._colorsCount == maxColors)
+    if (currentNode.ReferencesCount > minCount || this._colorsCount <= maxColors)
       return;
 
     for (var i = 0; i < currentNode.Children.Length; ++i) {
       var childNode = currentNode.Children[i];
-      if (childNode is { ChildrenCount: > 0 }) {
-        this._MergeLeast(childNode, minCount, maxColors);
-        continue;
+      switch (childNode) {
+        case null:
+          continue;
+        case { ChildrenCount: > 0 }:
+          this._MergeLeast(childNode, minCount, maxColors);
+          continue;
       }
 
-      if (childNode == null || currentNode.ReferencesCount > minCount)
+      // still too many references, need to merge more children
+      if (currentNode.ReferencesCount > minCount)
         continue;
 
       currentNode.PixelCount += childNode.PixelCount;
