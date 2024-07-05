@@ -12,7 +12,8 @@ using Gif;
 public class SingleImageHiColorGifConverter {
 
   public TimeSpan? TotalFrameDuration { get; set; }
-  public TimeSpan MinimumSubImageDuration { get; set; }
+  public TimeSpan MinimumSubImageDuration { get; set; }=TimeSpan.FromMilliseconds(10);
+  public TimeSpan SubImageDurationTimeSlice { get; set; } = TimeSpan.FromMilliseconds(10);
   public IQuantizer? Quantizer { get; set; }
   public IDitherer Ditherer { get; set; } = NoDitherer.Instance;
   public ColorOrderingMode ColorOrdering { get; set; } = ColorOrderingMode.MostUsedFirst;
@@ -20,12 +21,11 @@ public class SingleImageHiColorGifConverter {
   public bool FirstSubImageInitsBackground { get; set; }
   public bool UseBackFilling { get; set; }
 
-  public void Convert(Bitmap image, FileInfo outputFile) {
-    var histogram = SingleImageHiColorGifConverter._CreateHistogram(image).ToFrozenDictionary();
+  public IEnumerable<Frame> Convert(Bitmap image) {
+    var histogram = image.CreateHistogram().ToFrozenDictionary();
     var subImages = this._CreateSubImages(image, histogram).ToArray();
     AdjustLastFrameDurationIfNeeded();
-    this._WriteGif(outputFile, (Dimensions)image.Size, subImages);
-    return;
+    return subImages;
 
     void AdjustLastFrameDurationIfNeeded() {
       var totalFrameDuration = this.TotalFrameDuration;
@@ -36,7 +36,12 @@ public class SingleImageHiColorGifConverter {
       if (totalFrameTime >= totalFrameDuration.Value)
         return;
 
-      subImages[^1] = subImages[^1] with { Duration = totalFrameDuration.Value - totalFrameTime + subImages[^1].Duration };
+      var duration = totalFrameDuration.Value - totalFrameTime + subImages[^1].Duration;
+      var sliceTime = this.SubImageDurationTimeSlice;
+      if (sliceTime.Ticks != 0)
+        duration = TimeSpan.FromTicks(duration.Ticks / sliceTime.Ticks * sliceTime.Ticks);
+
+      subImages[^1] = subImages[^1] with { Duration = duration };
     }
   }
 
@@ -173,22 +178,5 @@ public class SingleImageHiColorGifConverter {
 
     return result;
   }
-
-  private static IDictionary<Color, ICollection<Point>> _CreateHistogram(Bitmap image) {
-    var result = new Dictionary<Color, ICollection<Point>>();
-
-    using var worker = image.Lock(ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-    var width = image.Width;
-    var height = image.Height;
-
-    for (var y = 0; y < height; ++y)
-    for (var x = 0; x < width; ++x)
-      result.GetOrAdd(worker[x, y], _ => []).Add(new(x, y));
-
-
-    return result;
-  }
-
-  private void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames) => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet);
 
 }
