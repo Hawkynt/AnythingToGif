@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using AnythingToGif;
+using BitmapExtensions = System.Drawing.BitmapExtensions;
 
 public readonly record struct NoDitherer : IDitherer {
   

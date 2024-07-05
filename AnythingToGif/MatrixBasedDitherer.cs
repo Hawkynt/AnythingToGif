@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using AnythingToGif;
+using BitmapExtensions = System.Drawing.BitmapExtensions;
 
 public readonly struct MatrixBasedDitherer : IDitherer {
   private readonly byte[,] _matrix;
