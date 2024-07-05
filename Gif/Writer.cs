@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 
 public static class Writer {
-  
+
   private const byte GCT_PRESENT = 0x80;
   private const byte EXTENSION_INTRODUCER = 0x21;
   private const byte APPLICATION_EXTENSION = 0xFF;
@@ -21,19 +22,19 @@ public static class Writer {
   private const byte IMAGE_SEPARATOR = 0x2C;
   private const byte FILE_TERMINATOR = 0x3B;
 
-  public static void ToFile(FileInfo outputFile, Dimensions dimensions, IEnumerable<Frame> frames,  LoopCount loopCount, byte backgroundColorIndex = 0, ColorResolution colorResolution = ColorResolution.Colored256, IReadOnlyList<Color>? globalColorTable = null) {
+  public static void ToFile(FileInfo outputFile, Dimensions dimensions, IEnumerable<Frame> frames, LoopCount loopCount, byte backgroundColorIndex = 0, ColorResolution colorResolution = ColorResolution.Colored256, IReadOnlyList<Color>? globalColorTable = null, bool allowCompression = false) {
     ArgumentNullException.ThrowIfNull(outputFile);
     ArgumentNullException.ThrowIfNull(frames);
 
     var allFrames = frames.ToImmutableList();
-    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(allFrames.MinOrDefault(f=>f.Duration.TotalMilliseconds,1));
+    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(allFrames.MinOrDefault(f => f.Duration.TotalMilliseconds, 1));
 
     using var token = outputFile.StartWorkInProgress();
     using var stream = token.Open(FileAccess.Write);
-    using var writer = new BinaryWriter(stream); 
-    
+    using var writer = new BinaryWriter(stream);
+
     Writer._WriteHeader(writer);
-    Writer._WriteLogicalScreenDescriptor(writer, dimensions, backgroundColorIndex, (byte)colorResolution, globalColorTable,0);
+    Writer._WriteLogicalScreenDescriptor(writer, dimensions, backgroundColorIndex, (byte)colorResolution, globalColorTable, 0);
 
     if (globalColorTable is { Count: > 0 })
       Writer._WriteColorTable(writer, globalColorTable);
@@ -55,52 +56,58 @@ public static class Writer {
         Writer._WriteImageDescriptor(writer, frameSize, frame.Offset, false, 0);
 
       var indexedData = Writer._CopyImageToArray(frame.Image, bufferForImageData);
-      Writer._WriteImageDataUncompressed(writer, indexedData);
+
+      Writer._WriteImageData(writer, indexedData, allowCompression, 8);
     }
 
     Writer._WriteTrailer(writer);
   }
 
-  private static void _WriteImageDataUncompressed(BinaryWriter writer, ReadOnlySpan<byte> buffer) {
-    const int MAX_CHUNKSIZE = 255;
+  private static void _WriteImageData(BinaryWriter writer, ReadOnlySpan<byte> indexedData, bool allowCompression, byte bitsPerPixel) {
+    writer.Write(bitsPerPixel);
+    
+    if (allowCompression)
+      Writer._WriteImageDataCompressed(writer, indexedData, bitsPerPixel);
+    else
+      Writer._WriteImageDataUncompressed(writer, indexedData, bitsPerPixel);
+    
+    writer.Write(Writer.BLOCK_TERMINATOR);
+  }
+
+  private static void _WriteImageDataUncompressed(BinaryWriter writer, ReadOnlySpan<byte> buffer, byte bitsPerPixel) {
+    const byte MAX_CHUNKSIZE = 255;
 
     ushort bitBuffer = 0;
     byte bitCount = 0;
 
-    var chunkBuffer = new byte[MAX_CHUNKSIZE + 1];
+    var chunkBuffer = new byte[MAX_CHUNKSIZE];
     var chunkIndex = 0;
-    
-    const byte minCodeSize = 8; // The Minimum Code Size (8 bits per pixel)
-    writer.Write(minCodeSize);
 
-    // Calculate the clear code and EOI code
-    const ushort clearCode = 1 << minCodeSize; // 256
-    const ushort eoiCode = clearCode + 1;      // 257
+    var clearCode = (ushort)(1 << bitsPerPixel);
+    var eoiCode = (ushort)(clearCode + 1);
 
     // Write each pixel value directly as an LZW code (abusing the LZW algorithm)
+    var currentEncodingBitCount = (byte)(bitsPerPixel + 1);
+
     var i = 0;
     foreach (var pixel in buffer) {
+      if (i++ % (512 /* the first entry where 9 bits wouldn't be enough */ - eoiCode - 1) /* so we don't interfere with table generation on the decoder side */ == 0)
+        WriteBits(clearCode);
 
-      // Write the clear code to initialize the LZW decoder
-      if (i++ % 250 /* so we don't interfere with table generation on the decoder side */ == 0)
-        WriteBits(clearCode, minCodeSize + 1);
-
-      WriteBits(pixel, minCodeSize + 1);
+      WriteBits(pixel);
     }
 
     // Write the end-of-information code
-    WriteBits(eoiCode, minCodeSize + 1);
+    WriteBits(eoiCode);
 
     FlushBits();
     FlushBuffer();
 
-    writer.Write(Writer.BLOCK_TERMINATOR);
-
     return;
 
-    void WriteBits(ushort bits, byte size) {
+    void WriteBits(ushort bits) {
       bitBuffer |= (ushort)(bits << bitCount);
-      bitCount += size;
+      bitCount += currentEncodingBitCount;
       while (bitCount >= 8) {
         chunkBuffer[chunkIndex++] = (byte)(bitBuffer & 0xFF);
         bitBuffer >>= 8;
@@ -109,7 +116,7 @@ public static class Writer {
         if (chunkIndex < MAX_CHUNKSIZE)
           continue;
 
-        writer.Write((byte)MAX_CHUNKSIZE); // Write chunk size
+        writer.Write(MAX_CHUNKSIZE); // Write chunk size
         writer.Write(chunkBuffer, 0, MAX_CHUNKSIZE); // Write chunk data
         chunkIndex -= MAX_CHUNKSIZE; // Reset chunk index
       }
@@ -128,6 +135,106 @@ public static class Writer {
       writer.Write(chunkBuffer, 0, chunkIndex); // Write remaining chunk data
     }
   }
+
+  [DebuggerDisplay($"{{{nameof(Trie.Key)}}}")]
+  private class Trie(ushort k) {
+    public ushort Key => k;
+    private readonly Trie?[] Children = new Trie[256];
+
+    public Trie? GetValueOrNull(ushort key) => this.Children[key];
+    public void AddOrUpdate(ushort key, Trie value) => this.Children[key] = value;
+
+  }
+
+  private static void _WriteImageDataCompressed(BinaryWriter writer, ReadOnlySpan<byte> buffer, byte bitsPerPixel) {
+    const byte MAX_CHUNKSIZE = 255;
+    
+    uint bitBuffer = 0;
+    byte bitCount = 0;
+    
+    var chunkBuffer = new byte[MAX_CHUNKSIZE];
+    var chunkIndex = 0;
+
+    var clearCode = (ushort)(1 << bitsPerPixel);
+    var eoiCode = (ushort)(clearCode + 1);
+    
+    Trie root;
+    var node = root = InitializeDictionary(out var nextCode, out var currentEncodingBitCount);
+    WriteBits(clearCode);
+
+    foreach (var pixel in buffer) {
+      var child = node.GetValueOrNull(pixel);
+      if (child != null) {
+        node = child;
+        continue;
+      }
+
+      WriteBits(node.Key);
+      node.AddOrUpdate(pixel, new(nextCode++));
+
+      if (nextCode >= (1 << currentEncodingBitCount))
+        ++currentEncodingBitCount;
+
+      if (nextCode >= 4096) {
+        WriteBits(clearCode);
+        root = InitializeDictionary(out nextCode, out currentEncodingBitCount);
+      }
+
+      node = root.GetValueOrNull(pixel)!;
+    }
+
+    WriteBits(node.Key);
+    WriteBits(eoiCode);
+
+    FlushBits();
+    FlushBuffer();
+    
+    return;
+
+    Trie InitializeDictionary(out ushort nextAvailableCodePoint, out byte bitsNeededForEncoding) {
+      var result = new Trie(clearCode);
+      for (ushort i = 0; i < clearCode; ++i)
+        result.AddOrUpdate(i, new(i));
+
+      nextAvailableCodePoint = (ushort)(eoiCode + 1);
+      bitsNeededForEncoding = (byte)(bitsPerPixel + 1);
+
+      return result;
+    }
+
+    void WriteBits(ushort value) {
+      var mask = (1 << currentEncodingBitCount) - 1;
+      bitBuffer |= (uint)(value & mask ) << bitCount;
+      bitCount += currentEncodingBitCount;
+      while (bitCount >= 8) {
+        chunkBuffer[chunkIndex++] = (byte)(bitBuffer & 0xFF);
+        bitBuffer >>= 8;
+        bitCount -= 8;
+
+        if (chunkIndex < MAX_CHUNKSIZE)
+          continue;
+
+        writer.Write(MAX_CHUNKSIZE); // Write chunk size
+        writer.Write(chunkBuffer, 0, MAX_CHUNKSIZE); // Write chunk data
+        chunkIndex -= MAX_CHUNKSIZE; // Reset chunk index
+      }
+    }
+
+    void FlushBits() {
+      if (bitCount > 0)
+        chunkBuffer[chunkIndex++] = (byte)bitBuffer;
+    }
+
+    void FlushBuffer() {
+      if (chunkIndex <= 0)
+        return;
+
+      writer.Write((byte)chunkIndex); // Write remaining chunk size
+      writer.Write(chunkBuffer, 0, chunkIndex); // Write remaining chunk data
+    }
+
+  }
+
 
   private static void _WriteApplicationExtension(BinaryWriter writer, ushort loopCount) {
     writer.Write(Writer.EXTENSION_INTRODUCER); // Extension Introducer
@@ -227,7 +334,7 @@ public static class Writer {
     }
   }
 
-  private static (byte bitCountMinusOne, int numberOfEntries) _GetColorTableSize(int usedEntryCount) 
+  private static (byte bitCountMinusOne, int numberOfEntries) _GetColorTableSize(int usedEntryCount)
     => usedEntryCount switch {
       < 0 => throw new ArgumentOutOfRangeException(nameof(usedEntryCount)),
       <= 2 => (0, 2),

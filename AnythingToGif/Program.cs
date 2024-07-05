@@ -56,7 +56,7 @@ class Program {
         var i = 0;
         var durationDelta = TimeSpan.Zero; /* this is for keeping track how much we're behind actual timecodes in the video because of gif frame limits */
         foreach (var (image, duration) in FrameServer()) {
-          dimensions ??= new() { Width = (ushort)image.Width, Height = (ushort)image.Height };
+          dimensions ??= new(image.Width,image.Height);
 
           converter.Quantizer = new OctreeQuantizer();
           converter.TotalFrameDuration = duration + durationDelta; /* if we're too early, keep displaying frames longer */
@@ -102,7 +102,7 @@ class Program {
     }
 
 
-    static void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames) => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet);
+    static void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames) => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: false);
 
   }
 }

@@ -96,6 +96,10 @@ Further Links for this part:
 
 Due to the nature of this application, **AnythingToGif** requires fine-grained control over the bytes written to disk. This includes managing local palettes, transparency, frame delays, and frame disposal methods. To achieve this level of precision, the tool incorporates its own GIF writing code, built directly from the GIF specifications. This custom code ensures that every aspect of the GIF format is meticulously handled, allowing for the creation of high-color images and smooth animations. The output is rigorously checked using various GIF debugging tools, ensuring compatibility and optimal performance across different platforms and browsers.
 
+- [X] [Uncompressed Images](https://github.com/Distrotech/libungif/blob/master/UNCOMPRESSED_GIF)
+- [ ] [LZW Compression](https://giflib.sourceforge.net/whatsinagif/lzw_image_data.html)
+- [ ] [Optimized compression](https://create.stephan-brumme.com/flexigif-lossless-gif-lzw-optimization/)
+
 Further Links for this part:
 
 - [GIF Specs](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)
@@ -114,5 +118,5 @@ Reducing the number of distinct colors in the image can also help manage file si
 
 When converting video, AnythingToGif processes changed areas from frame to frame, introducing new frames as necessary using the same algorithms applied to still images. This ensures high-quality color reproduction and smooth transitions at the cost of a higher framerate whenever needed.
 
-- [ ] Frame extrapolation
+- [X] Frame extrapolation
 - [ ] Switching between constant fps inserting dummy frames as needed or variable frame rate

@@ -6,14 +6,15 @@ using System.Drawing;
 public readonly record struct Offset(ushort X, ushort Y) {
   public static Offset None = new(0, 0);
 
-  public static Offset FromPoint(Point point) {
-    ArgumentOutOfRangeException.ThrowIfNegative(point.X,nameof(point));
-    ArgumentOutOfRangeException.ThrowIfNegative(point.Y, nameof(point));
-    ArgumentOutOfRangeException.ThrowIfGreaterThan(point.X,ushort.MaxValue, nameof(point));
-    ArgumentOutOfRangeException.ThrowIfGreaterThan(point.Y, ushort.MaxValue, nameof(point));
-    return new((ushort)point.X, (ushort)point.Y);
+  public Offset(int x, int y) : this((ushort)x, (ushort)y) {
+    ArgumentOutOfRangeException.ThrowIfNegative(x);
+    ArgumentOutOfRangeException.ThrowIfNegative(y);
+    ArgumentOutOfRangeException.ThrowIfGreaterThan(x, ushort.MaxValue);
+    ArgumentOutOfRangeException.ThrowIfGreaterThan(y, ushort.MaxValue);
   }
 
-  public static explicit operator Offset(Point point) => FromPoint(point);
+  public static Offset FromPoint(Point point) => new(point.X, point.Y);
+
+  public static explicit operator Offset(Point point) => Offset.FromPoint(point);
 
 }
