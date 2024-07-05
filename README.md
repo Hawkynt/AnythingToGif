@@ -84,6 +84,14 @@ Further Links for this part:
 - [Dithering Matrices](https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html)
 - [DitherPunk](https://surma.dev/things/ditherpunk/)
 
+### Color distance calculation
+
+- [X]  [Weighted Euclidean](https://www.compuphase.com/cmetric.htm)
+
+Further Links for this part:
+
+- [Wikipedia](https://en.wikipedia.org/wiki/Color_difference)
+
 ### GIF Format
 
 Due to the nature of this application, **AnythingToGif** requires fine-grained control over the bytes written to disk. This includes managing local palettes, transparency, frame delays, and frame disposal methods. To achieve this level of precision, the tool incorporates its own GIF writing code, built directly from the GIF specifications. This custom code ensures that every aspect of the GIF format is meticulously handled, allowing for the creation of high-color images and smooth animations. The output is rigorously checked using various GIF debugging tools, ensuring compatibility and optimal performance across different platforms and browsers.
