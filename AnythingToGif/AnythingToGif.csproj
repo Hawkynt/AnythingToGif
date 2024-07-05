@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FFmpeg.AutoGen" Version="7.0.0" />
     <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.370" />
     <PackageReference Include="FrameworkExtensions.System.Drawing" Version="1.0.0.35" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0" />
