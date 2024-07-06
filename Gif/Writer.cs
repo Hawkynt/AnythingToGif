@@ -1,4 +1,6 @@
-﻿namespace Gif;
+﻿#define OPTIMIZE_MEMORY
+
+namespace Gif;
 
 using System;
 using System.Collections.Generic;
@@ -65,23 +67,68 @@ public static class Writer {
 
   private static void _WriteImageData(BinaryWriter writer, ReadOnlySpan<byte> indexedData, bool allowCompression, byte bitsPerPixel) {
     writer.Write(bitsPerPixel);
-    
+
     if (allowCompression)
       Writer._WriteImageDataCompressed(writer, indexedData, bitsPerPixel);
     else
       Writer._WriteImageDataUncompressed(writer, indexedData, bitsPerPixel);
-    
+
     writer.Write(Writer.BLOCK_TERMINATOR);
+  }
+  
+  private struct BitWriter(PacketWriter writer) {
+
+    private uint _buffer;
+    private byte _index;
+
+    public void Write(ushort value, byte numberOfBitsToWrite) {
+      // var mask = (1 << numberOfBitsToWrite) - 1;
+      // this._buffer |= (uint)(value & mask) << this._index;
+      this._buffer |= (uint)value << this._index;
+      this._index += numberOfBitsToWrite;
+      while (this._index >= 8) {
+        writer.Write((byte)(this._buffer & 0xFF));
+        this._buffer >>= 8;
+        this._index -= 8;
+      }
+    }
+
+    public void Flush() {
+      if (this._index > 0)
+        writer.Write((byte)this._buffer);
+
+      writer.Flush();
+    }
+  }
+
+  private struct PacketWriter(BinaryWriter writer) {
+
+    private const byte MAX_PACKET_SIZE = 255;
+    private readonly byte[] _buffer = new byte[MAX_PACKET_SIZE];
+    private int _index;
+
+    public void Write(byte value) {
+      this._buffer[this._index++] = value;
+
+      if (this._index < MAX_PACKET_SIZE)
+        return;
+
+      writer.Write(MAX_PACKET_SIZE); // Write chunk size
+      writer.Write(this._buffer, 0, MAX_PACKET_SIZE); // Write chunk data
+      this._index -= MAX_PACKET_SIZE; // Reset chunk index
+    }
+
+    public void Flush() {
+      if (this._index <= 0)
+        return;
+
+      writer.Write((byte)this._index); // Write remaining chunk size
+      writer.Write(this._buffer, 0, this._index); // Write remaining chunk data
+    }
+
   }
 
   private static void _WriteImageDataUncompressed(BinaryWriter writer, ReadOnlySpan<byte> buffer, byte bitsPerPixel) {
-    const byte MAX_CHUNKSIZE = 255;
-
-    ushort bitBuffer = 0;
-    byte bitCount = 0;
-
-    var chunkBuffer = new byte[MAX_CHUNKSIZE];
-    var chunkIndex = 0;
 
     var clearCode = (ushort)(1 << bitsPerPixel);
     var eoiCode = (ushort)(clearCode + 1);
@@ -89,78 +136,51 @@ public static class Writer {
     // Write each pixel value directly as an LZW code (abusing the LZW algorithm)
     var currentEncodingBitCount = (byte)(bitsPerPixel + 1);
 
+    var bitWriter = new BitWriter(new PacketWriter(writer));
+
     var i = 0;
     foreach (var pixel in buffer) {
       if (i++ % (512 /* the first entry where 9 bits wouldn't be enough */ - eoiCode - 1) /* so we don't interfere with table generation on the decoder side */ == 0)
-        WriteBits(clearCode);
+        bitWriter.Write(clearCode, currentEncodingBitCount);
 
-      WriteBits(pixel);
+      bitWriter.Write(pixel, currentEncodingBitCount);
     }
 
-    // Write the end-of-information code
-    WriteBits(eoiCode);
+    bitWriter.Write(eoiCode, currentEncodingBitCount);
+    bitWriter.Flush();
 
-    FlushBits();
-    FlushBuffer();
-
-    return;
-
-    void WriteBits(ushort bits) {
-      bitBuffer |= (ushort)(bits << bitCount);
-      bitCount += currentEncodingBitCount;
-      while (bitCount >= 8) {
-        chunkBuffer[chunkIndex++] = (byte)(bitBuffer & 0xFF);
-        bitBuffer >>= 8;
-        bitCount -= 8;
-
-        if (chunkIndex < MAX_CHUNKSIZE)
-          continue;
-
-        writer.Write(MAX_CHUNKSIZE); // Write chunk size
-        writer.Write(chunkBuffer, 0, MAX_CHUNKSIZE); // Write chunk data
-        chunkIndex -= MAX_CHUNKSIZE; // Reset chunk index
-      }
-    }
-
-    void FlushBits() {
-      if (bitCount > 0)
-        chunkBuffer[chunkIndex++] = (byte)bitBuffer;
-    }
-
-    void FlushBuffer() {
-      if (chunkIndex <= 0)
-        return;
-
-      writer.Write((byte)chunkIndex); // Write remaining chunk size
-      writer.Write(chunkBuffer, 0, chunkIndex); // Write remaining chunk data
-    }
   }
 
   [DebuggerDisplay($"{{{nameof(Trie.Key)}}}")]
   private class Trie(ushort k) {
     public ushort Key => k;
-    private readonly Trie?[] Children = new Trie[256];
 
-    public Trie? GetValueOrNull(ushort key) => this.Children[key];
-    public void AddOrUpdate(ushort key, Trie value) => this.Children[key] = value;
+#if OPTIMIZE_MEMORY
+
+    private readonly Dictionary<ushort, Trie> _children = new Dictionary<ushort, Trie>();
+    public Trie? GetValueOrNull(ushort key) => this._children.TryGetValue(key,out var result) ? result : null;
+    public void AddOrUpdate(ushort key, Trie value) => this._children[key] = value;
+
+#else
+
+    private readonly Trie?[] _children = new Trie[256];
+    public Trie? GetValueOrNull(ushort key) => this._children[key];
+    public void AddOrUpdate(ushort key, Trie value) => this._children[key] = value;
+
+#endif
 
   }
 
   private static void _WriteImageDataCompressed(BinaryWriter writer, ReadOnlySpan<byte> buffer, byte bitsPerPixel) {
-    const byte MAX_CHUNKSIZE = 255;
-    
-    uint bitBuffer = 0;
-    byte bitCount = 0;
-    
-    var chunkBuffer = new byte[MAX_CHUNKSIZE];
-    var chunkIndex = 0;
 
     var clearCode = (ushort)(1 << bitsPerPixel);
     var eoiCode = (ushort)(clearCode + 1);
-    
+
+    var bitWriter = new BitWriter(new PacketWriter(writer));
+
     Trie root;
     var node = root = InitializeDictionary(out var nextCode, out var currentEncodingBitCount);
-    WriteBits(clearCode);
+    bitWriter.Write(clearCode, currentEncodingBitCount);
 
     foreach (var pixel in buffer) {
       var child = node.GetValueOrNull(pixel);
@@ -169,26 +189,24 @@ public static class Writer {
         continue;
       }
 
-      WriteBits(node.Key);
+      bitWriter.Write(node.Key, currentEncodingBitCount);
       node.AddOrUpdate(pixel, new(nextCode++));
 
       if (nextCode >= (1 << currentEncodingBitCount))
         ++currentEncodingBitCount;
 
       if (nextCode >= 4096) {
-        WriteBits(clearCode);
         root = InitializeDictionary(out nextCode, out currentEncodingBitCount);
+        bitWriter.Write(clearCode, currentEncodingBitCount);
       }
 
       node = root.GetValueOrNull(pixel)!;
     }
 
-    WriteBits(node.Key);
-    WriteBits(eoiCode);
+    bitWriter.Write(node.Key, currentEncodingBitCount);
+    bitWriter.Write(eoiCode, currentEncodingBitCount);
+    bitWriter.Flush();
 
-    FlushBits();
-    FlushBuffer();
-    
     return;
 
     Trie InitializeDictionary(out ushort nextAvailableCodePoint, out byte bitsNeededForEncoding) {
@@ -202,40 +220,8 @@ public static class Writer {
       return result;
     }
 
-    void WriteBits(ushort value) {
-      var mask = (1 << currentEncodingBitCount) - 1;
-      bitBuffer |= (uint)(value & mask ) << bitCount;
-      bitCount += currentEncodingBitCount;
-      while (bitCount >= 8) {
-        chunkBuffer[chunkIndex++] = (byte)(bitBuffer & 0xFF);
-        bitBuffer >>= 8;
-        bitCount -= 8;
-
-        if (chunkIndex < MAX_CHUNKSIZE)
-          continue;
-
-        writer.Write(MAX_CHUNKSIZE); // Write chunk size
-        writer.Write(chunkBuffer, 0, MAX_CHUNKSIZE); // Write chunk data
-        chunkIndex -= MAX_CHUNKSIZE; // Reset chunk index
-      }
-    }
-
-    void FlushBits() {
-      if (bitCount > 0)
-        chunkBuffer[chunkIndex++] = (byte)bitBuffer;
-    }
-
-    void FlushBuffer() {
-      if (chunkIndex <= 0)
-        return;
-
-      writer.Write((byte)chunkIndex); // Write remaining chunk size
-      writer.Write(chunkBuffer, 0, chunkIndex); // Write remaining chunk data
-    }
-
   }
-
-
+  
   private static void _WriteApplicationExtension(BinaryWriter writer, ushort loopCount) {
     writer.Write(Writer.EXTENSION_INTRODUCER); // Extension Introducer
     writer.Write(Writer.APPLICATION_EXTENSION); // Application Extension Label
