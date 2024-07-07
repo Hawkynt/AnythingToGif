@@ -27,10 +27,7 @@ public static class Writer {
   public static void ToFile(FileInfo outputFile, Dimensions dimensions, IEnumerable<Frame> frames, LoopCount loopCount, byte backgroundColorIndex = 0, ColorResolution colorResolution = ColorResolution.Colored256, IReadOnlyList<Color>? globalColorTable = null, bool allowCompression = false) {
     ArgumentNullException.ThrowIfNull(outputFile);
     ArgumentNullException.ThrowIfNull(frames);
-
-    var allFrames = frames.ToImmutableList();
-    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(allFrames.MinOrDefault(f => f.Duration.TotalMilliseconds, 1));
-
+    
     using var token = outputFile.StartWorkInProgress();
     using var stream = token.Open(FileAccess.Write);
     using var writer = new BinaryWriter(stream);
@@ -46,7 +43,9 @@ public static class Writer {
 
     var bufferForImageData = new byte[dimensions.Width * dimensions.Height].AsSpan();
 
-    foreach (var frame in allFrames) {
+    foreach (var frame in frames) {
+      ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frame.Duration.TotalMilliseconds);
+      
       Writer._WriteGraphicsControlExtension(writer, frame.Duration, frame.Disposal, frame.TransparentColor);
 
       var frameSize = frame.Image.Size;
@@ -183,24 +182,24 @@ public static class Writer {
     bitWriter.Write(clearCode, currentEncodingBitCount);
 
     foreach (var pixel in buffer) {
-      var child = node.GetValueOrNull(pixel);
+      var K = pixel;
+
+      var child = node.GetValueOrNull(K);
       if (child != null) {
         node = child;
         continue;
       }
 
+      node.AddOrUpdate(K, new(nextCode++));
       bitWriter.Write(node.Key, currentEncodingBitCount);
-      node.AddOrUpdate(pixel, new(nextCode++));
-
-      if (nextCode >= (1 << currentEncodingBitCount))
-        ++currentEncodingBitCount;
 
       if (nextCode >= 4096) {
-        root = InitializeDictionary(out nextCode, out currentEncodingBitCount);
         bitWriter.Write(clearCode, currentEncodingBitCount);
-      }
+        root = InitializeDictionary(out nextCode, out currentEncodingBitCount);
+      } else if (nextCode >= (1 << currentEncodingBitCount))
+        ++currentEncodingBitCount;
 
-      node = root.GetValueOrNull(pixel)!;
+      node = root.GetValueOrNull(K)!;
     }
 
     bitWriter.Write(node.Key, currentEncodingBitCount);

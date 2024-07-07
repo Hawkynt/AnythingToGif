@@ -74,7 +74,7 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [X] Two-Row Sierra
 - [X] Sierra Lite
 - [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
-- [ ] [Riemersma](https://www.compuphase.com/riemer.htm)
+- [ ] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)]
 - [ ] [Bayer-Matrix](https://github.com/dmnsgn/bayer)
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
@@ -107,7 +107,8 @@ Further Links for this part:
 - [Online GIF Debugger](https://onlinegiftools.com/analyze-gif)
 - [GIF Checker](https://interglacial.com/pub/dr_gif_80g.pl)
 - [GIF Explorer](https://www.matthewflickinger.com/lab/whatsinagif/gif_explorer.asp)
-
+- [Palette Paper](https://iplab.dmi.unict.it/iplab/wp-content/uploads/2023/09/Animated_Gif_Optimization_By_Adaptive_Color_Local_Table_Management-1.pdf)
+- 
 ## Practical Considerations
 
 While high-color GIFs can accurately represent complex images, they often result in large file sizes due to the numerous frames required. One approach to mitigate this is to encode more image information into the first few frames, creating an approximation of the full image and refining it in subsequent frames. This results in larger files because fewer pixels are transparent, but it improves the visual quality of the initial rendering.
