@@ -76,6 +76,13 @@ public static class VideoFrameExtractor {
 
       this._disposals.Add(() => self._pStream = null);
 
+      // calculate durations
+      this._frameDuration = new(
+        TimeSpan.FromSeconds(ffmpeg.av_q2d(this._pStream->time_base)),
+        TimeSpan.FromSeconds(1 / ffmpeg.av_q2d(this._pStream->r_frame_rate)),
+        TimeSpan.FromSeconds(1 / ffmpeg.av_q2d(this._pStream->avg_frame_rate))
+      );
+
       // find codec for the selected stream
       var pCodec = ffmpeg.avcodec_find_decoder(this._pStream->codecpar->codec_id);
       if (pCodec == null) {
@@ -202,8 +209,11 @@ public static class VideoFrameExtractor {
       ffmpeg.av_image_fill_arrays(ref this._dstData, ref this._dstLinesize, (byte*)this._convertedFrameBufferPtr, AVPixelFormat.AV_PIX_FMT_BGR24, this._pCodecContext[0]->width, this._pCodecContext[0]->height, 1);
     }
 
-    private long _previousPts = 0;
+    private readonly record struct FrameDuration(TimeSpan timePerPts, TimeSpan minimumFrameTime, TimeSpan averageFrameTime);
 
+    private long _previousPts = 0;
+    private readonly FrameDuration _frameDuration;
+    
     public bool TryGetNextFrame([NotNullWhen(true)] out Bitmap? result, out TimeSpan duration) {
       result = null;
       duration = TimeSpan.Zero;
@@ -211,7 +221,7 @@ public static class VideoFrameExtractor {
       var ptsFactor = ffmpeg.av_q2d(this._pStream->time_base);
       fixed (AVPacket** packetPtr = &this._pPacket[0])
         while (ffmpeg.av_read_frame(this._pFormatContext[0], *packetPtr) >= FFmpegState.STATUS_OK) {
-          
+
           // was it a frame for our video stream?
           if (this._pPacket[0]->stream_index != this._pStream->index) {
             ffmpeg.av_packet_unref(this._pPacket[0]);
@@ -250,9 +260,12 @@ public static class VideoFrameExtractor {
           result = ConvertToBitmap(width, height, this._dstData[0], this._dstLinesize[0]);
 
           var pts = this._pPacket[0]->pts == ffmpeg.AV_NOPTS_VALUE ? this._previousPts + 1 : this._pPacket[0]->pts;
-          duration = TimeSpan.FromSeconds((pts - this._previousPts) * ptsFactor);
+          var ptsDelta = pts - this._previousPts;
           this._previousPts = pts;
 
+          var ptsDuration = this._frameDuration.minimumFrameTime.MultipliedWith((this._frameDuration.timePerPts.MultipliedWith(ptsDelta)/this._frameDuration.minimumFrameTime).Round());
+          duration = this._frameDuration.averageFrameTime;
+          
           ffmpeg.av_packet_unref(this._pPacket[0]);
           return true;
         }
