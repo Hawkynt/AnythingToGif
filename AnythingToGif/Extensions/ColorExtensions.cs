@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 
-namespace AnythingToGif;
+namespace AnythingToGif.Extensions;
 
 public static class ColorExtensions {
 
@@ -15,11 +15,11 @@ public static class ColorExtensions {
     var i = -1;
     foreach (var paletteColor in palette) {
       ++i;
-      
+
       // maybe there's something better than this rude alpha check
-      if(color.A!= paletteColor.A) 
+      if (color.A != paletteColor.A)
         continue;
-      
+
       var r2 = paletteColor.R;
       var g2 = paletteColor.G;
       var b2 = paletteColor.B;

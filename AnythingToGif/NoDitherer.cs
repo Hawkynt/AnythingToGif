@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using AnythingToGif;
+using AnythingToGif.Extensions;
 using BitmapExtensions = System.Drawing.BitmapExtensions;
 
 public readonly record struct NoDitherer : IDitherer {

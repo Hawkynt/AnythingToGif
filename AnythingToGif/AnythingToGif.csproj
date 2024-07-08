@@ -10,10 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="7.0.0" />
-    <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.370" />
+    <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.374" />
     <PackageReference Include="FrameworkExtensions.System.Drawing" Version="1.0.0.35" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +51,10 @@
     <None Update="ffmpeg\swscale-8.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CLI\" />
   </ItemGroup>
 
 </Project>

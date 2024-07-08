@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace AnythingToGif;
+namespace AnythingToGif.Extensions;
 
 using System.Drawing;
 using System.Drawing.Imaging;
 
 internal static partial class BitmapExtensions {
+
   public static IDictionary<Color, ICollection<Point>> CreateHistogram(this Bitmap image) {
     ArgumentNullException.ThrowIfNull(image);
 
@@ -19,7 +20,8 @@ internal static partial class BitmapExtensions {
     for (var y = 0; y < height; ++y)
     for (var x = 0; x < width; ++x)
       result.GetOrAdd(worker[x, y], _ => []).Add(new(x, y));
-    
+
     return result;
   }
+
 }
