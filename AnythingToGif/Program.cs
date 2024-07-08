@@ -84,7 +84,6 @@ class Program {
       var outputFile = inputFile.WithNewExtension(".gif");
 
       var converter = new SingleImageHiColorGifConverter {
-        TotalFrameDuration = TimeSpan.FromSeconds(33),
         FirstSubImageInitsBackground = true,
         Quantizer = new OctreeQuantizer(),
         Ditherer = MatrixBasedDitherer.FloydSteinberg,
@@ -102,7 +101,9 @@ class Program {
     }
 
 
-    static void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames) => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: false);
+    static void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames) 
+      => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: true)
+      ;
 
   }
 }

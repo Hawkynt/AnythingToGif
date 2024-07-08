@@ -29,6 +29,8 @@ To create a high-color GIF, **AnythingToGif** partitions the color set across mu
 
 3. **Layering Frames**: The frames are layered on top of each other using a GIF feature called the *frame disposal method* combined with the lowest possible *frame delay* of 1/100th second. This method ensures that already existing pixels remain on the screen, untouched by subsequent frames. When combined with transparency, it allows new colors to be added without overwriting previous ones. Only the parts of the image that need new colors are repainted in each frame, making the layering process efficient and preserving the visual integrity of the image as it builds up to the full-color representation.
 
+   - [ ] **Dynamic frame shift**: Only save the changed parts by utilizing frame offsets and arbitrary sized frames.
+
 4. **Incremental Improvement**: This layering approach enables the GIF to incrementally improve the color representation of the image. Initially, the image may appear coarse because the first frame contains only the 256 commonly used colors. However, as more frames are rendered, each introducing new colors, the image quality progressively converges closer to the original full-color image.
 
    The process can be customized using the *UseBackFilling* flag. When the *UseBackFilling* flag is enabled, the tool not only paints pixels with exact color matches from the current palette but also approximates other areas with the nearest available colors. This means that even areas without an exact color match are painted in each increment, providing a more visually complete image early on. These areas are repainted in subsequent frames as more colors become available, resulting in a smoother and faster visual convergence.
@@ -97,7 +99,7 @@ Further Links for this part:
 Due to the nature of this application, **AnythingToGif** requires fine-grained control over the bytes written to disk. This includes managing local palettes, transparency, frame delays, and frame disposal methods. To achieve this level of precision, the tool incorporates its own GIF writing code, built directly from the GIF specifications. This custom code ensures that every aspect of the GIF format is meticulously handled, allowing for the creation of high-color images and smooth animations. The output is rigorously checked using various GIF debugging tools, ensuring compatibility and optimal performance across different platforms and browsers.
 
 - [X] [Uncompressed Images](https://github.com/Distrotech/libungif/blob/master/UNCOMPRESSED_GIF)
-- [ ] [LZW Compression](https://giflib.sourceforge.net/whatsinagif/lzw_image_data.html)
+- [X] [LZW Compression](https://giflib.sourceforge.net/whatsinagif/lzw_image_data.html)
 - [ ] [Optimized compression](https://create.stephan-brumme.com/flexigif-lossless-gif-lzw-optimization/)
 
 Further Links for this part:
@@ -108,7 +110,7 @@ Further Links for this part:
 - [GIF Checker](https://interglacial.com/pub/dr_gif_80g.pl)
 - [GIF Explorer](https://www.matthewflickinger.com/lab/whatsinagif/gif_explorer.asp)
 - [Palette Paper](https://iplab.dmi.unict.it/iplab/wp-content/uploads/2023/09/Animated_Gif_Optimization_By_Adaptive_Color_Local_Table_Management-1.pdf)
-- 
+
 ## Practical Considerations
 
 While high-color GIFs can accurately represent complex images, they often result in large file sizes due to the numerous frames required. One approach to mitigate this is to encode more image information into the first few frames, creating an approximation of the full image and refining it in subsequent frames. This results in larger files because fewer pixels are transparent, but it improves the visual quality of the initial rendering.
@@ -119,5 +121,6 @@ Reducing the number of distinct colors in the image can also help manage file si
 
 When converting video, AnythingToGif processes changed areas from frame to frame, introducing new frames as necessary using the same algorithms applied to still images. This ensures high-quality color reproduction and smooth transitions at the cost of a higher framerate whenever needed.
 
-- [X] Frame extrapolation
-- [ ] Switching between constant fps inserting dummy frames as needed or variable frame rate
+- [X] **Frame extrapolation**: Get the images from a video.
+- [ ] **Differential frame encoding**: Only process the differencies between each frame.
+- [ ] **Constant FPS**: Switching between constant fps inserting dummy frames as needed or variable frame rate

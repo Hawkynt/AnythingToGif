@@ -65,7 +65,7 @@ public static class Writer {
   }
 
   private static void _WriteImageData(BinaryWriter writer, ReadOnlySpan<byte> indexedData, bool allowCompression, byte bitsPerPixel) {
-    writer.Write(bitsPerPixel);
+    writer.Write((byte)(bitsPerPixel == 1 ? 2 : bitsPerPixel));
 
     if (allowCompression)
       Writer._WriteImageDataCompressed(writer, indexedData, bitsPerPixel);
@@ -81,8 +81,6 @@ public static class Writer {
     private byte _index;
 
     public void Write(ushort value, byte numberOfBitsToWrite) {
-      // var mask = (1 << numberOfBitsToWrite) - 1;
-      // this._buffer |= (uint)(value & mask) << this._index;
       this._buffer |= (uint)value << this._index;
       this._index += numberOfBitsToWrite;
       while (this._index >= 8) {
@@ -156,7 +154,7 @@ public static class Writer {
 
 #if OPTIMIZE_MEMORY
 
-    private readonly Dictionary<ushort, Trie> _children = new Dictionary<ushort, Trie>();
+    private readonly Dictionary<ushort, Trie> _children = new();
     public Trie? GetValueOrNull(ushort key) => this._children.TryGetValue(key,out var result) ? result : null;
     public void AddOrUpdate(ushort key, Trie value) => this._children[key] = value;
 
@@ -175,31 +173,28 @@ public static class Writer {
     var clearCode = (ushort)(1 << bitsPerPixel);
     var eoiCode = (ushort)(clearCode + 1);
 
-    var bitWriter = new BitWriter(new PacketWriter(writer));
+    var bitWriter = new BitWriter(new(writer));
 
     Trie root;
     var node = root = InitializeDictionary(out var nextCode, out var currentEncodingBitCount);
-    bitWriter.Write(clearCode, currentEncodingBitCount);
-
     foreach (var pixel in buffer) {
-      var K = pixel;
-
-      var child = node.GetValueOrNull(K);
+      var child = node.GetValueOrNull(pixel);
       if (child != null) {
         node = child;
         continue;
       }
 
-      node.AddOrUpdate(K, new(nextCode++));
+      node.AddOrUpdate(pixel, new(nextCode++));
       bitWriter.Write(node.Key, currentEncodingBitCount);
 
-      if (nextCode >= 4096) {
-        bitWriter.Write(clearCode, currentEncodingBitCount);
-        root = InitializeDictionary(out nextCode, out currentEncodingBitCount);
-      } else if (nextCode >= (1 << currentEncodingBitCount))
-        ++currentEncodingBitCount;
+      if (nextCode > (1 << currentEncodingBitCount))
+        if (currentEncodingBitCount >= 12) {
+          bitWriter.Write(clearCode, currentEncodingBitCount);
+          root = InitializeDictionary(out nextCode, out currentEncodingBitCount);
+        } else 
+          ++currentEncodingBitCount;
 
-      node = root.GetValueOrNull(K)!;
+      node = root.GetValueOrNull(pixel)!;
     }
 
     bitWriter.Write(node.Key, currentEncodingBitCount);
