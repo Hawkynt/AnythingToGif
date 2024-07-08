@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AnythingToGif": {
+      "commandName": "Project",
+      "commandLineArgs": "Examples \"Examples\""
+    }
+  }
+}

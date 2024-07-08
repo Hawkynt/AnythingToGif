@@ -85,6 +85,7 @@ Further Links for this part:
 
 - [Dithering Matrices](https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html)
 - [DitherPunk](https://surma.dev/things/ditherpunk/)
+- [Cyotek](https://github.com/cyotek/Dithering/tree/master/src/Dithering)
 
 ### Color distance calculation
 
@@ -124,3 +125,4 @@ When converting video, AnythingToGif processes changed areas from frame to frame
 - [X] **Frame extrapolation**: Get the images from a video.
 - [ ] **Differential frame encoding**: Only process the differencies between each frame.
 - [ ] **Constant FPS**: Switching between constant fps inserting dummy frames as needed or variable frame rate
+- [ ] **Concatenation**: Combining multiple files into one video.

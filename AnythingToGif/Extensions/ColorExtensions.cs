@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace AnythingToGif.Extensions;
 
-public static class ColorExtensions {
+internal static class ColorExtensions {
 
   public static int FindClosestColorIndex(this IEnumerable<Color> palette, Color color) {
     var closestIndex = 0;

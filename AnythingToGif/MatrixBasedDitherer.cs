@@ -56,7 +56,7 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     { 1, 2, 4, 2, 1 }
   }, 42);
 
-  public static IDitherer Atkison { get; } = new MatrixBasedDitherer(new byte[,] {
+  public static IDitherer Atkinson { get; } = new MatrixBasedDitherer(new byte[,] {
     { 0, X, 1, 1 },
     { 1, 1, 1, 0 },
     { 0, 1, 0, 0 }

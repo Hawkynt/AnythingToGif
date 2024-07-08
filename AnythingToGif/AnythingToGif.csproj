@@ -1,6 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Version>1.0.2</Version>
+    <Authors>Hawkynt</Authors>
+    <Description>Converts anything to GIF format.</Description>
+    <PackageTags>Anything2Gif;Gif;HiColor;Animation;Video;Hawkynt</PackageTags>
+    <PackageProjectUrl>https://github.com/Hawkynt/AnythingToGif</PackageProjectUrl>
+    <PackageReadmeFile>../Readme.md</PackageReadmeFile>
+
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
@@ -51,10 +58,6 @@
     <None Update="ffmpeg\swscale-8.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="CLI\" />
   </ItemGroup>
 
 </Project>
