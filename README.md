@@ -4,6 +4,52 @@ This is a versatile tool designed to convert a wide variety of visual media form
 
 - [X] Command line interface
 
+```
+AnythingToGif 1.0.2.0
+Copyright (C) 2024 Hawkynt
+Converts anything to GIF format.
+
+Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
+
+  -q, --quantizer                       (Default: Octree) Quantizer to use.
+  -d, --ditherer                        (Default: FloydSteinberg) Ditherer to use.
+  -f, --useBackFilling                  (Default: false) Whether to use backfilling.
+  -b, --firstSubImageInitsBackground    (Default: true) Whether the first sub-image initializes the background.
+  -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
+  -n, --noCompression                   (Default: false) Whether to use compressed GIF files or not.
+  --help                                Display this help screen.
+  --version                             Display version information.
+  input (pos. 0)                        Input directory or file. If not specified, defaults to the current directory.
+  output (pos. 1)                       Output directory or file. If not specified, defaults to the current directory.
+
+Quantizer Modes:
+  MedianCut: Median-Cut
+  Octree: Octree
+  GreedyOrthogonalBiPartitioning: Greedy Orthogonal Bi-Partitioning (Wu)
+
+Ditherer Modes:
+  None: None
+  FloydSteinberg: Floyd-Steinberg
+  JarvisJudiceNinke: Jarvis-Judice-Ninke
+  Stucki: Stucki
+  Atkinson: Atkinson
+  Burkes: Burkes
+  Sierra: Sierra
+  TwoRowSierra: 2-row Sierra
+  SierraLite: Sierra Lite
+  Pigeon: Pigeon
+
+Color Ordering Modes:
+  MostUsedFirst: Ordered by usage, the most used first
+  FromCenter:
+  LeastUsedFirst: Ordered by usage, the least used first
+  HighLuminanceFirst: Ordered by luminance, the brightest colors first
+  LowLuminanceFirst: Ordered by luminance, the darkest colors first
+  Random: Purely random
+
+Insufficient arguments try '--help' for help.
+```
+
 ## Overview
 
 In the 1990s, the GIF file format was the dominant image format on the web, known for its efficiency, portability, and support for animation and transparency. However, due to concerns over patent claims on the LZW compression algorithm, the PNG format was introduced as a replacement, offering several advantages over GIF. Despite these advantages, it was often believed that GIFs were limited to 256-color palettes, making them unsuitable for full-color images. This belief is only partially correct. GIFs can indeed contain many colors by utilizing multiple graphic rendering blocks, each with its own local color table.

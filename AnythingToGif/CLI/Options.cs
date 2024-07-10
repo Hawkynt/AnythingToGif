@@ -12,8 +12,7 @@ internal class Options {
   public enum QuantizerMode {
     [Description("Median-Cut")] MedianCut,
     [Description("Octree")] Octree,
-    [Description("Greedy Orthogonal Bi-Partitioning (Wu)")]
-    GreedyOrthogonalBiPartitioning
+    [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning
   }
 
   public enum DithererMode {
@@ -82,9 +81,12 @@ internal class Options {
     var helpText = HelpText.AutoBuild(result, h => {
       var thisAssembly = Assembly.GetExecutingAssembly();
       h.AdditionalNewLineAfterOption = false;
-      h.Heading = $"{thisAssembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title} {thisAssembly.GetName().Version}";
+      var title = thisAssembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title;
+      h.Heading = $"{title} {thisAssembly.GetName().Version}";
       h.Copyright = thisAssembly.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright ?? CopyrightInfo.Default;
       h.AddPreOptionsLine(thisAssembly.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description);
+      h.AddPreOptionsLine(string.Empty);
+      h.AddPreOptionsLine($"Usage: {title} [<input>] [<options>] | <input> <output> [<options>]");
 
       h.AddPostOptionsLine("Quantizer Modes:");
       foreach (var mode in Enum.GetValues(typeof(QuantizerMode)))
@@ -111,4 +113,5 @@ internal class Options {
 
     static string? GetEnumDescription(Enum value) => value.GetType().GetField(value.ToString())!.GetCustomAttribute<DescriptionAttribute>()?.Description;
   }
+
 }
