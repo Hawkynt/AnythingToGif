@@ -104,9 +104,9 @@ public readonly struct MatrixBasedDitherer : IDitherer {
 
         // Apply the accumulated error to the current pixel
         var correctedColor = Color.FromArgb(
-          Clamp(oldColor.R + errors[x, y].red / divisor),
-          Clamp(oldColor.G + errors[x, y].green / divisor),
-          Clamp(oldColor.B + errors[x, y].blue / divisor)
+          Clamp(errors[x, y].red.FusedDivideAdd(divisor, oldColor.R)),
+          Clamp(errors[x, y].green.FusedDivideAdd(divisor, oldColor.G)),
+          Clamp(errors[x, y].blue.FusedDivideAdd(divisor, oldColor.B))
         );
 
         var closestColorIndex = (byte)palette.FindClosestColorIndex(correctedColor);
@@ -139,6 +139,7 @@ public readonly struct MatrixBasedDitherer : IDitherer {
       var newY = y + row;
       if (newY < 0)
         continue;
+
       if (newY >= height)
         break;
 

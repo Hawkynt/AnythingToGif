@@ -17,6 +17,8 @@ class Program {
 
   static void Main(string[] args) {
 
+    const string OUTPUT_EXTENSION = ".gif";
+
     ffmpeg.RootPath += "\\ffmpeg";
 
     var parser = new Parser(with => with.HelpWriter = null);
@@ -24,45 +26,10 @@ class Program {
 
     result
       .WithParsed(RunOptions)
-      .WithNotParsed(errs => HandleParseError(result, errs))
+      .WithNotParsed(errs => Options.HandleParseError(result, errs))
       ;
 
     return;
-
-    static void HandleParseError<T>(ParserResult<T> result, IEnumerable<Error> errors) {
-      var helpText = HelpText.AutoBuild(result, h => {
-        var thisAssembly = Assembly.GetExecutingAssembly();
-        h.AdditionalNewLineAfterOption = false;
-        h.Heading = $"{thisAssembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title} {thisAssembly.GetName().Version}";
-        h.Copyright = thisAssembly.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright ?? CopyrightInfo.Default;
-        h.AddPreOptionsLine(thisAssembly.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description);
-
-        h.AddPostOptionsLine("Quantizer Modes:");
-        foreach (var mode in Enum.GetValues(typeof(Options.QuantizerMode)))
-          h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((Options.QuantizerMode)mode)}");
-        h.AddPostOptionsLine(string.Empty);
-
-        h.AddPostOptionsLine("Ditherer Modes:");
-        foreach (var mode in Enum.GetValues(typeof(Options.DithererMode)))
-          h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((Options.DithererMode)mode)}");
-        h.AddPostOptionsLine(string.Empty);
-
-        h.AddPostOptionsLine("Color Ordering Modes:");
-        foreach (var mode in Enum.GetValues(typeof(ColorOrderingMode)))
-          h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((ColorOrderingMode)mode)}");
-        h.AddPostOptionsLine(string.Empty);
-
-        return HelpText.DefaultParsingErrorsHandler(result, h);
-      }, e => e, maxDisplayWidth: Console.BufferWidth);
-
-      Console.WriteLine(helpText);
-      Console.WriteLine("Insufficient arguments try '--help' for help.");
-      
-      return;
-
-      static string? GetEnumDescription(Enum value) => value.GetType().GetField(value.ToString())!.GetCustomAttribute<DescriptionAttribute>()?.Description;
-
-    }
     
     static void RunOptions(Options configuration) {
       var inputFileOrDirectory = configuration.InputPath;
@@ -71,9 +38,9 @@ class Program {
       switch (inputFileOrDirectory) {
         case FileInfo singleInputFile: {
           if (singleInputFile.LooksLikeImage())
-            ProcessImageFile(singleInputFile, outputFileOrDirectory is DirectoryInfo d ? d.File(singleInputFile.WithNewExtension(".gif").Name) : outputFileOrDirectory as FileInfo ?? throw new($"Unknown output path {outputFileOrDirectory.Name}"));
+            ProcessImageFile(singleInputFile, outputFileOrDirectory is DirectoryInfo d ? d.File(singleInputFile.WithNewExtension(OUTPUT_EXTENSION).Name) : outputFileOrDirectory as FileInfo ?? throw new($"Unknown output path {outputFileOrDirectory.Name}"));
           else if (singleInputFile.LooksLikeVideo())
-            ProcessVideoFile(singleInputFile, outputFileOrDirectory is DirectoryInfo d ? d.File(singleInputFile.WithNewExtension(".gif").Name) : outputFileOrDirectory as FileInfo ?? throw new($"Unknown output path {outputFileOrDirectory.Name}"));
+            ProcessVideoFile(singleInputFile, outputFileOrDirectory is DirectoryInfo d ? d.File(singleInputFile.WithNewExtension(OUTPUT_EXTENSION).Name) : outputFileOrDirectory as FileInfo ?? throw new($"Unknown output path {outputFileOrDirectory.Name}"));
           else
             throw new($"Unknown file-type {singleInputFile.Name}");
 
@@ -82,10 +49,13 @@ class Program {
         case DirectoryInfo directory: {
           switch (outputFileOrDirectory) {
             case DirectoryInfo outputDirectory: {
+              
               foreach (var file in directory.EnumerateFiles().Where(i => i.LooksLikeVideo()))
-                ProcessVideoFile(file, outputDirectory.File(file.WithNewExtension(".gif").Name));
+                ProcessVideoFile(file, outputDirectory.File(file.WithNewExtension(OUTPUT_EXTENSION).Name));
+              
               foreach (var file in directory.EnumerateFiles().Where(i => i.LooksLikeImage()))
-                ProcessImageFile(file, outputDirectory.File(file.WithNewExtension(".gif").Name));
+                ProcessImageFile(file, outputDirectory.File(file.WithNewExtension(OUTPUT_EXTENSION).Name));
+              
               break;
             }
             case FileInfo outputFile:
@@ -140,7 +110,7 @@ class Program {
             dimensions ??= new(image.Width, image.Height);
 
             converter.Quantizer = configuration.Quantizer();
-            converter.TotalFrameDuration = duration + durationDelta; /* if we're too early, keep displaying frames longer */
+            converter.TotalFrameDuration = duration + durationDelta; /* if we're too early, keep displaying frames for longer */
             Console.WriteLine($"Processing frame {++i}, on-screen for {duration.Milliseconds}ms, already off by {durationDelta.Milliseconds}ms");
 
             var currentDuration = TimeSpan.Zero;
@@ -157,8 +127,7 @@ class Program {
           foreach (var image in VideoFrameExtractor.GetFrames(inputFile))
             yield return image;
         }
-
-
+        
       }
 
       void ProcessImageFile(FileInfo inputFile, FileInfo outputFile) {

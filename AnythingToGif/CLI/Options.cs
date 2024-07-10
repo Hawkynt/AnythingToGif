@@ -1,41 +1,32 @@
-﻿using CommandLine;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Reflection;
+using CommandLine;
+using CommandLine.Text;
 
 namespace AnythingToGif.CLI;
 
-using System;
-using System.ComponentModel;
-
 internal class Options {
-
   public enum QuantizerMode {
-    [Description("Median-Cut")]
-    MedianCut,
-    [Description("Octree")]
-    Octree,
+    [Description("Median-Cut")] MedianCut,
+    [Description("Octree")] Octree,
     [Description("Greedy Orthogonal Bi-Partitioning (Wu)")]
     GreedyOrthogonalBiPartitioning
   }
 
   public enum DithererMode {
-    [Description("Floyd-Steinberg")]
-    FloydSteinberg,
-    [Description("Jarvis-Judice-Ninke")]
-    JarvisJudiceNinke,
-    [Description("Stucki")]
-    Stucki,
-    [Description("Atkinson")]
-    Atkinson,
-    [Description("Burkes")]
-    Burkes,
-    [Description("Sierra")]
-    Sierra,
-    [Description("2-row Sierra")]
-    TwoRowSierra,
-    [Description("Sierra Lite")]
-    SierraLite,
-    [Description("Pigeon")]
-    Pigeon
+    [Description("None")] None,
+    [Description("Floyd-Steinberg")] FloydSteinberg,
+    [Description("Jarvis-Judice-Ninke")] JarvisJudiceNinke,
+    [Description("Stucki")] Stucki,
+    [Description("Atkinson")] Atkinson,
+    [Description("Burkes")] Burkes,
+    [Description("Sierra")] Sierra,
+    [Description("2-row Sierra")] TwoRowSierra,
+    [Description("Sierra Lite")] SierraLite,
+    [Description("Pigeon")] Pigeon
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -74,15 +65,50 @@ internal class Options {
   };
 
   public IDitherer Ditherer => this._Ditherer switch {
-      DithererMode.FloydSteinberg => MatrixBasedDitherer.FloydSteinberg,
-      DithererMode.JarvisJudiceNinke => MatrixBasedDitherer.JarvisJudiceNinke,
-      DithererMode.Stucki => MatrixBasedDitherer.Stucki,
-      DithererMode.Atkinson => MatrixBasedDitherer.Atkinson,
-      DithererMode.Burkes => MatrixBasedDitherer.Burkes,
-      DithererMode.Sierra => MatrixBasedDitherer.Sierra,
-      DithererMode.TwoRowSierra => MatrixBasedDitherer.TwoRowSierra,
-      DithererMode.SierraLite => MatrixBasedDitherer.SierraLite,
-      DithererMode.Pigeon => MatrixBasedDitherer.Pigeon,
-      _ => MatrixBasedDitherer.FloydSteinberg
-    };
+    DithererMode.FloydSteinberg => MatrixBasedDitherer.FloydSteinberg,
+    DithererMode.JarvisJudiceNinke => MatrixBasedDitherer.JarvisJudiceNinke,
+    DithererMode.Stucki => MatrixBasedDitherer.Stucki,
+    DithererMode.Atkinson => MatrixBasedDitherer.Atkinson,
+    DithererMode.Burkes => MatrixBasedDitherer.Burkes,
+    DithererMode.Sierra => MatrixBasedDitherer.Sierra,
+    DithererMode.TwoRowSierra => MatrixBasedDitherer.TwoRowSierra,
+    DithererMode.SierraLite => MatrixBasedDitherer.SierraLite,
+    DithererMode.Pigeon => MatrixBasedDitherer.Pigeon,
+    DithererMode.None => NoDitherer.Instance,
+    _ => NoDitherer.Instance
+  };
+
+  public static void HandleParseError<T>(ParserResult<T> result, IEnumerable<Error> errors) {
+    var helpText = HelpText.AutoBuild(result, h => {
+      var thisAssembly = Assembly.GetExecutingAssembly();
+      h.AdditionalNewLineAfterOption = false;
+      h.Heading = $"{thisAssembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title} {thisAssembly.GetName().Version}";
+      h.Copyright = thisAssembly.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright ?? CopyrightInfo.Default;
+      h.AddPreOptionsLine(thisAssembly.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description);
+
+      h.AddPostOptionsLine("Quantizer Modes:");
+      foreach (var mode in Enum.GetValues(typeof(QuantizerMode)))
+        h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((QuantizerMode)mode)}");
+      h.AddPostOptionsLine(string.Empty);
+
+      h.AddPostOptionsLine("Ditherer Modes:");
+      foreach (var mode in Enum.GetValues(typeof(DithererMode)))
+        h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((DithererMode)mode)}");
+      h.AddPostOptionsLine(string.Empty);
+
+      h.AddPostOptionsLine("Color Ordering Modes:");
+      foreach (var mode in Enum.GetValues(typeof(ColorOrderingMode)))
+        h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((ColorOrderingMode)mode)}");
+      h.AddPostOptionsLine(string.Empty);
+
+      return HelpText.DefaultParsingErrorsHandler(result, h);
+    }, e => e, maxDisplayWidth: Console.BufferWidth);
+
+    Console.WriteLine(helpText);
+    Console.WriteLine("Insufficient arguments try '--help' for help.");
+
+    return;
+
+    static string? GetEnumDescription(Enum value) => value.GetType().GetField(value.ToString())!.GetCustomAttribute<DescriptionAttribute>()?.Description;
+  }
 }

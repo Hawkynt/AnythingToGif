@@ -5,7 +5,6 @@ using System.Drawing;
 namespace AnythingToGif;
 
 public class OctreeQuantizer : QuantizerBase {
-
   private class Node {
     public Node?[] Children { get; } = new Node[8];
     public int ChildrenCount { get; set; }
@@ -22,7 +21,6 @@ public class OctreeQuantizer : QuantizerBase {
 
       return Color.FromArgb((byte)Math.Round(r), (byte)Math.Round(g), (byte)Math.Round(b));
     }
-    
   }
 
   private readonly Node _root = new();
@@ -68,7 +66,7 @@ public class OctreeQuantizer : QuantizerBase {
       currentNode.RSum += childNode.RSum;
       currentNode.GSum += childNode.GSum;
       currentNode.BSum += childNode.BSum;
-      
+
       currentNode.Children[i] = null;
       --currentNode.ChildrenCount;
       --this._colorsCount;
@@ -91,7 +89,7 @@ public class OctreeQuantizer : QuantizerBase {
     if (currentNode.ChildrenCount == 0)
       ++this._colorsCount;
   }
-  
+
   private void _FillPalette(Node currentNode, Color[] palette, ref int index) {
     if (currentNode.ChildrenCount == 0)
       palette[index++] = currentNode.CreateColor();
@@ -151,9 +149,9 @@ public class OctreeQuantizer : QuantizerBase {
     }
 
     var result = new Color[this._colorsCount + 2];
-    var index = 2;
-    result[0] = Color.Black;
-    result[1] = Color.White;
+    var index = 0;
+    result[index++] = Color.Black;
+    result[index++] = Color.White;
     this._FillPalette(this._root, result, ref index);
     return result;
   }
