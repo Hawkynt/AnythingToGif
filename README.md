@@ -94,20 +94,19 @@ Further Links for this part:
 
 The initial frame requires an approximate palette that represents the full range of colors in the image. Several methods for color quantization are employed to achieve this, including:
 
-- [x] Median-cut (MC)
-- [x] Octree (OC)
-- [ ] Variance-based method (WAN)
-- [ ] Binary splitting (BS)
+- [x] [Median-cut (MC)](https://gowtham000.hashnode.dev/median-cut-a-popular-colour-quantization-strategy)
+- [x] [Octree (OC)](https://www.codeproject.com/Articles/109133/Octree-Color-Palette)
+- [ ] [Variance-based method (WAN)](http://algorithmicbotany.org/papers/variance-based.pdf)
+- [ ] [Binary splitting (BS)](https://opg.optica.org/josaa/fulltext.cfm?uri=josaa-11-11-2777&id=847)
 - [x] Greedy orthogonal bi-partitioning method (WU)
-- [ ] Neuquant (NQ)
-- [ ] Adaptive distributing units (ADU)
-- [ ] Variance-cut (VC)
-- [ ] WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)
-- [ ] BS combined with iterative ATCQ (BSITATCQ)
+- [ ] [Neuquant (NQ)](https://scientificgems.wordpress.com/stuff/neuquant-fast-high-quality-image-quantization/)
+- [ ] [Adaptive distributing units (ADU)](https://www.tandfonline.com/doi/full/10.1179/1743131X13Y.0000000059?needAccess=true)
+- [ ] [Variance-cut (VC)](https://ieeexplore.ieee.org/document/6718239)
+- [ ] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
+- [ ] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
 
 Further Links for this part:
 
-- [Octree Color Palette](https://www.codeproject.com/Articles/109133/Octree-Color-Palette)
 - [Quantizers](https://www.codeproject.com/Articles/66341/A-Simple-Yet-Quite-Powerful-Palette-Quantizer-in-C)
 
 ### Dithering
