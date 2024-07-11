@@ -1,6 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Authors>Hawkynt</Authors>
+    <Description>Messes with the GIF file format.</Description>
+    <PackageTags>Hawkynt; GIF Conversion; GIF Compression; Multi-frame GIF; GIF Palette Management; Frame Disposal Method; GIF Optimization; Custom GIF Writer; GIF Color Tables; Efficient GIF Processing; GIF File Format; GIF Debugging Tools; GIF Technical Specifications</PackageTags>
+    <PackageProjectUrl>https://github.com/Hawkynt/AnythingToGif</PackageProjectUrl>
+    <PackageReadmeFile>../Readme.md</PackageReadmeFile>
+
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>

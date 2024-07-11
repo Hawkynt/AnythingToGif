@@ -4,7 +4,7 @@
     <Version>1.0.2</Version>
     <Authors>Hawkynt</Authors>
     <Description>Converts anything to GIF format.</Description>
-    <PackageTags>Anything2Gif;Gif;HiColor;Animation;Video;Hawkynt</PackageTags>
+    <PackageTags>Hawkynt; GIF Conversion; Image to GIF; Video to GIF; High-Color GIF; TrueColor GIF; GIF Quantization; GIF Dithering; Command Line Tool; Octree Quantization; Floyd-Steinberg Dithering; GIF Compression; GIF Animation; Multi-frame GIF; GIF Palette Management; Frame Disposal Method; Color Fidelity; GIF Optimization; Custom GIF Writer; Visual Media Converter; GIF Color Tables; Efficient GIF Processing; GIF File Format; Color Ordering Methods; Frame Layering; Incremental Image Improvement; GIF Debugging Tools; GIF Technical Specifications; GIF for Web; High-Quality GIFs</PackageTags>
     <PackageProjectUrl>https://github.com/Hawkynt/AnythingToGif</PackageProjectUrl>
     <PackageReadmeFile>../Readme.md</PackageReadmeFile>
 
