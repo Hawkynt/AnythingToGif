@@ -11,7 +11,7 @@ internal static partial class FileInfoExtensions {
   ;
 
   public static bool LooksLikeImage(this FileInfo @this) => @this.Extension.IsAnyOf(StringComparison.OrdinalIgnoreCase,
-    ".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".gif", ".ico")
+    ".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".ico")
   ;
 
 }
