@@ -7,7 +7,7 @@ jobs:
 
   # This job tries to run the prerequisites, just to see if this works
   TryInit:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checking-out repository
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
   # this is the real job needed to build and publish
   BuildAndPublishApplications:
     needs: TryInit
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -59,7 +59,7 @@ jobs:
 
   BuildAndPublishNuGet:
     needs: TryInit
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
