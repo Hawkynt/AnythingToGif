@@ -1,6 +1,6 @@
 ﻿#define OPTIMIZE_MEMORY
 
-namespace Gif;
+namespace Hawkynt.GifFileFormat;
 
 using System;
 using System.Collections.Generic;
@@ -184,10 +184,14 @@ public static class Writer {
         continue;
       }
 
-      node.AddOrUpdate(pixel, new(nextCode++));
       bitWriter.Write(node.Key, currentEncodingBitCount);
-
-      if (nextCode > (1 << currentEncodingBitCount))
+      var highestCodeInDictionary = nextCode;
+      node.AddOrUpdate(pixel, new(highestCodeInDictionary));
+      
+      ++nextCode;
+      
+      var highestCodepointWithCurrentBitCount = (1 << currentEncodingBitCount) - 1;
+      if ((highestCodeInDictionary + 1) > (highestCodepointWithCurrentBitCount + 1))
         if (currentEncodingBitCount >= 12) {
           bitWriter.Write(clearCode, currentEncodingBitCount);
           root = InitializeDictionary(out nextCode, out currentEncodingBitCount);

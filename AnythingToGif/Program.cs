@@ -11,7 +11,7 @@ using AnythingToGif.Extensions;
 using CommandLine;
 using CommandLine.Text;
 using FFmpeg.AutoGen;
-using Gif;
+using Hawkynt.GifFileFormat;
 
 class Program {
 

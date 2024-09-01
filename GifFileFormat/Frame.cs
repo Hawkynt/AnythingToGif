@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Gif;
+namespace Hawkynt.GifFileFormat;
 
 using System;
 

@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Hawkynt.GifFileFormat</AssemblyName>
+    <RootNamespace>Hawkynt.GifFileFormat</RootNamespace>
+    <PackageId>Hawkynt.GifFileFormat</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Hawkynt</Authors>
+    <Description>Messes with the GIF file format.</Description>
+    <PackageReadmeFile>../Readme.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/Hawkynt/AnythingToGif</PackageProjectUrl>
+    <PackageTags>Hawkynt; GIF Conversion; GIF Compression; Multi-frame GIF; GIF Palette Management; Frame Disposal Method; GIF Optimization; Custom GIF Writer; GIF Color Tables; Efficient GIF Processing; GIF File Format; GIF Debugging Tools; GIF Technical Specifications</PackageTags>
+    <RepositoryUrl>https://github.com/Hawkynt/AnythingToGif/tree/master/GifFileFormat</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>default</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.*" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="ReadMe.md" Pack="True" PackagePath=".">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Include="..\LICENSE" Pack="True" PackagePath=".">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

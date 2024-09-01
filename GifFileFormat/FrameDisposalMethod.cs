@@ -1,4 +1,4 @@
-﻿namespace Gif;
+﻿namespace Hawkynt.GifFileFormat;
 
 public enum FrameDisposalMethod {
   Unspecified = 0,

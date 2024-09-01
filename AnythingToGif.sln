@@ -13,7 +13,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{093FFB
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gif", "Gif\Gif.csproj", "{059030E7-DC59-45A1-8B34-F22BBDBE3317}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GifFileFormat", "GifFileFormat\GifFileFormat.csproj", "{059030E7-DC59-45A1-8B34-F22BBDBE3317}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{8C6F8FAF-89F6-4BD5-B63A-C362387A5FCD}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\Build.yml = .github\workflows\Build.yml
+		.github\workflows\UpdateVersions.pl = .github\workflows\UpdateVersions.pl
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +38,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8C6F8FAF-89F6-4BD5-B63A-C362387A5FCD} = {093FFBB0-B9F7-48A9-8CA2-E6EC70393FDA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {26B067E9-0262-46FA-948A-031D9EBA4DC1}

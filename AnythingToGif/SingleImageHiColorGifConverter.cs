@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AnythingToGif;
 using AnythingToGif.Extensions;
-using Gif;
+using Hawkynt.GifFileFormat;
 
 public class SingleImageHiColorGifConverter {
 

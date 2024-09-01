@@ -1,4 +1,4 @@
-﻿namespace Gif;
+﻿namespace Hawkynt.GifFileFormat;
 
 using System;
 using System.Drawing;
