@@ -7,7 +7,7 @@
 
 ## Overview
 
-GifFileFormat is a C# project aimed at providing a robust way to work with GIF files. This project includes various classes and methods to handle different aspects of GIFs, such as dimensions, frames, color resolution, and more.
+**GifFileFormat** is a C# project aimed at providing a robust way to work with GIF files. This project includes various classes and methods to handle different aspects of GIFs, such as dimensions, frames, color resolution, and more.
 
 ## Project Structure
 
@@ -43,10 +43,10 @@ dotnet test
 
 ### Using the Library
 
-To use the GifFileFormat classes, simply include them in your project and start working with GIF files. Here’s a basic example:
+To use the **GifFileFormat** classes, simply include them in your project and start working with GIF files. Here’s a basic example:
 
 ```csharp
-using GifFileFormat;
+using Hawkynt.GifFileFormat;
 
 public class Program {
   static void Main(string[] args) {
