@@ -14,6 +14,7 @@
     <Nullable>enable</Nullable>
     <langversion>default</langversion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <StartupObject>Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

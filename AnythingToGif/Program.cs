@@ -70,8 +70,6 @@ class Program {
           throw new($"Unknown input path {inputFileOrDirectory.Name}");
       }
 
-      return;
-
       void ProcessVideoFile(FileInfo inputFile, FileInfo outputFile) {
 
         Console.WriteLine($"Converting video {inputFile.Name}");

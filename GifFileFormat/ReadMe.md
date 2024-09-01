@@ -1,4 +1,4 @@
-# Hawkynt.RandomNumberGenerators
+# Hawkynt.GifFileFormat
 
 [![Build](https://github.com/Hawkynt/AnythingToGif/actions/workflows/Build.yml/badge.svg)](https://github.com/Hawkynt/AnythingToGif/actions/workflows/Build.yml)
 [![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=master)](https://github.com/Hawkynt/AnythingToGif/commits/master/GifFileFormat)
