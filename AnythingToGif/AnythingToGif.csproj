@@ -15,6 +15,7 @@
     <langversion>default</langversion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <StartupObject>Program</StartupObject>
+  <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup>
