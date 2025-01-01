@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using AnythingToGif;
 using AnythingToGif.CLI;
 using AnythingToGif.Extensions;
 using CommandLine;
-using CommandLine.Text;
 using FFmpeg.AutoGen;
 using Hawkynt.GifFileFormat;
 
@@ -122,7 +118,7 @@ class Program {
         }
 
         IEnumerable<(Bitmap frame, TimeSpan duration)> FrameServer() {
-          foreach (var image in VideoFrameExtractor.GetFrames(inputFile))
+          foreach (var image in VideoFrameExtractor.GetFrames(inputFile, true))
             yield return image;
         }
         

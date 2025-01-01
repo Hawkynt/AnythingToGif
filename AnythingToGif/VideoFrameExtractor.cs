@@ -27,6 +27,8 @@ public static class VideoFrameExtractor {
     private byte_ptrArray4 _dstData;
     private int_array4 _dstLinesize;
 
+    public Size Dimensions { get; }
+
     public FFmpegState(FileInfo video) {
       var self = this;
       ffmpeg.avdevice_register_all();
@@ -173,18 +175,23 @@ public static class VideoFrameExtractor {
       });
 
       // init video2rgb converter
+      var width = this._pCodecContext[0]->width;
+      var height = this._pCodecContext[0]->height;
+
       this._pSwsContext[0] = ffmpeg.sws_getContext(
-        this._pCodecContext[0]->width,
-        this._pCodecContext[0]->height,
+        width,
+        height,
         this._pCodecContext[0]->pix_fmt,
-        this._pCodecContext[0]->width,
-        this._pCodecContext[0]->height,
+        width,
+        height,
         AVPixelFormat.AV_PIX_FMT_BGR24,
         ffmpeg.SWS_BILINEAR,
         null,
         null,
         null
       );
+
+      this.Dimensions = new(width, height);
 
       if (this._pSwsContext[0] == null) {
         this.Dispose();
@@ -196,7 +203,7 @@ public static class VideoFrameExtractor {
         self._pSwsContext[0] = null;
       });
 
-      var numBytes = ffmpeg.av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_BGR24, this._pCodecContext[0]->width, this._pCodecContext[0]->height, 1);
+      var numBytes = ffmpeg.av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_BGR24, width, height, 1);
       this._convertedFrameBufferPtr = Marshal.AllocHGlobal(numBytes);
       this._disposals.Add(() => {
         Marshal.FreeHGlobal(self._convertedFrameBufferPtr);
@@ -206,16 +213,19 @@ public static class VideoFrameExtractor {
       this._dstData = new();
       this._dstLinesize = new();
 
-      ffmpeg.av_image_fill_arrays(ref this._dstData, ref this._dstLinesize, (byte*)this._convertedFrameBufferPtr, AVPixelFormat.AV_PIX_FMT_BGR24, this._pCodecContext[0]->width, this._pCodecContext[0]->height, 1);
+      ffmpeg.av_image_fill_arrays(ref this._dstData, ref this._dstLinesize, (byte*)this._convertedFrameBufferPtr, AVPixelFormat.AV_PIX_FMT_BGR24, width, height, 1);
     }
 
     private readonly record struct FrameDuration(TimeSpan timePerPts, TimeSpan minimumFrameTime, TimeSpan averageFrameTime);
 
     private long _previousPts = 0;
     private readonly FrameDuration _frameDuration;
-    
-    public bool TryGetNextFrame([NotNullWhen(true)] out Bitmap? result, out TimeSpan duration) {
-      result = null;
+
+    public bool TryGetNextFrame(Bitmap result, out TimeSpan duration) {
+      ArgumentNullException.ThrowIfNull(result);
+      ArgumentOutOfRangeException.ThrowIfLessThan(result.Width,this.Dimensions.Width);
+      ArgumentOutOfRangeException.ThrowIfLessThan(result.Height, this.Dimensions.Height);
+
       duration = TimeSpan.Zero;
 
       var ptsFactor = ffmpeg.av_q2d(this._pStream->time_base);
@@ -257,26 +267,25 @@ public static class VideoFrameExtractor {
           var width = this._pCodecContext[0]->width;
           var height = this._pCodecContext[0]->height;
 
-          result = ConvertToBitmap(width, height, this._dstData[0], this._dstLinesize[0]);
+          ConvertToBitmap(result,width, height, this._dstData[0], this._dstLinesize[0]);
 
           var pts = this._pPacket[0]->pts == ffmpeg.AV_NOPTS_VALUE ? this._previousPts + 1 : this._pPacket[0]->pts;
           var ptsDelta = pts - this._previousPts;
           this._previousPts = pts;
 
-          var ptsDuration = this._frameDuration.minimumFrameTime.MultipliedWith((this._frameDuration.timePerPts.MultipliedWith(ptsDelta)/this._frameDuration.minimumFrameTime).Round());
+          var ptsDuration = this._frameDuration.minimumFrameTime.MultipliedWith((this._frameDuration.timePerPts.MultipliedWith(ptsDelta) / this._frameDuration.minimumFrameTime).Round());
           duration = this._frameDuration.averageFrameTime;
-          
+
           ffmpeg.av_packet_unref(this._pPacket[0]);
           return true;
         }
 
       return false;
 
-      Bitmap ConvertToBitmap(int width, int height, byte* srcFrame, int srcStride) {
-        var result = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+      void ConvertToBitmap(Bitmap target,int width, int height, byte* srcFrame, int srcStride) {
         BitmapData? bitmapData = null;
         try {
-          bitmapData = result.LockBits(new(0, 0, width, height), ImageLockMode.WriteOnly, result.PixelFormat);
+          bitmapData = target.LockBits(new(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
 
           var dst = (byte*)bitmapData.Scan0;
           var dstStride = bitmapData.Stride;
@@ -291,14 +300,21 @@ public static class VideoFrameExtractor {
             }
         } finally {
           if (bitmapData != null)
-            result.UnlockBits(bitmapData);
+            target.UnlockBits(bitmapData);
         }
-
-        return result;
       }
-
     }
 
+    public bool TryGetNextFrame([NotNullWhen(true)] out Bitmap? result, out TimeSpan duration) {
+      result = new Bitmap(this.Dimensions.Width, this.Dimensions.Height, PixelFormat.Format24bppRgb);
+      if(this.TryGetNextFrame(result,out duration))
+        return true;
+
+      result.Dispose();
+      result = null;
+      return false;
+    }
+    
     public void Dispose() {
       for (var i = this._disposals.Count - 1; i >= 0; --i) {
         this._disposals[i]();
@@ -308,8 +324,17 @@ public static class VideoFrameExtractor {
 
   }
 
-  public static IEnumerable<(Bitmap frame, TimeSpan duration)> GetFrames(FileInfo video) {
+  public static IEnumerable<(Bitmap frame, TimeSpan duration)> GetFrames(FileInfo video, bool reuseFrame=false) {
     using var state = new FFmpegState(video);
+    if (reuseFrame) {
+      var frame = new Bitmap(state.Dimensions.Width, state.Dimensions.Height, PixelFormat.Format24bppRgb);
+      while (state.TryGetNextFrame(frame, out var duration))
+        yield return (frame, duration);
+
+      frame.Dispose();
+      yield break;
+    }
+
     while (state.TryGetNextFrame(out var frame, out var duration))
       yield return (frame, duration);
   }
