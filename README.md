@@ -150,6 +150,7 @@ Due to the nature of this application, **AnythingToGif** requires fine-grained c
 - [X] [Uncompressed Images](https://github.com/Distrotech/libungif/blob/master/UNCOMPRESSED_GIF)
 - [X] [LZW Compression](https://giflib.sourceforge.net/whatsinagif/lzw_image_data.html)
 - [ ] [Optimized compression](https://create.stephan-brumme.com/flexigif-lossless-gif-lzw-optimization/)
+- [X] Optimized frame-size and positioning
 
 Further Links for this part:
 

@@ -143,7 +143,7 @@ class Program {
       }
 
       void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames)
-        => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: !configuration.NoCompression)
+        => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: !configuration.NoCompression, disposeFramesAfterWrite: true)
       ;
 
     }

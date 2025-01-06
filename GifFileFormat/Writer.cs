@@ -1,14 +1,14 @@
 ﻿#define OPTIMIZE_MEMORY
 
-namespace Hawkynt.GifFileFormat;
-
+using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+
+namespace Hawkynt.GifFileFormat;
 
 public static class Writer {
 
@@ -24,7 +24,7 @@ public static class Writer {
   private const byte IMAGE_SEPARATOR = 0x2C;
   private const byte FILE_TERMINATOR = 0x3B;
 
-  public static void ToFile(FileInfo outputFile, Dimensions dimensions, IEnumerable<Frame> frames, LoopCount loopCount, byte backgroundColorIndex = 0, ColorResolution colorResolution = ColorResolution.Colored256, IReadOnlyList<Color>? globalColorTable = null, bool allowCompression = false) {
+  public static unsafe void ToFile(FileInfo outputFile, Dimensions dimensions, IEnumerable<Frame> frames, LoopCount loopCount, byte backgroundColorIndex = 0, ColorResolution colorResolution = ColorResolution.Colored256, IReadOnlyList<Color>? globalColorTable = null, bool allowCompression = false, bool disposeFramesAfterWrite = false) {
     ArgumentNullException.ThrowIfNull(outputFile);
     ArgumentNullException.ThrowIfNull(frames);
     
@@ -43,25 +43,109 @@ public static class Writer {
 
     var bufferForImageData = new byte[dimensions.Width * dimensions.Height].AsSpan();
 
+    var lastFrameDisposalMethod = FrameDisposalMethod.Unspecified;
     foreach (var frame in frames) {
       ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frame.Duration.TotalMilliseconds);
-      
-      Writer._WriteGraphicsControlExtension(writer, frame.Duration, frame.Disposal, frame.TransparentColor);
 
       var frameSize = frame.Image.Size;
+      var frameOffset = frame.Offset;
+      var frameOrigin = Point.Empty;
+      if (lastFrameDisposalMethod == FrameDisposalMethod.DoNotDispose)
+        OptimizeFrameWindow(ref frameSize, ref frameOffset, ref frameOrigin, frame.Image, backgroundColorIndex);
+
+      lastFrameDisposalMethod = frame.Disposal;
+      Writer._WriteGraphicsControlExtension(writer, frame.Duration, frame.Disposal, frame.TransparentColor);
+      
       if (frame.UseLocalColorTable) {
         var localColorTable = frame.Image.Palette.Entries;
-        Writer._WriteImageDescriptor(writer, frameSize, frame.Offset, true, Writer._GetColorTableSize(localColorTable.Length).bitCountMinusOne);
+        Writer._WriteImageDescriptor(writer, frameSize, frameOffset, true, Writer._GetColorTableSize(localColorTable.Length).bitCountMinusOne);
         Writer._WriteColorTable(writer, localColorTable);
       } else
-        Writer._WriteImageDescriptor(writer, frameSize, frame.Offset, false, 0);
+        Writer._WriteImageDescriptor(writer, frameSize, frameOffset, false, 0);
 
-      var indexedData = Writer._CopyImageToArray(frame.Image, bufferForImageData);
+      var indexedData = Writer._CopyImageToArray(frame.Image, bufferForImageData, frameOrigin, frameSize);
+      if (disposeFramesAfterWrite)
+        frame.Image.Dispose();
 
       Writer._WriteImageData(writer, indexedData, allowCompression, 8);
     }
 
     Writer._WriteTrailer(writer);
+    return;
+
+    static void OptimizeFrameWindow(ref Size size, ref Offset offset, ref Point origin, Bitmap image, byte backgroundColorIndex) {
+      var bitmapData = image.LockBits(new Rectangle(origin, size), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
+      try {
+        var top = origin.Y;
+        var left = origin.X;
+        var bottom = size.Height;
+        var right = size.Width;
+        Parallel.Invoke(
+          () => top = FindTopMostNonBackgroundPixel((byte*)bitmapData.Scan0, bitmapData.Stride, top, bottom, left, right, backgroundColorIndex),
+          () => bottom = FindBottomMostNonBackgroundPixel((byte*)bitmapData.Scan0, bitmapData.Stride, top, bottom, left, right, backgroundColorIndex)
+        );
+        Parallel.Invoke(
+          () => left = FindLeftMostNonBackgroundPixel((byte*)bitmapData.Scan0, bitmapData.Stride, top, bottom, left, right, backgroundColorIndex),
+          () => right = FindRightMostNonBackgroundPixel((byte*)bitmapData.Scan0, bitmapData.Stride, top, bottom, left, right, backgroundColorIndex)
+        );
+
+        var offsetL = left - origin.X;
+        var offsetT = top - origin.Y;
+        var offsetR = size.Width - right + offsetL;
+        var offsetB = size.Height - bottom + offsetT;
+
+        offset = new(offset.X + offsetL, offset.Y + offsetT);
+        origin = new(origin.X + offsetL, origin.Y + offsetT);
+        size = new(size.Width - offsetR, size.Height - offsetB);
+      } finally {
+        image.UnlockBits(bitmapData);
+      }
+    }
+
+    static int FindTopMostNonBackgroundPixel(byte* imageData, int stride, int top, int bottom, int left, int right, byte backgroundColor) {
+      for (var y = top; y < bottom; ++y) {
+        var row = imageData + y * stride + left;
+        for (var x = left; x < right; ++x, ++row)
+          if (*row != backgroundColor)
+            return y;
+      }
+
+      return bottom;
+    }
+
+    static int FindBottomMostNonBackgroundPixel(byte* imageData, int stride, int top, int bottom, int left, int right, byte backgroundColor) {
+      for (var y = bottom - 1; y >= top; --y) {
+        var row = imageData + y * stride + left;
+        for (var x = left; x < right; ++x, ++row)
+          if (*row != backgroundColor)
+            return y + 1;
+      }
+
+      return top + 1;
+    }
+
+    static int FindLeftMostNonBackgroundPixel(byte* imageData, int stride, int top, int bottom, int left, int right,byte backgroundColor) {
+      for (var x = left; x < right; ++x) {
+        var row = imageData + top * stride + x;
+        for (var y = top; y < bottom; ++y, row+=stride)
+          if (*row != backgroundColor)
+            return x;
+      }
+
+      return right;
+    }
+
+    static int FindRightMostNonBackgroundPixel(byte* imageData, int stride, int top, int bottom, int left, int right, byte backgroundColor) {
+      for (var x = right - 1; x >= left; --x) {
+        var row = imageData + top * stride + x;
+        for (var y = top; y < bottom; ++y, row+=stride)
+          if (*row != backgroundColor)
+            return x + 1;
+      }
+
+      return left + 1;
+    }
+
   }
 
   private static void _WriteImageData(BinaryWriter writer, ReadOnlySpan<byte> indexedData, bool allowCompression, byte bitsPerPixel) {
@@ -115,7 +199,7 @@ public static class Writer {
       this._index -= MAX_PACKET_SIZE; // Reset chunk index
     }
 
-    public void Flush() {
+    public readonly void Flush() {
       if (this._index <= 0)
         return;
 
@@ -284,19 +368,19 @@ public static class Writer {
     }
   }
 
-  private static unsafe ReadOnlySpan<byte> _CopyImageToArray(Bitmap frame, Span<byte> buffer) {
+  private static unsafe ReadOnlySpan<byte> _CopyImageToArray(Bitmap frame, Span<byte> buffer, Point origin, Size size) {
     ArgumentNullException.ThrowIfNull(frame);
     ArgumentOutOfRangeException.ThrowIfLessThan(buffer.Length, frame.Width * frame.Height, nameof(buffer));
 
     fixed (byte* target = buffer) {
       var offset = target;
-      var width = frame.Width;
-      var height = frame.Height;
+      var width = size.Width;
+      var height = size.Height;
 
       BitmapData? bmpData = null;
       try {
 
-        bmpData = frame.LockBits(new(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
+        bmpData = frame.LockBits(new(origin, size), ImageLockMode.ReadOnly, PixelFormat.Format8bppIndexed);
         var rowPointer = (byte*)bmpData.Scan0;
         if (bmpData.Stride == width)
           Buffer.MemoryCopy(rowPointer, offset, width * height, width * height);
