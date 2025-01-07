@@ -80,15 +80,13 @@ class Program {
         Dimensions? dimensions = null;
 
         var subImages = ProcessFrames();
-        var enumerator = subImages.GetEnumerator();
+        using var enumerator = subImages.GetEnumerator();
         if (!enumerator.MoveNext())
           return;
 
         if (dimensions != null)
-          _WriteGif(outputFile, dimensions.Value, Enumerate());
-
-        enumerator?.Dispose();
-
+          _WriteGif(outputFile, dimensions.Value, Enumerate(), true);
+        
         return;
 
         IEnumerable<Frame> Enumerate() {
@@ -139,11 +137,11 @@ class Program {
         Console.WriteLine($"Converting image {inputFile.Name}");
         var subImages = converter.Convert(bitmap);
 
-        _WriteGif(outputFile, (Dimensions)image.Size, subImages);
+        _WriteGif(outputFile, (Dimensions)image.Size, subImages, false);
       }
 
-      void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames)
-        => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: !configuration.NoCompression, disposeFramesAfterWrite: true)
+      void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames, bool disposeFramesAfterWrite)
+        => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: !configuration.NoCompression, disposeFramesAfterWrite: disposeFramesAfterWrite)
       ;
 
     }
