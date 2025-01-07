@@ -4,55 +4,44 @@ namespace AnythingToGif.Extensions;
 
 internal static class ColorExtensions {
 
-  public unsafe struct ColorProxy {
-    private fixed byte _argb[4];
-
-    public ColorProxy(Color source) {
-      var value = source.ToArgb();
-      fixed (byte* ptr = this._argb)
-        *(int*)ptr = value;
-    }
-
-    public byte B => this._argb[0];
-    public byte G => this._argb[1];
-    public byte R => this._argb[2];
-    public byte A => this._argb[3];
-
-    public override int GetHashCode() {
-      fixed (byte* ptr = this._argb)
-        return *(int*)ptr;
-    }
-  }
-
-
-  public static int FindClosestColorIndex(this ColorProxy[] palette, ColorProxy color) {
-    var a1 = color.A;
-    var r1 = color.R;
-    var g1 = color.G;
-    var b1 = color.B;
+  public static int FindClosestColorIndex(this Color[] palette, Color color) {
+    var i1 = color.ToArgb();
+    var a1 = (byte)(i1 >>24);
+    var r1 = (byte)(i1 >>16);
+    var g1 = (byte)(i1 >>8);
+    var b1 = (byte)i1;
     
     var closestIndex = -1;
     var closestDistance = int.MaxValue;
-    for (var i = 0; i < palette.Length; i++) {
-      var paletteColor = palette[i];
-
+    for (var i = 0; i < palette.Length; ++i) {
+      var i2 = palette[i].ToArgb();
+      var a2 = (byte)(i2 >> 24);
+      
       // maybe there's something better than this rude alpha check
-      if (a1 != paletteColor.A)
+      if (a1 != a2)
         continue;
 
-      var r2 = paletteColor.R;
-      var g2 = paletteColor.G;
-      var b2 = paletteColor.B;
+      var r2 = (byte)(i2 >> 16);
+      var g2 = (byte)(i2 >> 8);
+      var b2 = (byte)i2;
 
-      var rMean = (r1 + r2) >> 1;
+      var rMean = r1 + r2;
       var r = r1 - r2;
       var g = g1 - g2;
       var b = b1 - b2;
+      rMean >>= 1;
       r *= r;
       g *= g;
       b *= b;
+      var rb = 512 + rMean;
+      var bb = 767 - rMean;
+      g <<= 2;
+      rb *= r;
+      bb *= b;
+      rb >>= 8;
+      bb >>= 8;
 
-      var distance = (((512 + rMean) * r) >> 8) + (g << 2) + (((767 - rMean) * b) >> 8);
+      var distance = rb + g + bb;
       if (distance >= closestDistance)
         continue;
 
