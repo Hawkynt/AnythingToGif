@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using AnythingToGif;
 using AnythingToGif.Extensions;
 using BitmapExtensions = System.Drawing.BitmapExtensions;
 
@@ -96,20 +98,23 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     var data = (byte*)target.Scan0;
     var errors = new RgbError[width, height];
     var divisor = this._divisor;
-    
+    var wrapper = new PaletteWrapper(palette);
+
+    var sw = Stopwatch.StartNew();
     for (var y = 0; y < height; ++y) {
       var offset = y * stride;
       for (var x = 0; x < width; ++offset, ++x) {
         var oldColor = source[x, y];
 
         // Apply the accumulated error to the current pixel
+        var rgbError = errors[x, y];
         var correctedColor = Color.FromArgb(
-          Clamp(errors[x, y].red.FusedDivideAdd(divisor, oldColor.R)),
-          Clamp(errors[x, y].green.FusedDivideAdd(divisor, oldColor.G)),
-          Clamp(errors[x, y].blue.FusedDivideAdd(divisor, oldColor.B))
+          Clamp(rgbError.red.FusedDivideAdd(divisor, oldColor.R)),
+          Clamp(rgbError.green.FusedDivideAdd(divisor, oldColor.G)),
+          Clamp(rgbError.blue.FusedDivideAdd(divisor, oldColor.B))
         );
 
-        var closestColorIndex = (byte)palette.FindClosestColorIndex(correctedColor);
+        var closestColorIndex = (byte)wrapper.FindClosestColorIndex(correctedColor);
 
         var newColor = palette[closestColorIndex];
         data[offset] = closestColorIndex;
@@ -123,10 +128,17 @@ public readonly struct MatrixBasedDitherer : IDitherer {
         this._DistributeError(errors, x, y, quantError, width, height);
       }
     }
-
+    sw.Stop();
+    Trace.WriteLine($"Took {sw.ElapsedMilliseconds}ms");
     return;
 
-    static int Clamp(int value) => Math.Max(0, Math.Min(255, value));
+    static int Clamp(int value) {
+      // Clamp to [0, 255] using bitwise operations
+      value &= ~(value >> 31);          // Sets value to 0 if negative
+      value -= 255;                     // Subtract 255, negative if value <= 255
+      value &= (value >> 31);           // Sets value to 0 if above 255
+      return value + 255;               // Adds back 255 if clamped
+    }
 
   }
 

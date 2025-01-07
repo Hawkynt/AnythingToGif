@@ -125,13 +125,15 @@ public class SingleImageHiColorGifConverter {
             pixels[point.Y * stride + point.X] = paletteIndex;
         });
 
-        if (otherSegments != null)
+        if (otherSegments != null) {
+          var wrapper = new PaletteWrapper(paletteEntries);
           Parallel.ForEach(otherSegments, tuple => {
             var (color, positions) = tuple;
-            var closestColorIndex = (byte)paletteEntries.FindClosestColorIndex(color);
+            var closestColorIndex = (byte)wrapper.FindClosestColorIndex(color);
             foreach (var point in positions)
               pixels[point.Y * stride + point.X] = closestColorIndex;
           });
+        }
 
       } finally {
         if (bitmapData != null)

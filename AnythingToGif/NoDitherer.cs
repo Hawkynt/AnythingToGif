@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using AnythingToGif.Extensions;
+using AnythingToGif;
 using BitmapExtensions = System.Drawing.BitmapExtensions;
 
 public readonly record struct NoDitherer : IDitherer {
@@ -14,10 +14,11 @@ public readonly record struct NoDitherer : IDitherer {
     var stride = target.Stride;
     var data = (byte*)target.Scan0;
 
+    var wrapper = new PaletteWrapper(palette);
     for (var y = 0; y < height; ++y)
     for (var x = 0; x < width; ++x) {
       var color = source[x, y];
-      var replacementColor = (byte)palette.FindClosestColorIndex(color);
+      var replacementColor = (byte)wrapper.FindClosestColorIndex(color);
       data[y * stride + x] = replacementColor;
     }
   }
