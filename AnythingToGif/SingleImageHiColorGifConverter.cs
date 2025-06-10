@@ -95,11 +95,14 @@ public class SingleImageHiColorGifConverter {
 
     yield break;
 
-    // TODO: if firstsubimageinitsbackground is false and usebackfilling is false, the last image always has to act like usebackfilling is true, otherwise there would be missing pixels on screen
     unsafe Bitmap CreateSubImage(int index) {
       var startIndex = index * maximumColorsPerSubImage;
       var colorSegment = colorSegments.GetRange(startIndex, Math.Min(maximumColorsPerSubImage, totalColorCount - startIndex));
-      var otherSegments = this.UseBackFilling && (startIndex + maximumColorsPerSubImage < totalColorCount) ? colorSegments[(startIndex + maximumColorsPerSubImage)..] : null;
+      var isLastFrame = index == availableFrames - 1;
+      var applyBackFilling = this.UseBackFilling || (isLastFrame && !this.FirstSubImageInitsBackground);
+      var otherSegments = applyBackFilling && (startIndex + maximumColorsPerSubImage < totalColorCount)
+        ? colorSegments[(startIndex + maximumColorsPerSubImage)..]
+        : null;
 
       var result = new Bitmap(dimensions.Width, dimensions.Height, PixelFormat.Format8bppIndexed);
 
