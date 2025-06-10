@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 
+namespace AnythingToGif.Ditherers;
+
 public interface IDitherer {
   void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette);
 }

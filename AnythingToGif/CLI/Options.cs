@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using AnythingToGif.Ditherers;
+using AnythingToGif.Quantizers;
 using CommandLine;
 using CommandLine.Text;
 

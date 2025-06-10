@@ -128,6 +128,9 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [ ] [Bayer-Matrix](https://github.com/dmnsgn/bayer)
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
+- [ ] [Fan](https://ditherit.com)
+- [ ] [ShiauFan](https://ditherit.com)
+- [ ] [ShiauFan2](https://ditherit.com)
 
 Further Links for this part:
 
