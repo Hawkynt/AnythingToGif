@@ -56,6 +56,7 @@ public class SingleImageHiColorGifConverter {
       ColorOrderingMode.HighLuminanceFirst => histogram.Keys.OrderByDescending(c => c.GetLuminance()),
       ColorOrderingMode.LowLuminanceFirst => histogram.Keys.OrderBy(c => c.GetLuminance()),
       ColorOrderingMode.Random => histogram.Keys.Randomize(),
+      // TODO: implement FromCenter ordering, basically we assume the colors closer to center of image are more important
       _ => histogram.Select(kvp => kvp.Key).Randomize()
     })
       result[index++] = color;
@@ -127,7 +128,7 @@ public class SingleImageHiColorGifConverter {
           var positions = colorSegment[i].pixelPositions;
           var paletteIndex = (byte)(i + 1);
           foreach (var point in positions)
-            pixels[point.Y * stride + point.X] = paletteIndex;
+            pixels[point.Y.FusedMultiplyAdd(stride, point.X)] = paletteIndex;
         });
 
         if (otherSegments != null) {
@@ -136,7 +137,7 @@ public class SingleImageHiColorGifConverter {
             var (color, positions) = tuple;
             var closestColorIndex = (byte)wrapper.FindClosestColorIndex(color);
             foreach (var point in positions)
-              pixels[point.Y * stride + point.X] = closestColorIndex;
+              pixels[point.Y.FusedMultiplyAdd(stride, point.X)] = closestColorIndex;
           });
         }
 

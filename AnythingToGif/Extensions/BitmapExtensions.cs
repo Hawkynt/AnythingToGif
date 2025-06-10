@@ -29,7 +29,7 @@ internal static partial class BitmapExtensions {
         for (var x = 0; x < width; ++x) {
           var color = *linePointer++;
 
-          localHistogram.GetOrAdd(color, () => new ()).Add(new(x,y));
+          localHistogram.GetOrAdd(color, () => new()).Add(new(x, y));
         }
       }
 
@@ -44,7 +44,7 @@ internal static partial class BitmapExtensions {
         if (result.TryGetValue(color, out var indices))
           indices.AddRange(kvp.Value);
         else
-          result.Add(color,kvp.Value);
+          result.Add(color, kvp.Value);
       }
     }
 
