@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Drawing;
 
-namespace AnythingToGif;
+namespace AnythingToGif.Quantizers;
 
 public abstract class QuantizerBase:IQuantizer {
   #region Implementation of IQuantizer

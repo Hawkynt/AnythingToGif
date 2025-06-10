@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace AnythingToGif;
+namespace AnythingToGif.Quantizers;
 
 public class OctreeQuantizer : QuantizerBase {
   private class Node {
