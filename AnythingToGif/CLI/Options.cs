@@ -27,7 +27,8 @@ internal class Options {
     [Description("Sierra")] Sierra,
     [Description("2-row Sierra")] TwoRowSierra,
     [Description("Sierra Lite")] SierraLite,
-    [Description("Pigeon")] Pigeon
+    [Description("Pigeon")] Pigeon,
+    [Description("Stevenson-Arce")] StevensonArce
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -75,6 +76,7 @@ internal class Options {
     DithererMode.TwoRowSierra => MatrixBasedDitherer.TwoRowSierra,
     DithererMode.SierraLite => MatrixBasedDitherer.SierraLite,
     DithererMode.Pigeon => MatrixBasedDitherer.Pigeon,
+    DithererMode.StevensonArce => MatrixBasedDitherer.StevensonArce,
     DithererMode.None => NoDitherer.Instance,
     _ => NoDitherer.Instance
   };

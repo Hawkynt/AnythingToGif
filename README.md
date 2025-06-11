@@ -38,6 +38,7 @@ Ditherer Modes:
   TwoRowSierra: 2-row Sierra
   SierraLite: Sierra Lite
   Pigeon: Pigeon
+  StevensonArce: Stevenson-Arce
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
@@ -129,7 +130,7 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [X] Two-Row Sierra
 - [X] Sierra Lite
 - [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
-- [ ] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
+- [X] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
 - [ ] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)]
 - [ ] [Bayer-Matrix](https://github.com/dmnsgn/bayer)
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)

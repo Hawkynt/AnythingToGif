@@ -91,6 +91,13 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     { 1, 0, 1, 0, 1 }
   }, 14);
 
+  public static IDitherer StevensonArce { get; } = new MatrixBasedDitherer(new byte[,] {
+    { 0, 0, 0, X, 0, 32, 0 },
+    { 12, 0, 26, 0, 30, 0, 16 },
+    { 0, 12, 0, 26, 0, 12, 0 },
+    { 5, 0, 12, 0, 12, 0, 5 }
+  }, 200);
+
   public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette) {
     var width = source.Width;
     var height = source.Height;
