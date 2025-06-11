@@ -22,6 +22,18 @@ Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
   input (pos. 0)                        Input directory or file. If not specified, defaults to the current directory.
   output (pos. 1)                       Output directory or file. If not specified, defaults to the current directory.
 
+Color Distance Methods:
+  Default: Automatic selection
+  Euclidean: Euclidean
+  EuclideanBT709: Euclidean (BT709)
+  EuclideanNommyde: Euclidean (Nommyde)
+  WeightedEuclideanLowRed: Weighted Euclidean (low red component)
+  WeightedEuclideanHighRed: Weighted Euclidean (high red component)
+  Manhattan: Manhattan
+  ManhattanBT709: Manhattan (BT709)
+  ManhattanNommyde: Manhattan (Nommyde)
+  CompuPhase: CompuPhase
+  
 Quantizer Modes:
   MedianCut: Median-Cut
   Octree: Octree
@@ -30,6 +42,8 @@ Quantizer Modes:
 Ditherer Modes:
   None: None
   FloydSteinberg: Floyd-Steinberg
+  FalseFloydSteinberg: Floyd-Steinberg (false implementation)
+  EqualFloydSteinberg: Floyd-Steinberg (equally distributed)
   JarvisJudiceNinke: Jarvis-Judice-Ninke
   Stucki: Stucki
   Atkinson: Atkinson
@@ -124,6 +138,7 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 
 - [X] None
 - [X] [Floyd-Steinberg](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering)
+- [X] [False Floyd-Steinberg](https://github.com/makew0rld)
 - [X] [Floyd-Steinberg (equally distributed)](https://github.com/kgjenkins/dither-dream)
 - [X] [Jarvis, Judice, and Ninke](https://www.graphicsacademy.com/what_ditherjarvis.php) [[1](https://www.researchgate.net/figure/Difference-between-Jarvis-Judice-and-Ninke-and-Floyd-Steinberg-results-from-watch-input_fig3_342085636)]
 - [X] Stucki

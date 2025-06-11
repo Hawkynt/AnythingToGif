@@ -2,7 +2,7 @@
   "profiles": {
     "AnythingToGif": {
       "commandName": "Project",
-      "commandLineArgs": "Examples \"Examples\""
+      "commandLineArgs": "-m Euclidean Examples \"Examples\""
     }
   }
 }

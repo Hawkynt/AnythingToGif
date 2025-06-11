@@ -2,18 +2,23 @@
 using System.Collections.Generic;
 using System.Drawing;
 using AnythingToGif.Extensions;
+using ColorExtensions = AnythingToGif.Extensions.ColorExtensions;
 
 namespace AnythingToGif;
 
 public class PaletteWrapper {
 
   private readonly Color[] _palette;
-  
   private readonly Dictionary<Color, int> _cache;
+  private readonly Func<Color[], Color, int> _colorIndexFinder;
 
-  public PaletteWrapper(IEnumerable<Color> original) {
+  public PaletteWrapper(IEnumerable<Color> original, Func<Color, Color, int>? metric = null) {
     var palette = new Color[256];
-    this._cache = new Dictionary<Color, int>(512);
+    this._cache = new(512);
+    this._colorIndexFinder = metric == null
+      ? ColorExtensions.FindClosestColorIndex
+      : (p, c) => p.FindClosestColorIndex(c, metric)
+      ;
 
     var i = 0;
     foreach (var c in original) {
@@ -34,7 +39,7 @@ public class PaletteWrapper {
     if(this._cache.TryGetValue(color, out var result))
       return result;
     
-    result = this._palette.FindClosestColorIndex(color);
+    result = this._colorIndexFinder(this._palette, color);
     lock(this._cache)
       this._cache[color] = result;
 
