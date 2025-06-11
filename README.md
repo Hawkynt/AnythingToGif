@@ -70,7 +70,7 @@ To create a high-color GIF, **AnythingToGif** partitions the color set across mu
 
    - [X] **Random**: Colors are added in a random order.
    - [X] **MostUsedFirst**: Colors that appear most frequently in the image are added first, ensuring that the most common colors are prioritized.
-   - [ ] **FromCenter**: Colors are added starting from the center of the image, moving outward.
+   - [X] **FromCenter**: Colors are added starting from the center of the image, moving outward.
    - [X] **LeastUsedFirst**: Colors that appear least frequently are added first.
    - [X] **HighLuminanceFirst**: Colors with the highest brightness levels are added first, enhancing bright areas of the image initially.
    - [X] **LowLuminanceFirst**: Colors with the lowest brightness levels are added first, focusing on darker areas initially.
