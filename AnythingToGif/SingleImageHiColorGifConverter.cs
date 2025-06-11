@@ -47,18 +47,26 @@ public class SingleImageHiColorGifConverter {
     }
   }
 
-  private static Color[] _SortHistogram(IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode) {
+  private static Color[] _SortHistogram(IDictionary<Color, ICollection<Point>> histogram, Size imageSize, ColorOrderingMode mode) {
     var result = new Color[histogram.Count];
     var index = 0;
-    foreach (var color in mode switch {
+
+    var orderedColors = mode switch {
       ColorOrderingMode.MostUsedFirst => histogram.OrderByDescending(kvp => kvp.Value.Count).Select(kvp => kvp.Key),
       ColorOrderingMode.LeastUsedFirst => histogram.OrderBy(kvp => kvp.Value.Count).Select(kvp => kvp.Key),
       ColorOrderingMode.HighLuminanceFirst => histogram.Keys.OrderByDescending(c => c.GetLuminance()),
       ColorOrderingMode.LowLuminanceFirst => histogram.Keys.OrderBy(c => c.GetLuminance()),
+      ColorOrderingMode.FromCenter =>
+        histogram.OrderBy(kvp => kvp.Value.Min(p => {
+          var dx = p.X - (imageSize.Width - 1) / 2.0;
+          var dy = p.Y - (imageSize.Height - 1) / 2.0;
+          return dx * dx + dy * dy;
+        })).Select(kvp => kvp.Key),
       ColorOrderingMode.Random => histogram.Keys.Randomize(),
-      // TODO: implement FromCenter ordering, basically we assume the colors closer to center of image are more important
       _ => histogram.Select(kvp => kvp.Key).Randomize()
-    })
+    };
+
+    foreach (var color in orderedColors)
       result[index++] = color;
 
     return result;
@@ -84,7 +92,7 @@ public class SingleImageHiColorGifConverter {
         yield break;
     }
 
-    var usedColors = SingleImageHiColorGifConverter._SortHistogram(histogram, this.ColorOrdering);
+    var usedColors = SingleImageHiColorGifConverter._SortHistogram(histogram, dimensions, this.ColorOrdering);
 
     // create segments
     var colorSegments = new List<(Color color, ICollection<Point> pixelPositions)>(totalColorCount);
@@ -153,7 +161,7 @@ public class SingleImageHiColorGifConverter {
 
   private static Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode) {
 
-    var reducedColors = (quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp => (kvp.Key, (uint)kvp.Value.Count))) ?? SingleImageHiColorGifConverter._SortHistogram(histogram, mode).Take(maxColors)).ToArray();
+    var reducedColors = (quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp => (kvp.Key, (uint)kvp.Value.Count))) ?? SingleImageHiColorGifConverter._SortHistogram(histogram, image.Size, mode).Take(maxColors)).ToArray();
 
     var width = image.Width;
     var height = image.Height;
