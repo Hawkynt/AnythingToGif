@@ -104,6 +104,11 @@ The initial frame requires an approximate palette that represents the full range
 - [ ] [Variance-cut (VC)](https://ieeexplore.ieee.org/document/6718239)
 - [ ] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
 - [ ] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
+- [ ] Simulated Annealing
+- [ ] Fixed Palettes
+- [ ] BSDS300
+- [ ] PCA
+- [ ] K-Means
 
 Further Links for this part:
 
@@ -124,13 +129,20 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [X] Two-Row Sierra
 - [X] Sierra Lite
 - [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
+- [ ] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
 - [ ] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)]
 - [ ] [Bayer-Matrix](https://github.com/dmnsgn/bayer)
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
+- [ ] White Noise
+- [ ] Blue Noise
 - [ ] [Fan](https://ditherit.com)
 - [ ] [ShiauFan](https://ditherit.com)
 - [ ] [ShiauFan2](https://ditherit.com)
+- [ ] [Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Thomas Knoll](https://bisqwit.iki.fi/story/howto/dither/jy/)
 
 Further Links for this part:
 
@@ -141,6 +153,15 @@ Further Links for this part:
 ### Color distance calculation
 
 - [X]  [Weighted Euclidean](https://www.compuphase.com/cmetric.htm)
+- [ ]  [EuclideanBT709](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [Manhattan](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [ManhattanBT709](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [ManhattanNommyde](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [CIEDE2000](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [CIE94Textiles](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [CIE94GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [CMetric](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
 
 Further Links for this part:
 
