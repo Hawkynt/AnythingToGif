@@ -28,7 +28,10 @@ internal class Options {
     [Description("2-row Sierra")] TwoRowSierra,
     [Description("Sierra Lite")] SierraLite,
     [Description("Pigeon")] Pigeon,
-    [Description("Stevenson-Arce")] StevensonArce
+    [Description("Stevenson-Arce")] StevensonArce,
+    [Description("ShiauFan")] ShiauFan,
+    [Description("ShiauFan2")] ShiauFan2,
+    [Description("Fan93")] Fan93
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -77,6 +80,9 @@ internal class Options {
     DithererMode.SierraLite => MatrixBasedDitherer.SierraLite,
     DithererMode.Pigeon => MatrixBasedDitherer.Pigeon,
     DithererMode.StevensonArce => MatrixBasedDitherer.StevensonArce,
+    DithererMode.ShiauFan => MatrixBasedDitherer.ShiauFan,
+    DithererMode.ShiauFan2 => MatrixBasedDitherer.ShiauFan2,
+    DithererMode.Fan93 => MatrixBasedDitherer.Fan93,
     DithererMode.None => NoDitherer.Instance,
     _ => NoDitherer.Instance
   };

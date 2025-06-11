@@ -98,6 +98,21 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     { 5, 0, 12, 0, 12, 0, 5 }
   }, 200);
 
+  public static IDitherer ShiauFan { get; } = new MatrixBasedDitherer(new byte[,] {
+    { 0, X, 4 },
+    { 1, 1, 2 }
+  }, 8);
+
+  public static IDitherer ShiauFan2 { get; } = new MatrixBasedDitherer(new byte[,] {
+    { 0, 0, X, 8 },
+    { 1, 1, 2, 4 }
+  }, 16);
+
+  public static IDitherer Fan93 { get; } = new MatrixBasedDitherer(new byte[,] {
+    { 0, X, 7 },
+    { 1, 3, 5 }
+  }, 16);
+
   public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette) {
     var width = source.Width;
     var height = source.Height;
