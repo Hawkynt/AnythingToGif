@@ -14,7 +14,7 @@ using Hawkynt.GifFileFormat;
 public class SingleImageHiColorGifConverter {
 
   public TimeSpan? TotalFrameDuration { get; set; }
-  public TimeSpan MinimumSubImageDuration { get; set; }=TimeSpan.FromMilliseconds(10);
+  public TimeSpan MinimumSubImageDuration { get; set; } = TimeSpan.FromMilliseconds(10);
   public TimeSpan SubImageDurationTimeSlice { get; set; } = TimeSpan.FromMilliseconds(10);
   public IQuantizer? Quantizer { get; set; }
   public IDitherer Ditherer { get; set; } = NoDitherer.Instance;
@@ -22,6 +22,14 @@ public class SingleImageHiColorGifConverter {
   public byte MaximumColorsPerSubImage { get; set; } = 255;
   public bool FirstSubImageInitsBackground { get; set; }
   public bool UseBackFilling { get; set; }
+
+  /// <summary>
+  /// The metric to use for calculating the distance between colors.
+  /// </summary>
+  /// <remarks>
+  ///   <see langword="null"/> means automatically, which uses the one implemented in <see cref="AnythingToGif.Extensions.ColorExtensions.FindClosestColorIndex"/>.
+  /// </remarks>
+  public Func<Color, Color, int>? ColorDistanceMetric { get; set; } = null;
 
   public IEnumerable<Frame> Convert(Bitmap image) {
     var histogram = image.CreateHistogram().ToFrozenDictionary();
@@ -62,8 +70,8 @@ public class SingleImageHiColorGifConverter {
           var dy = p.Y - (imageSize.Height - 1) / 2.0;
           return dx * dx + dy * dy;
         })).Select(kvp => kvp.Key),
-      ColorOrderingMode.Random => histogram.Keys.Randomize(),
-      _ => histogram.Select(kvp => kvp.Key).Randomize()
+      ColorOrderingMode.Random => histogram.Keys.Shuffled(),
+      _ => histogram.Select(kvp => kvp.Key).Shuffled()
     };
 
     foreach (var color in orderedColors)
@@ -86,7 +94,7 @@ public class SingleImageHiColorGifConverter {
 
     var totalFrameTime = TimeSpan.Zero;
     if (this.FirstSubImageInitsBackground) {
-      yield return new(Offset.None, SingleImageHiColorGifConverter._CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer ?? NoDitherer.Instance, histogram, this.ColorOrdering), frameDuration, FrameDisposalMethod.DoNotDispose);
+      yield return new(Offset.None, SingleImageHiColorGifConverter._CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer ?? NoDitherer.Instance, histogram, this.ColorOrdering, this.ColorDistanceMetric), frameDuration, FrameDisposalMethod.DoNotDispose);
       totalFrameTime += frameDuration;
       if (--availableFrames <= 0)
         yield break;
@@ -140,7 +148,7 @@ public class SingleImageHiColorGifConverter {
         });
 
         if (otherSegments != null) {
-          var wrapper = new PaletteWrapper(paletteEntries);
+          var wrapper = new PaletteWrapper(paletteEntries, this.ColorDistanceMetric);
           Parallel.ForEach(otherSegments, tuple => {
             var (color, positions) = tuple;
             var closestColorIndex = (byte)wrapper.FindClosestColorIndex(color);
@@ -159,7 +167,7 @@ public class SingleImageHiColorGifConverter {
 
   }
 
-  private static Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode) {
+  private static Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode, Func<Color, Color, int>? colorDistanceMetric) {
 
     var reducedColors = (quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp => (kvp.Key, (uint)kvp.Value.Count))) ?? SingleImageHiColorGifConverter._SortHistogram(histogram, image.Size, mode).Take(maxColors)).ToArray();
 
@@ -181,7 +189,7 @@ public class SingleImageHiColorGifConverter {
 
       bitmapData = result.LockBits(new(Point.Empty, result.Size), ImageLockMode.WriteOnly, result.PixelFormat);
       using var locker = image.Lock(ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-      ditherer.Dither(locker, bitmapData, reducedColors);
+      ditherer.Dither(locker, bitmapData, reducedColors, colorDistanceMetric);
 
     } finally {
 
