@@ -15,7 +15,7 @@ Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
   -d, --ditherer                        (Default: FloydSteinberg) Ditherer to use.
   -f, --useBackFilling                  (Default: false) Whether to use backfilling.
   -b, --firstSubImageInitsBackground    (Default: true) Whether the first sub-image initializes the background.
-  -p, --usePca                           (Default: false) Use PCA preprocessing before quantization.
+  -p, --usePca                          (Default: false) Use Principal Component Analysis preprocessing before quantization.
   -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
   -n, --noCompression                   (Default: false) Whether to use compressed GIF files or not.
   --help                                Display this help screen.
@@ -126,7 +126,7 @@ The initial frame requires an approximate palette that represents the full range
 - [ ] Simulated Annealing
 - [ ] Fixed Palettes
 - [ ] BSDS300
-- [ ] PCA
+- [x] [Principal Component Analysis]()
 - [ ] K-Means
 
 Further Links for this part:

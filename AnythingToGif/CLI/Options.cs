@@ -73,7 +73,7 @@ internal class Options {
   [Option('b', "firstSubImageInitsBackground", Default = true, HelpText = "Whether the first sub-image initializes the background.")]
   public bool FirstSubImageInitsBackground { get; set; }
 
-  [Option('p', "usePca", Default = false, HelpText = "Use PCA preprocessing before quantization.")]
+  [Option('p', "usePca", Default = false, HelpText = "Use PCA (Principal Component Analysis) preprocessing before quantization.")]
   public bool UsePca { get; set; }
 
   [Option('c', "colorOrdering", Default = ColorOrderingMode.MostUsedFirst, HelpText = "Color ordering mode.")]
