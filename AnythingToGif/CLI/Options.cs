@@ -73,6 +73,9 @@ internal class Options {
   [Option('b', "firstSubImageInitsBackground", Default = true, HelpText = "Whether the first sub-image initializes the background.")]
   public bool FirstSubImageInitsBackground { get; set; }
 
+  [Option('p', "usePca", Default = false, HelpText = "Use PCA preprocessing before quantization.")]
+  public bool UsePca { get; set; }
+
   [Option('c', "colorOrdering", Default = ColorOrderingMode.MostUsedFirst, HelpText = "Color ordering mode.")]
   public ColorOrderingMode ColorOrdering { get; set; }
 
@@ -97,11 +100,15 @@ internal class Options {
     _ => throw new("Unknown color distance metric")
   };
 
-  public Func<IQuantizer> Quantizer => this._Quantizer switch {
-    QuantizerMode.Octree => () => new OctreeQuantizer(),
-    QuantizerMode.MedianCut => () => new MedianCutQuantizer(),
-    QuantizerMode.GreedyOrthogonalBiPartitioning => () => new WuQuantizer(),
-    _ => throw new("Unknown quantizer")
+  public Func<IQuantizer> Quantizer => () => {
+    IQuantizer q = this._Quantizer switch {
+      QuantizerMode.Octree => new OctreeQuantizer(),
+      QuantizerMode.MedianCut => new MedianCutQuantizer(),
+      QuantizerMode.GreedyOrthogonalBiPartitioning => new WuQuantizer(),
+      _ => throw new("Unknown quantizer")
+    };
+
+    return this.UsePca ? new PcaQuantizerWrapper(q) : q;
   };
 
   public IDitherer Ditherer => this._Ditherer switch {
