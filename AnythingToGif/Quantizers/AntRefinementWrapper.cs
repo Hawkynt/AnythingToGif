@@ -2,22 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using AnythingToGif.Extensions;
 
 namespace AnythingToGif.Quantizers;
 
-public static class AntTreeRefiner {
+public class AntRefinementWrapper(IQuantizer baseQuantizer, int iterations, Func<Color, Color, int> colorDistanceMetric)
+  : QuantizerBase {
 
-  private const int DefaultIterations = 25; // Number of iterations for ATCQ-like refinement
-  
-  public static Color[] RefinePalette(Color[] initialPalette, IEnumerable<(Color color, uint count)> histogram)
-    => RefinePalette(initialPalette, histogram, DefaultIterations)
-    ;
-
-  public static Color[] RefinePalette(Color[] initialPalette, IEnumerable<(Color color, uint count)> histogram, int iterations) {
+  public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
     var originalColorsWithCounts = histogram.ToList();
-    var result = ((IEnumerable<Color>)initialPalette).ToArray(); // Explicitly cast to resolve ambiguity
+    var result = baseQuantizer.ReduceColorsTo(numberOfColors, originalColorsWithCounts);
 
+    // Then, refine the palette using the Ant-tree like iterative process
     Dictionary<Color, List<(Color color, uint count)>> newPaletteClusters = [];
     var nextPalette = new List<Color>();
     for (var i = 0; i < iterations; ++i) {
@@ -25,10 +20,10 @@ public static class AntTreeRefiner {
       foreach (var paletteColor in result)
         newPaletteClusters[paletteColor] = [];
 
-      // Assign each original color to the closest palette color
+      // Assign each original color to the closest palette color using the provided metric
       foreach (var (originalColor, count) in originalColorsWithCounts) {
         var closestPaletteColor = result
-          .OrderBy(pc => originalColor.EuclideanDistance(pc))
+          .OrderBy(pc => colorDistanceMetric(originalColor, pc))
           .First()
           ;
 
@@ -61,6 +56,7 @@ public static class AntTreeRefiner {
           (int)Math.Round((double)sumG / totalCount),
           (int)Math.Round((double)sumB / totalCount)
         ));
+
       }
       result = nextPalette.ToArray();
     }

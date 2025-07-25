@@ -17,10 +17,10 @@ internal class Options {
   public enum ColorDistanceMetric {
     Default,
     [Description("Euclidean")] Euclidean,
-    [Description("EuclideanBT709")] EuclideanBT709,
-    [Description("EuclideanNommyde")] EuclideanNommyde,
+    [Description("Euclidean (BT709)")] EuclideanBT709,
+    [Description("Euclidean (Nommyde)")] EuclideanNommyde,
     [Description("Manhattan")] Manhattan,
-    [Description("ManhattanBT709")] ManhattanBT709,
+    [Description("Manhattan (BT709)")] ManhattanBT709,
     [Description("ManhattanNommyde")] ManhattanNommyde,
     [Description("CompuPhase")] CompuPhase,
     [Description("Weighted Euclidean (low red component)")] WeightedEuclideanLowRed,
@@ -32,11 +32,8 @@ internal class Options {
     [Description("Octree")] Octree,
     [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning,
     [Description("Variance-Cut")] VarianceCut,
-    [Description("BS combined with iterative ATCQ")] BSITATCQ,
     [Description("Variance-Based")] VarianceBased,
-    [Description("Binary Splitting")] BinarySplitting,
-    [Description("Binary Splitting with Ant-tree")] BinarySplittingAnt,
-    [Description("WU combined with Ant-tree")] WuAnt
+    [Description("Binary Splitting")] BinarySplitting
   }
 
   public enum DithererMode {
@@ -96,6 +93,12 @@ internal class Options {
   [Option('n', "noCompression", Default = false, HelpText = "Whether to use compressed GIF files or not.")]
   public bool NoCompression { get; set; }
 
+  [Option('a', "useAntRefinement", Default = false, HelpText = "Whether to apply Ant-tree like iterative refinement after initial quantization.")]
+  public bool UseAntRefinement { get; set; }
+
+  [Option('i', "antIterations", Default = 25, HelpText = "Number of iterations for Ant-tree like refinement.")]
+  public int AntIterations { get; set; }
+
   public FileSystemInfo InputPath => File.Exists(this._InputPath) ? new FileInfo(this._InputPath) : new DirectoryInfo(this._InputPath);
 
   public FileSystemInfo OutputPath => Directory.Exists(this._OutputPath) ? new DirectoryInfo(this._OutputPath) : new FileInfo(this._OutputPath);
@@ -120,15 +123,18 @@ internal class Options {
       QuantizerMode.MedianCut => new MedianCutQuantizer(),
       QuantizerMode.GreedyOrthogonalBiPartitioning => new WuQuantizer(),
       QuantizerMode.VarianceCut => new VarianceCutQuantizer(),
-      QuantizerMode.BSITATCQ => new BSITATCQQuantizer(),
       QuantizerMode.VarianceBased => new VarianceBasedQuantizer(),
       QuantizerMode.BinarySplitting => new BinarySplittingQuantizer(),
-      QuantizerMode.BinarySplittingAnt => new BinarySplittingAntQuantizer(),
-      QuantizerMode.WuAnt => new WuAntQuantizer(),
       _ => throw new("Unknown quantizer")
     };
 
-    return this.UsePca ? new PcaQuantizerWrapper(q) : q;
+    if (this.UsePca)
+      q = new PcaQuantizerWrapper(q);
+
+    if (this.UseAntRefinement)
+      q = new AntRefinementWrapper(q, this.AntIterations, this.Metric ?? ColorExtensions.EuclideanDistance);
+
+    return q;
   };
 
   public IDitherer Ditherer => this._Ditherer switch {
