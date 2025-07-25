@@ -33,7 +33,8 @@ internal class Options {
     [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning,
     [Description("Variance-Cut")] VarianceCut,
     [Description("Variance-Based")] VarianceBased,
-    [Description("Binary Splitting")] BinarySplitting
+    [Description("Binary Splitting")] BinarySplitting,
+    [Description("Adaptive Distributing Units")] Adu
   }
 
   public enum DithererMode {
@@ -125,6 +126,7 @@ internal class Options {
       QuantizerMode.VarianceCut => new VarianceCutQuantizer(),
       QuantizerMode.VarianceBased => new VarianceBasedQuantizer(),
       QuantizerMode.BinarySplitting => new BinarySplittingQuantizer(),
+      QuantizerMode.Adu => new AduQuantizer(this.Metric ?? ColorExtensions.CompuPhaseDistance),
       _ => throw new("Unknown quantizer")
     };
 
