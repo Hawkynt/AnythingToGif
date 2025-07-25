@@ -49,7 +49,15 @@ internal class Options {
     [Description("Stevenson-Arce")] StevensonArce,
     [Description("ShiauFan")] ShiauFan,
     [Description("ShiauFan2")] ShiauFan2,
-    [Description("Fan93")] Fan93
+    [Description("Fan93")] Fan93,
+    [Description("Bayer 2x2")] Bayer2x2,
+    [Description("Bayer 4x4")] Bayer4x4,
+    [Description("Bayer 8x8")] Bayer8x8,
+    [Description("A-Dither XOR-Y149")] ADitherXorY149,
+    [Description("A-Dither XOR-Y149 with Channel")] ADitherXorY149WithChannel,
+    [Description("A-Dither XY Arithmetic")] ADitherXYArithmetic,
+    [Description("A-Dither XY Arithmetic with Channel")] ADitherXYArithmeticWithChannel,
+    [Description("A-Dither Uniform")] ADitherUniform
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -127,6 +135,14 @@ internal class Options {
     DithererMode.ShiauFan => MatrixBasedDitherer.ShiauFan,
     DithererMode.ShiauFan2 => MatrixBasedDitherer.ShiauFan2,
     DithererMode.Fan93 => MatrixBasedDitherer.Fan93,
+    DithererMode.Bayer2x2 => BayerDitherer.Bayer2x2,
+    DithererMode.Bayer4x4 => BayerDitherer.Bayer4x4,
+    DithererMode.Bayer8x8 => BayerDitherer.Bayer8x8,
+    DithererMode.ADitherXorY149 => ADitherer.XorY149,
+    DithererMode.ADitherXorY149WithChannel => ADitherer.XorY149WithChannel,
+    DithererMode.ADitherXYArithmetic => ADitherer.XYArithmetic,
+    DithererMode.ADitherXYArithmeticWithChannel => ADitherer.XYArithmeticWithChannel,
+    DithererMode.ADitherUniform => ADitherer.Uniform,
     DithererMode.None => NoDitherer.Instance,
     _ => NoDitherer.Instance
   };
