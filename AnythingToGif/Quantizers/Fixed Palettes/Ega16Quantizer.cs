@@ -1,9 +1,9 @@
 using System.Drawing;
 
-namespace AnythingToGif.Quantizers;
+namespace AnythingToGif.Quantizers.FixedPalettes;
 
-public sealed class Ega16Quantizer : FixedPaletteQuantizer {
-  internal static readonly Color[] Palette = {
+public sealed class Ega16Quantizer() : FixedPaletteQuantizer(Palette) {
+  internal static readonly Color[] Palette = [
     Color.FromArgb(0, 0, 0),
     Color.FromArgb(0, 0, 170),
     Color.FromArgb(0, 170, 0),
@@ -20,7 +20,5 @@ public sealed class Ega16Quantizer : FixedPaletteQuantizer {
     Color.FromArgb(255, 85, 255),
     Color.FromArgb(255, 255, 85),
     Color.FromArgb(255, 255, 255)
-  };
-
-  public Ega16Quantizer() : base(Palette) { }
+  ];
 }

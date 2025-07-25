@@ -6,6 +6,8 @@ using System.IO;
 using System.Reflection;
 using AnythingToGif.Ditherers;
 using AnythingToGif.Quantizers;
+using AnythingToGif.Quantizers.FixedPalettes;
+using AnythingToGif.Quantizers.Wrappers;
 using CommandLine;
 using CommandLine.Text;
 using ColorExtensions = AnythingToGif.Extensions.ColorExtensions;
@@ -28,10 +30,10 @@ internal class Options {
   }
 
   public enum QuantizerMode {
-    [Description("EGA 16-colors + transparency")] Ega16,
-    [Description("VGA 256-colors + transparency")] Vga256,
-    [Description("Web Safe palette + transparency")] WebSafe,
-    [Description("Mac 8-bit system palette + transparency")] Mac8Bit,
+    [Description("EGA 16-colors")] Ega16,
+    [Description("VGA 256-colors")] Vga256,
+    [Description("Web Safe palette")] WebSafe,
+    [Description("Mac 8-bit system palette")] Mac8Bit,
     [Description("Median-Cut")] MedianCut,
     [Description("Octree")] Octree,
     [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning,
@@ -124,16 +126,16 @@ internal class Options {
 
   public Func<IQuantizer> Quantizer => () => {
     IQuantizer q = this._Quantizer switch {
+      QuantizerMode.Ega16 => new Ega16Quantizer(),
+      QuantizerMode.Vga256 => new Vga256Quantizer(),
+      QuantizerMode.WebSafe => new WebSafeQuantizer(),
+      QuantizerMode.Mac8Bit => new Mac8BitQuantizer(),
       QuantizerMode.Octree => new OctreeQuantizer(),
       QuantizerMode.MedianCut => new MedianCutQuantizer(),
       QuantizerMode.GreedyOrthogonalBiPartitioning => new WuQuantizer(),
       QuantizerMode.VarianceCut => new VarianceCutQuantizer(),
       QuantizerMode.VarianceBased => new VarianceBasedQuantizer(),
       QuantizerMode.BinarySplitting => new BinarySplittingQuantizer(),
-      QuantizerMode.Ega16 => new Ega16Quantizer(),
-      QuantizerMode.Vga256 => new Vga256Quantizer(),
-      QuantizerMode.WebSafe => new WebSafeQuantizer(),
-      QuantizerMode.Mac8Bit => new Mac8BitQuantizer(),
       QuantizerMode.Adu => new AduQuantizer(this.Metric ?? ColorExtensions.CompuPhaseDistance),
       _ => throw new("Unknown quantizer")
     };
