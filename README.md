@@ -26,6 +26,10 @@ Quantizer Modes:
   MedianCut: Median-Cut
   Octree: Octree
   GreedyOrthogonalBiPartitioning: Greedy Orthogonal Bi-Partitioning (Wu)
+  Ega16: EGA 16-colors + transparency
+  Vga256: VGA 256-colors + transparency
+  WebSafe: Web Safe palette + transparency
+  Mac8Bit: Mac 8-bit system palette + transparency
 
 Ditherer Modes:
   None: None
