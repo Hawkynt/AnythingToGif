@@ -11,15 +11,16 @@ Converts anything to GIF format.
 
 Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
 
-  -q, --quantizer                       (Default: Octree) Quantizer to use.
+  -a, --useAntRefinement                (Default: false) Whether to apply Ant-tree like iterative refinement after initial quantization.
+  -b, --firstSubImageInitsBackground    (Default: true) Whether the first sub-image initializes the background.
+  -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
   -d, --ditherer                        (Default: FloydSteinberg) Ditherer to use.
   -f, --useBackFilling                  (Default: false) Whether to use backfilling.
-  -b, --firstSubImageInitsBackground    (Default: true) Whether the first sub-image initializes the background.
-  -p, --usePca                          (Default: false) Use Principal Component Analysis preprocessing before quantization.
-  -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
-  -n, --noCompression                   (Default: false) Whether to use compressed GIF files or not.
-  -a, --useAntRefinement                (Default: false) Whether to apply Ant-tree like iterative refinement after initial quantization.
   -i, --antIterations                   (Default: 25) Number of iterations for Ant-tree like refinement.
+  -m, --metric                          (Default: CompuPhaseDistance) Color distance metric to use.
+  -n, --noCompression                   (Default: false) Whether to use compressed GIF files or not.
+  -p, --usePca                          (Default: false) Use Principal Component Analysis preprocessing before quantization.
+  -q, --quantizer                       (Default: Octree) Quantizer to use.
   --help                                Display this help screen.
   --version                             Display version information.
   input (pos. 0)                        Input directory or file. If not specified, defaults to the current directory.
