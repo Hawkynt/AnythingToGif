@@ -28,6 +28,10 @@ internal class Options {
   }
 
   public enum QuantizerMode {
+    [Description("EGA 16-colors + transparency")] Ega16,
+    [Description("VGA 256-colors + transparency")] Vga256,
+    [Description("Web Safe palette + transparency")] WebSafe,
+    [Description("Mac 8-bit system palette + transparency")] Mac8Bit,
     [Description("Median-Cut")] MedianCut,
     [Description("Octree")] Octree,
     [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning,
@@ -126,6 +130,10 @@ internal class Options {
       QuantizerMode.VarianceCut => new VarianceCutQuantizer(),
       QuantizerMode.VarianceBased => new VarianceBasedQuantizer(),
       QuantizerMode.BinarySplitting => new BinarySplittingQuantizer(),
+      QuantizerMode.Ega16 => new Ega16Quantizer(),
+      QuantizerMode.Vga256 => new Vga256Quantizer(),
+      QuantizerMode.WebSafe => new WebSafeQuantizer(),
+      QuantizerMode.Mac8Bit => new Mac8BitQuantizer(),
       QuantizerMode.Adu => new AduQuantizer(this.Metric ?? ColorExtensions.CompuPhaseDistance),
       _ => throw new("Unknown quantizer")
     };
