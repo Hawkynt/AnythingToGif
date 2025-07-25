@@ -44,6 +44,10 @@ Quantizer Modes:
   VarianceCut: Variance-Cut
   VarianceBased: Variance-Based
   BinarySplitting: Binary Splitting
+  Ega16: EGA 16-colors + transparency
+  Vga256: VGA 256-colors + transparency
+  WebSafe: Web Safe palette + transparency
+  Mac8Bit: Mac 8-bit system palette + transparency
   
 Ditherer Modes:
   None: None
@@ -138,7 +142,7 @@ The initial frame requires an approximate palette that represents the full range
 - [X] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
 - [X] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
 - [ ] Simulated Annealing
-- [ ] Fixed Palettes
+- [X] Fixed Palettes
 - [ ] BSDS300
 - [x] [Principal Component Analysis]()
 - [ ] K-Means
