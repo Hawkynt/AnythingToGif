@@ -32,7 +32,8 @@ internal class Options {
     [Description("Octree")] Octree,
     [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning,
     [Description("Variance-Cut")] VarianceCut,
-    [Description("BS combined with iterative ATCQ")] BSITATCQ
+    [Description("BS combined with iterative ATCQ")] BSITATCQ,
+    [Description("Variance-Based")] VarianceBased
   }
 
   public enum DithererMode {
@@ -117,6 +118,7 @@ internal class Options {
       QuantizerMode.GreedyOrthogonalBiPartitioning => new WuQuantizer(),
       QuantizerMode.VarianceCut => new VarianceCutQuantizer(),
       QuantizerMode.BSITATCQ => new BSITATCQQuantizer(),
+      QuantizerMode.VarianceBased => new VarianceBasedQuantizer(),
       _ => throw new("Unknown quantizer")
     };
 
