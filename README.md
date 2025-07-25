@@ -42,6 +42,9 @@ Quantizer Modes:
   VarianceCut: Variance-Cut
   BSITATCQ: BS combined with iterative ATCQ
   VarianceBased: Variance-Based
+  BinarySplitting: Binary Splitting
+  BinarySplittingAnt: Binary Splitting with Ant-tree
+  WuAnt: WU combined with Ant-tree
 
 Ditherer Modes:
   None: None
@@ -127,13 +130,13 @@ The initial frame requires an approximate palette that represents the full range
 - [x] [Median-cut (MC)](https://gowtham000.hashnode.dev/median-cut-a-popular-colour-quantization-strategy)
 - [x] [Octree (OC)](https://www.codeproject.com/Articles/109133/Octree-Color-Palette)
 - [X] [Variance-based method (WAN)](http://algorithmicbotany.org/papers/variance-based.pdf)
-- [ ] [Binary splitting (BS)](https://opg.optica.org/josaa/fulltext.cfm?uri=josaa-11-11-2777&id=847)
-- [ ] [Binary splitting with Ant-tree (BSAT)](https://link.springer.com/article/10.1007/s11554-018-0814-8)
+- [X] [Binary splitting (BS)](https://opg.optica.org/josaa/fulltext.cfm?uri=josaa-11-11-2777&id=847)
+- [X] [Binary splitting with Ant-tree (BSAT)](https://link.springer.com/article/10.1007/s11554-018-0814-8)
 - [x] Greedy orthogonal bi-partitioning method (WU)
 - [ ] [Neuquant (NQ)](https://scientificgems.wordpress.com/stuff/neuquant-fast-high-quality-image-quantization/)
 - [ ] [Adaptive distributing units (ADU)](https://www.tandfonline.com/doi/full/10.1179/1743131X13Y.0000000059?needAccess=true)
 - [X] [Variance-cut (VC)](https://ieeexplore.ieee.org/document/6718239)
-- [ ] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
+- [X] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
 - [X] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
 - [ ] Simulated Annealing
 - [ ] Fixed Palettes
