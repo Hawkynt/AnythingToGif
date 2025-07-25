@@ -168,8 +168,14 @@ public class SingleImageHiColorGifConverter {
   }
 
   private static Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode, Func<Color, Color, int>? colorDistanceMetric) {
+    var colors = 
+      maxColors >= histogram.Count
+      ? histogram.Keys
+      : quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp => (kvp.Key, (uint)kvp.Value.Count))) 
+        ?? SingleImageHiColorGifConverter._SortHistogram(histogram, image.Size, mode).Take(maxColors)
+      ;
 
-    var reducedColors = (quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp => (kvp.Key, (uint)kvp.Value.Count))) ?? SingleImageHiColorGifConverter._SortHistogram(histogram, image.Size, mode).Take(maxColors)).ToArray();
+    var reducedColors = colors.ToArray();
 
     var width = image.Width;
     var height = image.Height;
