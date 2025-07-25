@@ -14,7 +14,11 @@ internal class Options {
   public enum QuantizerMode {
     [Description("Median-Cut")] MedianCut,
     [Description("Octree")] Octree,
-    [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning
+    [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning,
+    [Description("EGA 16-colors + transparency")] Ega16,
+    [Description("VGA 256-colors + transparency")] Vga256,
+    [Description("Web Safe palette + transparency")] WebSafe,
+    [Description("Mac 8-bit system palette + transparency")] Mac8Bit
   }
 
   public enum DithererMode {
@@ -62,6 +66,10 @@ internal class Options {
     QuantizerMode.Octree => () => new OctreeQuantizer(),
     QuantizerMode.MedianCut => () => new MedianCutQuantizer(),
     QuantizerMode.GreedyOrthogonalBiPartitioning => () => new WuQuantizer(),
+    QuantizerMode.Ega16 => () => new Ega16Quantizer(),
+    QuantizerMode.Vga256 => () => new Vga256Quantizer(),
+    QuantizerMode.WebSafe => () => new WebSafeQuantizer(),
+    QuantizerMode.Mac8Bit => () => new Mac8BitQuantizer(),
     _ => throw new("Unknown quantizer")
   };
 
