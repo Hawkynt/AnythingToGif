@@ -15,25 +15,45 @@ Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
   -d, --ditherer                        (Default: FloydSteinberg) Ditherer to use.
   -f, --useBackFilling                  (Default: false) Whether to use backfilling.
   -b, --firstSubImageInitsBackground    (Default: true) Whether the first sub-image initializes the background.
+  -p, --usePca                          (Default: false) Use Principal Component Analysis preprocessing before quantization.
   -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
   -n, --noCompression                   (Default: false) Whether to use compressed GIF files or not.
+  -a, --useAntRefinement                (Default: false) Whether to apply Ant-tree like iterative refinement after initial quantization.
+  -i, --antIterations                   (Default: 25) Number of iterations for Ant-tree like refinement.
   --help                                Display this help screen.
   --version                             Display version information.
   input (pos. 0)                        Input directory or file. If not specified, defaults to the current directory.
   output (pos. 1)                       Output directory or file. If not specified, defaults to the current directory.
 
+Color Distance Methods:
+  Default: Automatic selection
+  Euclidean: Euclidean
+  EuclideanBT709: Euclidean (BT709)
+  EuclideanNommyde: Euclidean (Nommyde)
+  WeightedEuclideanLowRed: Weighted Euclidean (low red component)
+  WeightedEuclideanHighRed: Weighted Euclidean (high red component)
+  Manhattan: Manhattan
+  ManhattanBT709: Manhattan (BT709)
+  ManhattanNommyde: Manhattan (Nommyde)
+  CompuPhase: CompuPhase
+  
 Quantizer Modes:
   MedianCut: Median-Cut
   Octree: Octree
   GreedyOrthogonalBiPartitioning: Greedy Orthogonal Bi-Partitioning (Wu)
+  VarianceCut: Variance-Cut
+  VarianceBased: Variance-Based
+  BinarySplitting: Binary Splitting
   Ega16: EGA 16-colors + transparency
   Vga256: VGA 256-colors + transparency
   WebSafe: Web Safe palette + transparency
   Mac8Bit: Mac 8-bit system palette + transparency
-
+  
 Ditherer Modes:
   None: None
   FloydSteinberg: Floyd-Steinberg
+  FalseFloydSteinberg: Floyd-Steinberg (false implementation)
+  EqualFloydSteinberg: Floyd-Steinberg (equally distributed)
   JarvisJudiceNinke: Jarvis-Judice-Ninke
   Stucki: Stucki
   Atkinson: Atkinson
@@ -42,10 +62,22 @@ Ditherer Modes:
   TwoRowSierra: 2-row Sierra
   SierraLite: Sierra Lite
   Pigeon: Pigeon
+  StevensonArce: Stevenson-Arce
+  ShiauFan: ShiauFan
+  ShiauFan2: ShiauFan2
+  Fan93: Fan93
+  Bayer2x2: Bayer 2x2
+  Bayer4x4: Bayer 4x4
+  Bayer8x8: Bayer 8x8
+  ADitherXorY149: A-Dither XOR-Y149
+  ADitherXorY149WithChannel: A-Dither XOR-Y149 with Channel
+  ADitherXYArithmetic: A-Dither XY Arithmetic
+  ADitherXYArithmeticWithChannel: A-Dither XY Arithmetic with Channel
+  ADitherUniform: A-Dither Uniform
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
-  FromCenter:
+  FromCenter: From center of the image
   LeastUsedFirst: Ordered by usage, the least used first
   HighLuminanceFirst: Ordered by luminance, the brightest colors first
   LowLuminanceFirst: Ordered by luminance, the darkest colors first
@@ -74,7 +106,7 @@ To create a high-color GIF, **AnythingToGif** partitions the color set across mu
 
    - [X] **Random**: Colors are added in a random order.
    - [X] **MostUsedFirst**: Colors that appear most frequently in the image are added first, ensuring that the most common colors are prioritized.
-   - [ ] **FromCenter**: Colors are added starting from the center of the image, moving outward.
+   - [X] **FromCenter**: Colors are added starting from the center of the image, moving outward.
    - [X] **LeastUsedFirst**: Colors that appear least frequently are added first.
    - [X] **HighLuminanceFirst**: Colors with the highest brightness levels are added first, enhancing bright areas of the image initially.
    - [X] **LowLuminanceFirst**: Colors with the lowest brightness levels are added first, focusing on darker areas initially.
@@ -100,14 +132,20 @@ The initial frame requires an approximate palette that represents the full range
 
 - [x] [Median-cut (MC)](https://gowtham000.hashnode.dev/median-cut-a-popular-colour-quantization-strategy)
 - [x] [Octree (OC)](https://www.codeproject.com/Articles/109133/Octree-Color-Palette)
-- [ ] [Variance-based method (WAN)](http://algorithmicbotany.org/papers/variance-based.pdf)
-- [ ] [Binary splitting (BS)](https://opg.optica.org/josaa/fulltext.cfm?uri=josaa-11-11-2777&id=847)
+- [X] [Variance-based method (WAN)](http://algorithmicbotany.org/papers/variance-based.pdf)
+- [X] [Binary splitting (BS)](https://opg.optica.org/josaa/fulltext.cfm?uri=josaa-11-11-2777&id=847)
+- [X] [Binary splitting with Ant-tree (BSAT)](https://link.springer.com/article/10.1007/s11554-018-0814-8)
 - [x] Greedy orthogonal bi-partitioning method (WU)
 - [ ] [Neuquant (NQ)](https://scientificgems.wordpress.com/stuff/neuquant-fast-high-quality-image-quantization/)
 - [ ] [Adaptive distributing units (ADU)](https://www.tandfonline.com/doi/full/10.1179/1743131X13Y.0000000059?needAccess=true)
-- [ ] [Variance-cut (VC)](https://ieeexplore.ieee.org/document/6718239)
-- [ ] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
-- [ ] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
+- [X] [Variance-cut (VC)](https://ieeexplore.ieee.org/document/6718239)
+- [X] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
+- [X] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
+- [ ] Simulated Annealing
+- [X] Fixed Palettes
+- [ ] BSDS300
+- [x] [Principal Component Analysis]()
+- [ ] K-Means
 
 Further Links for this part:
 
@@ -119,6 +157,7 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 
 - [X] None
 - [X] [Floyd-Steinberg](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering)
+- [X] [False Floyd-Steinberg](https://github.com/makew0rld)
 - [X] [Floyd-Steinberg (equally distributed)](https://github.com/kgjenkins/dither-dream)
 - [X] [Jarvis, Judice, and Ninke](https://www.graphicsacademy.com/what_ditherjarvis.php) [[1](https://www.researchgate.net/figure/Difference-between-Jarvis-Judice-and-Ninke-and-Floyd-Steinberg-results-from-watch-input_fig3_342085636)]
 - [X] Stucki
@@ -128,13 +167,26 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [X] Two-Row Sierra
 - [X] Sierra Lite
 - [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
+- [X] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
+- [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8)
+- [X] [A-Dither](https://pippin.gimp.org/a_dither/) - Procedural spatial dithering with multiple patterns
+  - XOR-Y149 pattern
+  - XOR-Y149 with channel variation
+  - XY Arithmetic pattern  
+  - XY Arithmetic with channel variation
+  - Uniform pattern
+- [X] [Fan](https://ditherit.com)
+- [X] [ShiauFan](https://ditherit.com)
+- [X] [ShiauFan2](https://ditherit.com)
 - [ ] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)]
-- [ ] [Bayer-Matrix](https://github.com/dmnsgn/bayer)
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
-- [ ] [Fan](https://ditherit.com)
-- [ ] [ShiauFan](https://ditherit.com)
-- [ ] [ShiauFan2](https://ditherit.com)
+- [ ] White Noise
+- [ ] Blue Noise
+- [ ] [Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Thomas Knoll](https://bisqwit.iki.fi/story/howto/dither/jy/)
 
 Further Links for this part:
 
@@ -145,6 +197,15 @@ Further Links for this part:
 ### Color distance calculation
 
 - [X]  [Weighted Euclidean](https://www.compuphase.com/cmetric.htm)
+- [X]  [EuclideanBT709](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [Manhattan](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [ManhattanBT709](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [ManhattanNommyde](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [CIEDE2000](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [CIE94Textiles](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [CIE94GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [CompuPhase](https://www.compuphase.com/cmetric.htm)
+- [ ]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
 
 Further Links for this part:
 
