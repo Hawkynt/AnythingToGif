@@ -23,7 +23,7 @@ public class PaletteWrapper {
     var i = 0;
     foreach (var c in original) {
       palette[i] = c;
-      this._cache.Add(c, i);
+      this._cache.TryAdd(c, i);
       ++i;
     }
 
