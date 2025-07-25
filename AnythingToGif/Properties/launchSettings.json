@@ -2,7 +2,7 @@
   "profiles": {
     "AnythingToGif": {
       "commandName": "Project",
-      "commandLineArgs": "Examples \"Examples\""
+      "commandLineArgs": "--metric Euclidean --usePca Examples \"Examples\""
     }
   }
 }

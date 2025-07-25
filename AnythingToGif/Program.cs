@@ -128,7 +128,8 @@ class Program {
           Quantizer = configuration.Quantizer(),
           Ditherer = configuration.Ditherer,
           UseBackFilling = configuration.UseBackFilling,
-          ColorOrdering = configuration.ColorOrdering
+          ColorOrdering = configuration.ColorOrdering,
+          ColorDistanceMetric = configuration.Metric,
         };
 
         using var image = Image.FromFile(inputFile.FullName);
