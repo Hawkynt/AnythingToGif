@@ -57,6 +57,14 @@ Ditherer Modes:
   ShiauFan: ShiauFan
   ShiauFan2: ShiauFan2
   Fan93: Fan93
+  Bayer2x2: Bayer 2x2
+  Bayer4x4: Bayer 4x4
+  Bayer8x8: Bayer 8x8
+  ADitherXorY149: A-Dither XOR-Y149
+  ADitherXorY149WithChannel: A-Dither XOR-Y149 with Channel
+  ADitherXYArithmetic: A-Dither XY Arithmetic
+  ADitherXYArithmeticWithChannel: A-Dither XY Arithmetic with Channel
+  ADitherUniform: A-Dither Uniform
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
@@ -150,15 +158,21 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [X] Sierra Lite
 - [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
 - [X] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
+- [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8)
+- [X] [A-Dither](https://pippin.gimp.org/a_dither/) - Procedural spatial dithering with multiple patterns
+  - XOR-Y149 pattern
+  - XOR-Y149 with channel variation
+  - XY Arithmetic pattern  
+  - XY Arithmetic with channel variation
+  - Uniform pattern
+- [X] [Fan](https://ditherit.com)
+- [X] [ShiauFan](https://ditherit.com)
+- [X] [ShiauFan2](https://ditherit.com)
 - [ ] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)]
-- [ ] [Bayer-Matrix](https://github.com/dmnsgn/bayer)
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
 - [ ] White Noise
 - [ ] Blue Noise
-- [X] [Fan](https://ditherit.com)
-- [X] [ShiauFan](https://ditherit.com)
-- [X] [ShiauFan2](https://ditherit.com)
 - [ ] [Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)
