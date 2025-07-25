@@ -35,7 +35,7 @@ public class AntRefinementWrapper(IQuantizer baseQuantizer, int iterations, Func
       foreach (var paletteColor in result) {
         var cluster = newPaletteClusters[paletteColor];
         
-        // If a cluster is empty, keep the old palette color or reinitialize (e.g., to black)
+        // If a cluster is empty, keep the old palette color
         if (!cluster.Any()) {
           nextPalette.Add(paletteColor);
           continue;

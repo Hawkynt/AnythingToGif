@@ -132,7 +132,7 @@ internal class Options {
       q = new PcaQuantizerWrapper(q);
 
     if (this.UseAntRefinement)
-      q = new AntRefinementWrapper(q, this.AntIterations, this.Metric ?? ColorExtensions.EuclideanDistance);
+      q = new AntRefinementWrapper(q, this.AntIterations, this.Metric ?? ColorExtensions.CompuPhaseDistance);
 
     return q;
   };
