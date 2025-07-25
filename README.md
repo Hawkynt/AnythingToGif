@@ -39,16 +39,16 @@ Color Distance Methods:
   CompuPhase: CompuPhase
   
 Quantizer Modes:
+  Ega16: EGA 16-colors
+  Vga256: VGA 256-colors
+  WebSafe: Web Safe palette
+  Mac8Bit: Mac 8-bit system palette
   MedianCut: Median-Cut
   Octree: Octree
   GreedyOrthogonalBiPartitioning: Greedy Orthogonal Bi-Partitioning (Wu)
   VarianceCut: Variance-Cut
   VarianceBased: Variance-Based
   BinarySplitting: Binary Splitting
-  Ega16: EGA 16-colors + transparency
-  Vga256: VGA 256-colors + transparency
-  WebSafe: Web Safe palette + transparency
-  Mac8Bit: Mac 8-bit system palette + transparency
   Adu: Adaptive Distributing Units
   
 Ditherer Modes:
