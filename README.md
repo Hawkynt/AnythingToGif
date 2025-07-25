@@ -39,6 +39,8 @@ Quantizer Modes:
   MedianCut: Median-Cut
   Octree: Octree
   GreedyOrthogonalBiPartitioning: Greedy Orthogonal Bi-Partitioning (Wu)
+  VarianceCut: Variance-Cut
+  BSITATCQ: BS combined with iterative ATCQ
 
 Ditherer Modes:
   None: None
@@ -128,9 +130,9 @@ The initial frame requires an approximate palette that represents the full range
 - [x] Greedy orthogonal bi-partitioning method (WU)
 - [ ] [Neuquant (NQ)](https://scientificgems.wordpress.com/stuff/neuquant-fast-high-quality-image-quantization/)
 - [ ] [Adaptive distributing units (ADU)](https://www.tandfonline.com/doi/full/10.1179/1743131X13Y.0000000059?needAccess=true)
-- [ ] [Variance-cut (VC)](https://ieeexplore.ieee.org/document/6718239)
+- [X] [Variance-cut (VC)](https://ieeexplore.ieee.org/document/6718239)
 - [ ] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
-- [ ] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
+- [X] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
 - [ ] Simulated Annealing
 - [ ] Fixed Palettes
 - [ ] BSDS300
@@ -187,14 +189,14 @@ Further Links for this part:
 ### Color distance calculation
 
 - [X]  [Weighted Euclidean](https://www.compuphase.com/cmetric.htm)
-- [ ]  [EuclideanBT709](https://github.com/ibezkrovnyi/image-quantization)
-- [ ]  [Manhattan](https://github.com/ibezkrovnyi/image-quantization)
-- [ ]  [ManhattanBT709](https://github.com/ibezkrovnyi/image-quantization)
-- [ ]  [ManhattanNommyde](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [EuclideanBT709](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [Manhattan](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [ManhattanBT709](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [ManhattanNommyde](https://github.com/ibezkrovnyi/image-quantization)
 - [ ]  [CIEDE2000](https://github.com/ibezkrovnyi/image-quantization)
 - [ ]  [CIE94Textiles](https://github.com/ibezkrovnyi/image-quantization)
 - [ ]  [CIE94GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
-- [ ]  [CMetric](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [CompuPhase](https://www.compuphase.com/cmetric.htm)
 - [ ]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
 
 Further Links for this part:
