@@ -18,6 +18,8 @@ Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
   -p, --usePca                          (Default: false) Use Principal Component Analysis preprocessing before quantization.
   -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
   -n, --noCompression                   (Default: false) Whether to use compressed GIF files or not.
+  -a, --useAntRefinement                (Default: false) Whether to apply Ant-tree like iterative refinement after initial quantization.
+  -i, --antIterations                   (Default: 25) Number of iterations for Ant-tree like refinement.
   --help                                Display this help screen.
   --version                             Display version information.
   input (pos. 0)                        Input directory or file. If not specified, defaults to the current directory.
@@ -40,12 +42,9 @@ Quantizer Modes:
   Octree: Octree
   GreedyOrthogonalBiPartitioning: Greedy Orthogonal Bi-Partitioning (Wu)
   VarianceCut: Variance-Cut
-  BSITATCQ: BS combined with iterative ATCQ
   VarianceBased: Variance-Based
   BinarySplitting: Binary Splitting
-  BinarySplittingAnt: Binary Splitting with Ant-tree
-  WuAnt: WU combined with Ant-tree
-
+  
 Ditherer Modes:
   None: None
   FloydSteinberg: Floyd-Steinberg
@@ -74,7 +73,7 @@ Ditherer Modes:
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
-  FromCenter:
+  FromCenter: From center of the image
   LeastUsedFirst: Ordered by usage, the least used first
   HighLuminanceFirst: Ordered by luminance, the brightest colors first
   LowLuminanceFirst: Ordered by luminance, the darkest colors first
