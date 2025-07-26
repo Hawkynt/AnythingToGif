@@ -5,8 +5,8 @@ namespace AnythingToGif.ColorDistanceMetrics;
 /// <summary>
 /// Standard Euclidean color distance metric struct for high-performance calculations.
 /// </summary>
-internal readonly struct EuclideanMetric : IColorDistanceMetric {
-  public static readonly EuclideanMetric Instance = new();
+internal readonly struct Euclidean : IColorDistanceMetric {
+  public static readonly Euclidean Instance = new();
 
   public int Calculate(Color self, Color other) {
     var dr = self.R - other.R;

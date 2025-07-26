@@ -2,8 +2,8 @@ using System.Drawing;
 
 namespace AnythingToGif.ColorDistanceMetrics;
 
-internal readonly struct CompuPhaseMetric : IColorDistanceMetric {
-  public static readonly CompuPhaseMetric Instance = new();
+internal readonly struct CompuPhase : IColorDistanceMetric {
+  public static readonly CompuPhase Instance = new();
 
   // https://www.compuphase.com/cmetric.htm
   public int Calculate(Color self, Color other) {
