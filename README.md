@@ -37,6 +37,7 @@ Color Distance Methods:
   ManhattanBT709: Manhattan (BT709)
   ManhattanNommyde: Manhattan (Nommyde)
   CompuPhase: CompuPhase
+  PNGQuant: PNGQuant
   
 Quantizer Modes:
   Ega16: EGA 16-colors
@@ -207,7 +208,7 @@ Further Links for this part:
 - [ ]  [CIE94Textiles](https://github.com/ibezkrovnyi/image-quantization)
 - [ ]  [CIE94GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
 - [X]  [CompuPhase](https://www.compuphase.com/cmetric.htm)
-- [ ]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
 
 Further Links for this part:
 
