@@ -16,7 +16,8 @@ The solution is comprised of two main C# projects:
     *   `CLI/Options.cs`: Defines the command-line options available to the user.
     *   `Quantizers/`: Contains implementations of different color quantization algorithms (e.g., Octree, Median Cut, Variance-Cut, BSITATCQ, Variance-Based, Binary Splitting, Binary Splitting with Ant-tree, and WU combined with Ant-tree).
     *   `Ditherers/`: Contains implementations of different dithering algorithms.
-    *   `Extensions/`: Provides extension methods for bitmap and color manipulation / color distances.
+    *   `ColorDistanceMetrics/`: Contains implementations of different color distance algorithms.
+    *   `Extensions/`: Provides extension methods for bitmap and color manipulation.
 
 2.  **`GifFileFormat`**: This is a class library responsible for the low-level creation and writing of GIF files.
     *   `Writer.cs`: Handles the encoding and writing of GIF data to a file, including headers, frames, and color tables.
