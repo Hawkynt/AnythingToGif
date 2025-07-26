@@ -32,6 +32,8 @@ internal class Options {
     [Description("Weighted Manhattan (low red component)")] WeightedManhattanLowRed,
     [Description("Weighted Manhattan (high red component)")] WeightedManhattanHighRed,
     [Description("PNGQuant")] PNGQuant,
+    [Description("Weighted YUV")] WeightedYuv,
+    [Description("Weighted YCbCr")] WeightedYCbCr,
   }
 
   public enum QuantizerMode {
@@ -117,20 +119,22 @@ internal class Options {
 
   public Func<Color, Color, int>? Metric => this._Metric switch {
     ColorDistanceMetric.Default => null,
-    ColorDistanceMetric.Euclidean => EuclideanMetric.Instance.Calculate,
-    ColorDistanceMetric.EuclideanBT709 => WeightedEuclideanMetric.BT709.Calculate,
-    ColorDistanceMetric.EuclideanNommyde => WeightedEuclideanMetric.Nommyde.Calculate,
-    ColorDistanceMetric.EuclideanRGBOnly => WeightedEuclideanMetric.RGBOnly.Calculate,
-    ColorDistanceMetric.WeightedEuclideanHighRed => WeightedEuclideanMetric.HighRed.Calculate,
-    ColorDistanceMetric.WeightedEuclideanLowRed => WeightedEuclideanMetric.LowRed.Calculate,
-    ColorDistanceMetric.Manhattan => ManhattanMetric.Instance.Calculate,
-    ColorDistanceMetric.ManhattanBT709 => WeightedManhattanMetric.BT709.Calculate,
-    ColorDistanceMetric.ManhattanNommyde => WeightedManhattanMetric.Nommyde.Calculate,
-    ColorDistanceMetric.ManhattanRGBOnly => WeightedManhattanMetric.RGBOnly.Calculate,
-    ColorDistanceMetric.WeightedManhattanHighRed => WeightedManhattanMetric.HighRed.Calculate,
-    ColorDistanceMetric.WeightedManhattanLowRed => WeightedManhattanMetric.LowRed.Calculate,
-    ColorDistanceMetric.CompuPhase => CompuPhaseMetric.Instance.Calculate,
-    ColorDistanceMetric.PNGQuant => PngQuantMetric.Instance.Calculate,
+    ColorDistanceMetric.Euclidean => Euclidean.Instance.Calculate,
+    ColorDistanceMetric.EuclideanBT709 => WeightedEuclidean.BT709.Calculate,
+    ColorDistanceMetric.EuclideanNommyde => WeightedEuclidean.Nommyde.Calculate,
+    ColorDistanceMetric.EuclideanRGBOnly => WeightedEuclidean.RGBOnly.Calculate,
+    ColorDistanceMetric.WeightedEuclideanHighRed => WeightedEuclidean.HighRed.Calculate,
+    ColorDistanceMetric.WeightedEuclideanLowRed => WeightedEuclidean.LowRed.Calculate,
+    ColorDistanceMetric.Manhattan => Manhattan.Instance.Calculate,
+    ColorDistanceMetric.ManhattanBT709 => WeightedManhattan.BT709.Calculate,
+    ColorDistanceMetric.ManhattanNommyde => WeightedManhattan.Nommyde.Calculate,
+    ColorDistanceMetric.ManhattanRGBOnly => WeightedManhattan.RGBOnly.Calculate,
+    ColorDistanceMetric.WeightedManhattanHighRed => WeightedManhattan.HighRed.Calculate,
+    ColorDistanceMetric.WeightedManhattanLowRed => WeightedManhattan.LowRed.Calculate,
+    ColorDistanceMetric.CompuPhase => CompuPhase.Instance.Calculate,
+    ColorDistanceMetric.PNGQuant => PngQuant.Instance.Calculate,
+    ColorDistanceMetric.WeightedYCbCr => WeightedYCbCr.Instance.Calculate,
+    ColorDistanceMetric.WeightedYuv => WeightedYuv.Instance.Calculate,
     _ => throw new("Unknown color distance metric")
   };
 
@@ -146,7 +150,7 @@ internal class Options {
       QuantizerMode.VarianceCut => new VarianceCutQuantizer(),
       QuantizerMode.VarianceBased => new VarianceBasedQuantizer(),
       QuantizerMode.BinarySplitting => new BinarySplittingQuantizer(),
-      QuantizerMode.Adu => new AduQuantizer(this.Metric ?? CompuPhaseMetric.Instance.Calculate),
+      QuantizerMode.Adu => new AduQuantizer(this.Metric ?? CompuPhase.Instance.Calculate),
       _ => throw new("Unknown quantizer")
     };
 
@@ -154,7 +158,7 @@ internal class Options {
       q = new PcaQuantizerWrapper(q);
 
     if (this.UseAntRefinement)
-      q = new AntRefinementWrapper(q, this.AntIterations, this.Metric ?? CompuPhaseMetric.Instance.Calculate);
+      q = new AntRefinementWrapper(q, this.AntIterations, this.Metric ?? CompuPhase.Instance.Calculate);
 
     return q;
   };

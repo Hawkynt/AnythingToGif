@@ -8,13 +8,13 @@ namespace AnythingToGif.ColorDistanceMetrics;
 /// Particularly effective for semi-transparent colors.
 /// Based on: https://github.com/pornel/pngquant/blob/cc39b47799a7ff2ef17b529f9415ff6e6b213b8f/lib/pam.h#L148
 /// </summary>
-internal readonly struct PngQuantMetric(Color whitePoint) : IColorDistanceMetric {
+internal readonly struct PngQuant(Color whitePoint) : IColorDistanceMetric {
 
   /// <summary>
   /// White point values: higher = less important, lower = more important.
   /// Default Color.White gives equal weighting. Color.FromArgb(255,255,128,255) makes green 2x more important.
   /// </summary>
-  public static readonly PngQuantMetric Instance = new(Color.White);
+  public static readonly PngQuant Instance = new(Color.White);
 
   public int Calculate(Color self, Color other) {
     // Calculate white point weights with 16-bit precision: (255 << 16) / whitePoint
