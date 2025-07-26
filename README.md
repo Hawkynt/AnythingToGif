@@ -46,6 +46,9 @@ Color Distance Metrics:
   PNGQuant: PNGQuant
   WeightedYuv: Weighted YUV
   WeightedYCbCr: Weighted YCbCr
+  CieDe2000: CIEDE2000
+  Cie94Textiles: CIE94 Textiles
+  Cie94GraphicArts: CIE94 Graphic Arts
 
 Quantizer Modes:
   Ega16: EGA 16-colors
@@ -213,9 +216,9 @@ Further Links for this part:
 - [X]  [Manhattan](https://github.com/ibezkrovnyi/image-quantization)
 - [X]  [ManhattanBT709](https://github.com/ibezkrovnyi/image-quantization)
 - [X]  [ManhattanNommyde](https://github.com/ibezkrovnyi/image-quantization)
-- [ ]  [CIEDE2000](https://github.com/ibezkrovnyi/image-quantization)
-- [ ]  [CIE94Textiles](https://github.com/ibezkrovnyi/image-quantization)
-- [ ]  [CIE94GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [CIEDE2000](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [CIE94Textiles](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [CIE94GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
 - [X]  [CompuPhase](https://www.compuphase.com/cmetric.htm)
 - [X]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
 
