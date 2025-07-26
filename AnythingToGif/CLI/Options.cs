@@ -11,23 +11,26 @@ using AnythingToGif.Quantizers.FixedPalettes;
 using AnythingToGif.Quantizers.Wrappers;
 using CommandLine;
 using CommandLine.Text;
-using ColorExtensions = AnythingToGif.Extensions.ColorExtensions;
 
 namespace AnythingToGif.CLI;
 
 internal class Options {
 
   public enum ColorDistanceMetric {
-    Default,
+    [Description("Let application decide")]Default,
     [Description("Euclidean")] Euclidean,
-    [Description("Euclidean (BT709)")] EuclideanBT709,
-    [Description("Euclidean (Nommyde)")] EuclideanNommyde,
+    [Description("Euclidean (RGB only)")] EuclideanRGBOnly,
     [Description("Manhattan")] Manhattan,
-    [Description("Manhattan (BT709)")] ManhattanBT709,
-    [Description("ManhattanNommyde")] ManhattanNommyde,
+    [Description("Manhattan (RGB only)")] ManhattanRGBOnly,
     [Description("CompuPhase")] CompuPhase,
+    [Description("Weighted Euclidean (BT709)")] EuclideanBT709,
+    [Description("Weighted Euclidean (Nommyde)")] EuclideanNommyde,
     [Description("Weighted Euclidean (low red component)")] WeightedEuclideanLowRed,
     [Description("Weighted Euclidean (high red component)")] WeightedEuclideanHighRed,
+    [Description("Weighted Manhattan (BT709)")] ManhattanBT709,
+    [Description("Weighted Manhattan (Nommyde)")] ManhattanNommyde,
+    [Description("Weighted Manhattan (low red component)")] WeightedManhattanLowRed,
+    [Description("Weighted Manhattan (high red component)")] WeightedManhattanHighRed,
     [Description("PNGQuant")] PNGQuant,
   }
 
@@ -48,7 +51,7 @@ internal class Options {
   public enum DithererMode {
     [Description("None")] None,
     [Description("Floyd-Steinberg")] FloydSteinberg,
-    [Description("Equal Floyd-Steinberg")] EqualFloydSteinberg,
+    [Description("Equally-Distributed Floyd-Steinberg")] EqualFloydSteinberg,
     [Description("False Floyd-Steinberg")] FalseFloydSteinberg,
     [Description("Jarvis-Judice-Ninke")] JarvisJudiceNinke,
     [Description("Stucki")] Stucki,
@@ -78,11 +81,14 @@ internal class Options {
   [Value(1, MetaName = "output", HelpText = "Output directory or file. If not specified, defaults to the current directory.", Required = false)]
   public string _OutputPath { get; set; } = Directory.GetCurrentDirectory();
 
-  [Option('m', "metric", Default = ColorDistanceMetric.Default, HelpText = "Color distance metric to use.")]
-  public ColorDistanceMetric _Metric { get; set; }
+  [Option('a', "useAntRefinement", Default = false, HelpText = "Whether to apply Ant-tree like iterative refinement after initial quantization.")]
+  public bool UseAntRefinement { get; set; }
 
-  [Option('q', "quantizer", Default = QuantizerMode.Octree, HelpText = "Quantizer to use.")]
-  public QuantizerMode _Quantizer { get; set; }
+  [Option('b', "firstSubImageInitsBackground", Default = true, HelpText = "Whether the first sub-image initializes the background.")]
+  public bool FirstSubImageInitsBackground { get; set; }
+
+  [Option('c', "colorOrdering", Default = ColorOrderingMode.MostUsedFirst, HelpText = "Color ordering mode.")]
+  public ColorOrderingMode ColorOrdering { get; set; }
 
   [Option('d', "ditherer", Default = DithererMode.FloydSteinberg, HelpText = "Ditherer to use.")]
   public DithererMode _Ditherer { get; set; }
@@ -90,23 +96,20 @@ internal class Options {
   [Option('f', "useBackFilling", Default = false, HelpText = "Whether to use backfilling.")]
   public bool UseBackFilling { get; set; }
 
-  [Option('b', "firstSubImageInitsBackground", Default = true, HelpText = "Whether the first sub-image initializes the background.")]
-  public bool FirstSubImageInitsBackground { get; set; }
+  [Option('i', "antIterations", Default = 25, HelpText = "Number of iterations for Ant-tree like refinement.")]
+  public int AntIterations { get; set; }
 
-  [Option('p', "usePca", Default = false, HelpText = "Use PCA (Principal Component Analysis) preprocessing before quantization.")]
-  public bool UsePca { get; set; }
-
-  [Option('c', "colorOrdering", Default = ColorOrderingMode.MostUsedFirst, HelpText = "Color ordering mode.")]
-  public ColorOrderingMode ColorOrdering { get; set; }
+  [Option('m', "metric", Default = ColorDistanceMetric.Default, HelpText = "Color distance metric to use.")]
+  public ColorDistanceMetric _Metric { get; set; }
 
   [Option('n', "noCompression", Default = false, HelpText = "Whether to use compressed GIF files or not.")]
   public bool NoCompression { get; set; }
 
-  [Option('a', "useAntRefinement", Default = false, HelpText = "Whether to apply Ant-tree like iterative refinement after initial quantization.")]
-  public bool UseAntRefinement { get; set; }
+  [Option('p', "usePca", Default = false, HelpText = "Use PCA (Principal Component Analysis) preprocessing before quantization.")]
+  public bool UsePca { get; set; }
 
-  [Option('i', "antIterations", Default = 25, HelpText = "Number of iterations for Ant-tree like refinement.")]
-  public int AntIterations { get; set; }
+  [Option('q', "quantizer", Default = QuantizerMode.Octree, HelpText = "Quantizer to use.")]
+  public QuantizerMode _Quantizer { get; set; }
 
   public FileSystemInfo InputPath => File.Exists(this._InputPath) ? new FileInfo(this._InputPath) : new DirectoryInfo(this._InputPath);
 
@@ -117,11 +120,15 @@ internal class Options {
     ColorDistanceMetric.Euclidean => EuclideanMetric.Instance.Calculate,
     ColorDistanceMetric.EuclideanBT709 => WeightedEuclideanMetric.BT709.Calculate,
     ColorDistanceMetric.EuclideanNommyde => WeightedEuclideanMetric.Nommyde.Calculate,
+    ColorDistanceMetric.EuclideanRGBOnly => WeightedEuclideanMetric.RGBOnly.Calculate,
     ColorDistanceMetric.WeightedEuclideanHighRed => WeightedEuclideanMetric.HighRed.Calculate,
     ColorDistanceMetric.WeightedEuclideanLowRed => WeightedEuclideanMetric.LowRed.Calculate,
     ColorDistanceMetric.Manhattan => ManhattanMetric.Instance.Calculate,
     ColorDistanceMetric.ManhattanBT709 => WeightedManhattanMetric.BT709.Calculate,
     ColorDistanceMetric.ManhattanNommyde => WeightedManhattanMetric.Nommyde.Calculate,
+    ColorDistanceMetric.ManhattanRGBOnly => WeightedManhattanMetric.RGBOnly.Calculate,
+    ColorDistanceMetric.WeightedManhattanHighRed => WeightedManhattanMetric.HighRed.Calculate,
+    ColorDistanceMetric.WeightedManhattanLowRed => WeightedManhattanMetric.LowRed.Calculate,
     ColorDistanceMetric.CompuPhase => CompuPhaseMetric.Instance.Calculate,
     ColorDistanceMetric.PNGQuant => PngQuantMetric.Instance.Calculate,
     _ => throw new("Unknown color distance metric")
@@ -191,6 +198,11 @@ internal class Options {
       h.AddPreOptionsLine(string.Empty);
       h.AddPreOptionsLine($"Usage: {title} [<input>] [<options>] | <input> <output> [<options>]");
 
+      h.AddPostOptionsLine("Color Distance Metrics:");
+      foreach (var mode in Enum.GetValues(typeof(ColorDistanceMetric)))
+        h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((ColorDistanceMetric)mode)}");
+      h.AddPostOptionsLine(string.Empty);
+      
       h.AddPostOptionsLine("Quantizer Modes:");
       foreach (var mode in Enum.GetValues(typeof(QuantizerMode)))
         h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((QuantizerMode)mode)}");
