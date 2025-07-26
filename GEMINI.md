@@ -5,7 +5,7 @@
 
 AnythingToGif is a .NET-based command-line utility for converting a wide range of visual media formats into high-quality, true-color GIFs. It supports both still images and video files, offering advanced features like various color quantization (including Variance-Cut, BSITATCQ, Variance-Based, Binary Splitting, Binary Splitting with Ant-tree, and WU combined with Ant-tree) and dithering algorithms to achieve superior color fidelity. The tool can create GIFs with more than 256 colors by using multiple frames with local color palettes.
 
-**Note**: It is crucial to keep the `README.md` file updated with any changes to the project's features, especially command-line options and supported modes, to ensure users have accurate and current information.
+**Note**: It is crucial to keep the `README.md` file updated with any changes to the project's features, especially command-line options and supported modes, to ensure users have accurate and current information. You can easily do this by executing the application with the "--help" switch and copying the output.
 
 ## Project Structure
 

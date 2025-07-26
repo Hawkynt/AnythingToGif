@@ -34,6 +34,9 @@ internal class Options {
     [Description("PNGQuant")] PNGQuant,
     [Description("Weighted YUV")] WeightedYuv,
     [Description("Weighted YCbCr")] WeightedYCbCr,
+    [Description("CIEDE2000")] CieDe2000,
+    [Description("CIE94 Textiles")] Cie94Textiles,
+    [Description("CIE94 Graphic Arts")] Cie94GraphicArts,
   }
 
   public enum QuantizerMode {
@@ -135,6 +138,9 @@ internal class Options {
     ColorDistanceMetric.PNGQuant => PngQuant.Instance.Calculate,
     ColorDistanceMetric.WeightedYCbCr => WeightedYCbCr.Instance.Calculate,
     ColorDistanceMetric.WeightedYuv => WeightedYuv.Instance.Calculate,
+    ColorDistanceMetric.CieDe2000 => CieDe2000.Instance.Calculate,
+    ColorDistanceMetric.Cie94Textiles => Cie94.Textiles.Calculate,
+    ColorDistanceMetric.Cie94GraphicArts => Cie94.GraphicArts.Calculate,
     _ => throw new("Unknown color distance metric")
   };
 
