@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using AnythingToGif.ColorDistanceMetrics;
 using AnythingToGif.Ditherers;
 using AnythingToGif.Quantizers;
 using AnythingToGif.Quantizers.FixedPalettes;
@@ -113,16 +114,16 @@ internal class Options {
 
   public Func<Color, Color, int>? Metric => this._Metric switch {
     ColorDistanceMetric.Default => null,
-    ColorDistanceMetric.Euclidean => ColorExtensions.EuclideanDistance,
-    ColorDistanceMetric.EuclideanBT709 => ColorExtensions.EuclideanBT709Distance,
-    ColorDistanceMetric.EuclideanNommyde => ColorExtensions.EuclideanNommydeDistance,
-    ColorDistanceMetric.WeightedEuclideanHighRed => ColorExtensions.WeightedEuclideanDistanceHighRed,
-    ColorDistanceMetric.WeightedEuclideanLowRed => ColorExtensions.WeightedEuclideanDistanceLowRed,
-    ColorDistanceMetric.Manhattan => ColorExtensions.ManhattanDistance,
-    ColorDistanceMetric.ManhattanBT709 => ColorExtensions.ManhattanBT709Distance,
-    ColorDistanceMetric.ManhattanNommyde => ColorExtensions.ManhattanNommydeDistance,
-    ColorDistanceMetric.CompuPhase => ColorExtensions.CompuPhaseDistance,
-    ColorDistanceMetric.PNGQuant => ColorExtensions.PNGQuantDistance,
+    ColorDistanceMetric.Euclidean => EuclideanMetric.Instance.Calculate,
+    ColorDistanceMetric.EuclideanBT709 => WeightedEuclideanMetric.BT709.Calculate,
+    ColorDistanceMetric.EuclideanNommyde => WeightedEuclideanMetric.Nommyde.Calculate,
+    ColorDistanceMetric.WeightedEuclideanHighRed => WeightedEuclideanMetric.HighRed.Calculate,
+    ColorDistanceMetric.WeightedEuclideanLowRed => WeightedEuclideanMetric.LowRed.Calculate,
+    ColorDistanceMetric.Manhattan => ManhattanMetric.Instance.Calculate,
+    ColorDistanceMetric.ManhattanBT709 => WeightedManhattanMetric.BT709.Calculate,
+    ColorDistanceMetric.ManhattanNommyde => WeightedManhattanMetric.Nommyde.Calculate,
+    ColorDistanceMetric.CompuPhase => CompuPhaseMetric.Instance.Calculate,
+    ColorDistanceMetric.PNGQuant => PngQuantMetric.Instance.Calculate,
     _ => throw new("Unknown color distance metric")
   };
 
@@ -138,7 +139,7 @@ internal class Options {
       QuantizerMode.VarianceCut => new VarianceCutQuantizer(),
       QuantizerMode.VarianceBased => new VarianceBasedQuantizer(),
       QuantizerMode.BinarySplitting => new BinarySplittingQuantizer(),
-      QuantizerMode.Adu => new AduQuantizer(this.Metric ?? ColorExtensions.CompuPhaseDistance),
+      QuantizerMode.Adu => new AduQuantizer(this.Metric ?? CompuPhaseMetric.Instance.Calculate),
       _ => throw new("Unknown quantizer")
     };
 
@@ -146,7 +147,7 @@ internal class Options {
       q = new PcaQuantizerWrapper(q);
 
     if (this.UseAntRefinement)
-      q = new AntRefinementWrapper(q, this.AntIterations, this.Metric ?? ColorExtensions.CompuPhaseDistance);
+      q = new AntRefinementWrapper(q, this.AntIterations, this.Metric ?? CompuPhaseMetric.Instance.Calculate);
 
     return q;
   };
