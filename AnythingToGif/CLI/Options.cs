@@ -27,6 +27,7 @@ internal class Options {
     [Description("CompuPhase")] CompuPhase,
     [Description("Weighted Euclidean (low red component)")] WeightedEuclideanLowRed,
     [Description("Weighted Euclidean (high red component)")] WeightedEuclideanHighRed,
+    [Description("PNGQuant")] PNGQuant,
   }
 
   public enum QuantizerMode {
@@ -121,6 +122,7 @@ internal class Options {
     ColorDistanceMetric.ManhattanBT709 => ColorExtensions.ManhattanBT709Distance,
     ColorDistanceMetric.ManhattanNommyde => ColorExtensions.ManhattanNommydeDistance,
     ColorDistanceMetric.CompuPhase => ColorExtensions.CompuPhaseDistance,
+    ColorDistanceMetric.PNGQuant => ColorExtensions.PNGQuantDistance,
     _ => throw new("Unknown color distance metric")
   };
 
