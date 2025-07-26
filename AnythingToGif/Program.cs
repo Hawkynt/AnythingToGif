@@ -74,7 +74,8 @@ class Program {
           FirstSubImageInitsBackground = configuration.FirstSubImageInitsBackground,
           Ditherer = configuration.Ditherer,
           UseBackFilling = configuration.UseBackFilling,
-          ColorOrdering = configuration.ColorOrdering
+          ColorOrdering = configuration.ColorOrdering,
+          ColorDistanceMetric = configuration.Metric,
         };
 
         Dimensions? dimensions = null;
