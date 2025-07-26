@@ -7,8 +7,8 @@ public enum ColorOrderingMode {
 
   [Description("Ordered by usage, the most used first")]
   MostUsedFirst = 0,
-  
-  
+
+  [Description("Ordered by distance to center, most close first")]
   FromCenter = 1,
 
   [Description("Ordered by usage, the least used first")]

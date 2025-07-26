@@ -11,34 +11,40 @@ Converts anything to GIF format.
 
 Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
 
-  -a, --useAntRefinement                (Default: false) Whether to apply Ant-tree like iterative refinement after initial quantization.
-  -b, --firstSubImageInitsBackground    (Default: true) Whether the first sub-image initializes the background.
-  -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
+  -m, --metric                          (Default: Default) Color distance metric to use.
+  -q, --quantizer                       (Default: Octree) Quantizer to use.
   -d, --ditherer                        (Default: FloydSteinberg) Ditherer to use.
   -f, --useBackFilling                  (Default: false) Whether to use backfilling.
-  -i, --antIterations                   (Default: 25) Number of iterations for Ant-tree like refinement.
-  -m, --metric                          (Default: CompuPhaseDistance) Color distance metric to use.
+  -b, --firstSubImageInitsBackground    (Default: true) Whether the first sub-image initializes the background.
+  -p, --usePca                          (Default: false) Use PCA (Principal Component Analysis) preprocessing before
+                                        quantization.
+  -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
   -n, --noCompression                   (Default: false) Whether to use compressed GIF files or not.
-  -p, --usePca                          (Default: false) Use Principal Component Analysis preprocessing before quantization.
-  -q, --quantizer                       (Default: Octree) Quantizer to use.
+  -a, --useAntRefinement                (Default: false) Whether to apply Ant-tree like iterative refinement after
+                                        initial quantization.
+  -i, --antIterations                   (Default: 25) Number of iterations for Ant-tree like refinement.
   --help                                Display this help screen.
   --version                             Display version information.
   input (pos. 0)                        Input directory or file. If not specified, defaults to the current directory.
   output (pos. 1)                       Output directory or file. If not specified, defaults to the current directory.
 
-Color Distance Methods:
-  Default: Automatic selection
+Color Distance Metrics:
+  Default: Let application decide
   Euclidean: Euclidean
-  EuclideanBT709: Euclidean (BT709)
-  EuclideanNommyde: Euclidean (Nommyde)
+  EuclideanRGBOnly: Euclidean (RGB only)
+  Manhattan: Manhattan
+  ManhattanRGBOnly: Manhattan (RGB only)
+  CompuPhase: CompuPhase
+  EuclideanBT709: Weighted Euclidean (BT709)
+  EuclideanNommyde: Weighted Euclidean (Nommyde)
   WeightedEuclideanLowRed: Weighted Euclidean (low red component)
   WeightedEuclideanHighRed: Weighted Euclidean (high red component)
-  Manhattan: Manhattan
-  ManhattanBT709: Manhattan (BT709)
-  ManhattanNommyde: Manhattan (Nommyde)
-  CompuPhase: CompuPhase
+  ManhattanBT709: Weighted Manhattan (BT709)
+  ManhattanNommyde: Weighted Manhattan (Nommyde)
+  WeightedManhattanLowRed: Weighted Manhattan (low red component)
+  WeightedManhattanHighRed: Weighted Manhattan (high red component)
   PNGQuant: PNGQuant
-  
+
 Quantizer Modes:
   Ega16: EGA 16-colors
   Vga256: VGA 256-colors
@@ -51,12 +57,12 @@ Quantizer Modes:
   VarianceBased: Variance-Based
   BinarySplitting: Binary Splitting
   Adu: Adaptive Distributing Units
-  
+
 Ditherer Modes:
   None: None
   FloydSteinberg: Floyd-Steinberg
-  FalseFloydSteinberg: Floyd-Steinberg (false implementation)
-  EqualFloydSteinberg: Floyd-Steinberg (equally distributed)
+  EqualFloydSteinberg: Equally-Distributed Floyd-Steinberg
+  FalseFloydSteinberg: False Floyd-Steinberg
   JarvisJudiceNinke: Jarvis-Judice-Ninke
   Stucki: Stucki
   Atkinson: Atkinson
@@ -80,13 +86,14 @@ Ditherer Modes:
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
-  FromCenter: From center of the image
+  FromCenter: Ordered by distance to center, most close first
   LeastUsedFirst: Ordered by usage, the least used first
   HighLuminanceFirst: Ordered by luminance, the brightest colors first
   LowLuminanceFirst: Ordered by luminance, the darkest colors first
   Random: Purely random
 
 Insufficient arguments try '--help' for help.
+
 ```
 
 ## Overview
