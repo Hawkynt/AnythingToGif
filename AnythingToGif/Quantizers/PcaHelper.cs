@@ -27,7 +27,8 @@ internal sealed class PcaHelper {
     this._mean = rows.Aggregate(builder.Dense(3), (acc, v) => acc + v) / length;
     var centered = rows.Select(v => v - this._mean).ToList();
     var matrix = Matrix<double>.Build.DenseOfRowVectors(centered);
-    var cov = matrix.TransposeThisAndMultiply(matrix) / (length - 1.0);
+    var denominator = Math.Max(length - 1.0, 1.0); // Avoid divide by zero for single colors
+    var cov = matrix.TransposeThisAndMultiply(matrix) / denominator;
     var evd = cov.Evd();
     this._eigenvectors = evd.EigenVectors;
     var transformed = matrix * this._eigenvectors;

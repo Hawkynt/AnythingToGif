@@ -8,10 +8,11 @@ namespace AnythingToGif.Quantizers;
 public class WuQuantizer : QuantizerBase {
 
   /// <inheritdoc />
-  public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
+  protected override Color[] _ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
+    var colorList = histogram.ToList();
     var smallHistogram = new uint[32, 32, 32];
 
-    foreach (var (color, count) in histogram) {
+    foreach (var (color, count) in colorList) {
       var r = color.R >> 3;
       var g = color.G >> 3;
       var b = color.B >> 3;

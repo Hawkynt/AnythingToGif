@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet build)"
+      "Bash(dotnet build)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(rm:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(taskkill:*)",
+      "Bash(dotnet clean:*)"
     ],
     "deny": []
   }

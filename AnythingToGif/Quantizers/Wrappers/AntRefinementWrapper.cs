@@ -9,7 +9,7 @@ public class AntRefinementWrapper(IQuantizer baseQuantizer, int iterations, Func
   : QuantizerBase
 {
 
-    public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram)
+    protected override Color[] _ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram)
     {
         var originalColorsWithCounts = histogram.ToList();
         var result = baseQuantizer.ReduceColorsTo(numberOfColors, originalColorsWithCounts);

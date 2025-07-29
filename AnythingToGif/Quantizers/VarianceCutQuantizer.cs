@@ -6,7 +6,7 @@ using System.Linq;
 namespace AnythingToGif.Quantizers;
 
 public class VarianceCutQuantizer : QuantizerBase {
-  public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
+  protected override Color[] _ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
     var colorsWithCounts = histogram.ToList();
     var cubes = new List<ColorCube> { new(colorsWithCounts) };
 
