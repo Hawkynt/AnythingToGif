@@ -77,7 +77,11 @@ internal class Options {
     [Description("A-Dither XOR-Y149 with Channel")] ADitherXorY149WithChannel,
     [Description("A-Dither XY Arithmetic")] ADitherXYArithmetic,
     [Description("A-Dither XY Arithmetic with Channel")] ADitherXYArithmeticWithChannel,
-    [Description("A-Dither Uniform")] ADitherUniform
+    [Description("A-Dither Uniform")] ADitherUniform,
+    [Description("Riemersma (Default)")] RiemersmaDefault,
+    [Description("Riemersma (Small)")] RiemersmaSmall,
+    [Description("Riemersma (Large)")] RiemersmaLarge,
+    [Description("Riemersma (Linear)")] RiemersmaLinear
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -193,6 +197,10 @@ internal class Options {
     DithererMode.ADitherXYArithmetic => ADitherer.XYArithmetic,
     DithererMode.ADitherXYArithmeticWithChannel => ADitherer.XYArithmeticWithChannel,
     DithererMode.ADitherUniform => ADitherer.Uniform,
+    DithererMode.RiemersmaDefault => RiemersmaDitherer.Default,
+    DithererMode.RiemersmaSmall => RiemersmaDitherer.Small,
+    DithererMode.RiemersmaLarge => RiemersmaDitherer.Large,
+    DithererMode.RiemersmaLinear => RiemersmaDitherer.Linear,
     DithererMode.None => NoDitherer.Instance,
     _ => NoDitherer.Instance
   };

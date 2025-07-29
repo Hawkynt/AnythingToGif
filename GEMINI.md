@@ -15,7 +15,7 @@ The solution is comprised of two main C# projects:
     *   `Program.cs`: The main entry point of the application, responsible for parsing command-line arguments and orchestrating the conversion process.
     *   `CLI/Options.cs`: Defines the command-line options available to the user.
     *   `Quantizers/`: Contains implementations of different color quantization algorithms (e.g., Octree, Median Cut, Variance-Cut, BSITATCQ, Variance-Based, Binary Splitting, Binary Splitting with Ant-tree, and WU combined with Ant-tree).
-    *   `Ditherers/`: Contains implementations of different dithering algorithms.
+    *   `Ditherers/`: Contains implementations of different dithering algorithms (Floyd-Steinberg, A-dithering, Riemersma, Bayer, Matrix-based, etc.).
     *   `ColorDistanceMetrics/`: Contains implementations of different color distance algorithms.
     *   `Extensions/`: Provides extension methods for bitmap and color manipulation.
 
@@ -142,6 +142,34 @@ Available in `ColorDistanceMetrics/` directory:
 3. **Edge Case Handling**: Base class automatically handles all common edge cases
 4. **Palette Completion**: When quantizers return fewer colors than requested, base class fills with intelligent fallback colors
 5. **Thread Safety**: Individual quantizer instances are not thread-safe; create separate instances for concurrent usage
+
+### Dithering Algorithms
+
+The project implements various dithering techniques to improve visual quality when reducing colors:
+
+#### Matrix-Based Dithering (`MatrixBasedDitherer`)
+- **Floyd-Steinberg**: Classic error diffusion algorithm with 7:3:5:1 distribution
+- **Jarvis-Judice-Ninke**: More complex error diffusion with larger kernel (48 divisor)
+- **Stucki**: Similar to JJN but with different coefficient distribution (42 divisor)
+- **Atkinson**: Apple's dithering algorithm with lighter error distribution (8 divisor)
+- **Burkes**: Two-row error diffusion with 32 divisor
+- **Sierra**: Family of algorithms (Sierra, TwoRowSierra, SierraLite) with varying complexity
+- **Custom Variants**: FalseFloydSteinberg, Simple, Pigeon, StevensonArce, ShiauFan, Fan93
+
+#### Riemersma Dithering (`RiemersmaDitherer`)
+Advanced space-filling curve based dithering algorithm:
+- **Algorithm**: Uses Hilbert curve or linear traversal to process pixels in spatially coherent order
+- **Error History**: Maintains exponentially decaying error buffer for improved error distribution
+- **Variants Available**:
+  - `Default`: 16-entry history buffer with Hilbert curve traversal
+  - `Small`: 8-entry history buffer for faster processing
+  - `Large`: 32-entry history buffer for highest quality
+  - `Linear`: 16-entry history buffer with linear pixel traversal
+- **Performance**: Iterative Hilbert curve implementation prevents stack overflow on large images
+- **Quality**: Produces more natural-looking dithering patterns compared to matrix-based methods
+
+#### A-Dithering (`ADitherer`)
+Competitive learning approach to dithering with adaptive error distribution.
 
 ### High-Color GIF Innovation
 The core innovation of AnythingToGif lies in its ability to create GIFs with more than the traditional 256-color limitation:

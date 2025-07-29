@@ -8,7 +8,9 @@
       "Bash(dotnet build:*)",
       "Bash(dotnet test:*)",
       "Bash(taskkill:*)",
-      "Bash(dotnet clean:*)"
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet run:*)",
+      "Bash(echo:*)"
     ],
     "deny": []
   }
