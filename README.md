@@ -88,6 +88,10 @@ Ditherer Modes:
   ADitherXYArithmetic: A-Dither XY Arithmetic
   ADitherXYArithmeticWithChannel: A-Dither XY Arithmetic with Channel
   ADitherUniform: A-Dither Uniform
+  RiemersmaDefault: Riemersma (Default)
+  RiemersmaSmall: Riemersma (Small)
+  RiemersmaLarge: Riemersma (Large)
+  RiemersmaLinear: Riemersma (Linear)
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
@@ -193,7 +197,7 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [X] [Fan](https://ditherit.com)
 - [X] [ShiauFan](https://ditherit.com)
 - [X] [ShiauFan2](https://ditherit.com)
-- [ ] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)]
+- [X] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)] - Space-filling curve based dithering with four variants (Default, Small, Large, Linear)
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
 - [ ] White Noise

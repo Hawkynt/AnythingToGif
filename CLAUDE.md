@@ -27,6 +27,10 @@ The solution consists of two main projects:
 ### Color Processing Pipeline
 1. **Quantizers** (`Quantizers/`): Reduce color palette (Octree, MedianCut, Wu, etc.)
 2. **Ditherers** (`Ditherers/`): Apply dithering patterns to improve visual quality
+   - Matrix-based ditherers (Floyd-Steinberg, Jarvis-Judice-Ninke, etc.)
+   - A-dithering algorithms (XorY149, XYArithmetic, etc.)
+   - Riemersma dithering (space-filling curve based)
+   - Bayer ordered dithering
 3. **Color Distance Metrics** (`ColorDistanceMetrics/`): Calculate color similarity using various algorithms
 4. **Color Ordering** (`ColorOrderingMode.cs`): Determine sequence for introducing new colors across frames
 
@@ -191,3 +195,33 @@ Available metrics in `ColorDistanceMetrics/`:
 - Property-based testing ensures all quantizers handle edge cases consistently
 - Tests verify exact color counts, no exceptions on edge cases, and proper fallback behavior
 - **Critical**: Use `ToArgb()` in tests for color comparisons to avoid static vs constructed color issues
+- Ditherer tests ensure no exceptions and valid palette index output
+
+### Dithering Algorithms
+
+#### **Matrix-Based Dithering** (`MatrixBasedDitherer`)
+- Error diffusion algorithms using predefined matrices
+- Includes Floyd-Steinberg, Jarvis-Judice-Ninke, Simple, and other patterns
+- Propagates quantization errors to neighboring pixels
+
+#### **A-Dithering** (`ADitherer`)  
+- Algorithmic dithering patterns using mathematical functions
+- Variants: XorY149, XYArithmetic, Uniform patterns
+- Channel-specific and single-channel modes available
+
+#### **Riemersma Dithering** (`RiemarsmaDitherer`)
+- **New Implementation**: Space-filling curve based dithering
+- Uses Hilbert curve for pixel traversal (avoids directional artifacts)
+- Maintains error history buffer with exponential decay
+- Variants:
+  - `Default`: 16-element history with Hilbert curve
+  - `Small`: 8-element history for faster processing
+  - `Large`: 32-element history for higher quality
+  - `Linear`: 16-element history with serpentine traversal
+- **Implementation Notes**: Uses iterative Hilbert curve generation to avoid stack overflow
+- Superior to linear error diffusion for complex images
+
+#### **Bayer Dithering** (`BayerDitherer`)
+- Ordered dithering using Bayer matrices
+- Predictable, threshold-based approach
+- Good for consistent patterns and printing applications
