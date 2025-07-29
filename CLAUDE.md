@@ -92,6 +92,102 @@ The core innovation uses multiple GIF frames with local color palettes:
 
 ## Testing
 
-No formal test framework is configured. Test using the example files in `Examples/`:
+### Test Suite
+A comprehensive NUnit test suite is located in `AnythingToGif.Tests/`:
+
+**Run Tests:**
+```bash
+dotnet test AnythingToGif.Tests/
+```
+
+**Test Coverage:**
+- **GIF Writer Tests** (`GifWriterTests.cs`): Tests core GIF file creation functionality
+- **Simple Integration Tests** (`SimpleIntegrationTests.cs`): End-to-end testing of image conversion
+- Automatic discovery of all public quantizers using reflection
+- Testing of various color ordering modes and conversion scenarios
+- Frame disposal methods, loop counts, and GIF format features
+
+**InternalsVisibleTo:** The main project exposes internal types to the test assembly for comprehensive testing.
+
+### Example Files
+Test using the example files in `Examples/`:
 - `PlanetDemo.jpg`: Sample image for testing
 - `StressTest.png`: Complex image for algorithm validation
+
+## Quantizer Architecture & Implementation Guidelines
+
+### Base Architecture
+- **QuantizerBase**: Abstract base class that handles common functionality
+  - Edge case handling (empty input, zero colors, single colors)
+  - Final palette generation with fallback colors
+  - Consistent interface for all quantizers
+- **Quantizer Implementations**: Override `_ReduceColorsTo` method for core algorithm
+  - Focus purely on the quantization algorithm
+  - Let base class handle edge cases and palette completion
+
+### Common Implementation Patterns
+1. **Edge Case Handling**: The base class automatically handles:
+   - Empty input collections
+   - Zero colors requested
+   - Single color inputs
+   - Insufficient colors from quantizer (fills with fallback colors)
+
+2. **Color Comparison**: Always use `Color.ToArgb()` for comparisons to avoid issues between `Color.Red` static properties vs constructed colors like `Color.FromArgb(255, 0, 0)`
+
+3. **Type Safety**: Use `uint` for color counts, not `int`, to avoid casting issues in LINQ operations
+
+### Quantizer-Specific Notes
+
+#### **OctreeQuantizer**
+- Tree-based color reduction using octree data structure
+- Handles color merging when too many colors are present
+- Returns actual quantized colors (may be fewer than requested)
+
+#### **AduQuantizer** 
+- Competitive learning algorithm with adaptive learning rates
+- Requires distance function and iteration count parameters
+- Can handle complex color distributions with iterative refinement
+
+#### **BinarySplittingQuantizer**
+- Uses PCA/eigenvalue analysis for optimal color space splitting
+- Requires MathNet.Numerics for mathematical operations
+- Good for images with distinct color regions
+
+#### **MedianCutQuantizer**
+- Classic median cut algorithm for color cube subdivision
+- Splits color space based on largest dimension
+- Works well for general-purpose color reduction
+
+#### **WuQuantizer**
+- Wu's color quantization algorithm using moment-based approach
+- Uses 32x32x32 color space subdivision
+- Efficient for large color histograms
+
+#### **VarianceBasedQuantizer & VarianceCutQuantizer**
+- Split color cubes based on variance calculations
+- Good for maintaining color fidelity in high-variance regions
+
+### Wrapper Quantizers
+
+#### **PcaQuantizerWrapper**
+- Applies Principal Component Analysis before quantization
+- Uses `PcaHelper` class for color space transformation
+- **Important**: PcaHelper had divide-by-zero issues with single colors (fixed)
+
+#### **AntRefinementWrapper**
+- Iterative refinement of quantizer results using ant-colony-like approach
+- Requires base quantizer, iteration count, and distance metric
+- Improves quality through multiple refinement passes
+
+### Color Distance Metrics
+Available metrics in `ColorDistanceMetrics/`:
+- **Euclidean**: Simple RGB distance
+- **Manhattan**: Manhattan distance in RGB space  
+- **CIE94/CIEDE2000**: Perceptually uniform color differences
+- **Weighted YUV/YCbCr**: Luminance-weighted distances
+
+### Testing Considerations
+- Tests use reflection to discover all quantizer implementations automatically
+- Property-based testing ensures all quantizers handle edge cases consistently
+- Tests verify exact color counts, no exceptions on edge cases, and proper fallback behavior
+- **Critical**: Use `ToArgb()` in tests for color comparisons to avoid static vs constructed color issues

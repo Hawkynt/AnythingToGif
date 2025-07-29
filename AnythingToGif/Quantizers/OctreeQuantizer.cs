@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace AnythingToGif.Quantizers;
 
@@ -28,7 +29,7 @@ public class OctreeQuantizer : QuantizerBase {
   private const int _MAX_DEPTH = 7;
   private uint _minimumReferenceCount;
 
-  public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
+  protected override Color[] _ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
     foreach (var (color, count) in histogram)
       this._AddColor(this._root, color, 0, count);
 
@@ -140,19 +141,15 @@ public class OctreeQuantizer : QuantizerBase {
     this._GetMinimumReferenceCount(this._root);
     var least = this._minimumReferenceCount;
 
-    if (desiredColors > 2) {
-      desiredColors -= 2;
-      while (this._colorsCount > desiredColors) {
-        this._MergeLeast(this._root, least, desiredColors);
-        least += this._minimumReferenceCount;
-      }
+    while (this._colorsCount > desiredColors) {
+      this._MergeLeast(this._root, least, desiredColors);
+      least += this._minimumReferenceCount;
     }
 
-    var result = new Color[this._colorsCount + 2];
+    var result = new Color[this._colorsCount];
     var index = 0;
-    result[index++] = Color.Black;
-    result[index++] = Color.White;
     this._FillPalette(this._root, result, ref index);
+    
     return result;
   }
 

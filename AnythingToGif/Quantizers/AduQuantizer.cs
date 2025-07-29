@@ -5,14 +5,12 @@ using System.Linq;
 
 namespace AnythingToGif.Quantizers;
 
-public class AduQuantizer(Func<Color, Color, int> distanceFunc, int iterationCount = 100) : QuantizerBase {
+public class AduQuantizer(Func<Color, Color, int> distanceFunc, int iterationCount = 10) : QuantizerBase {
   private const double InitialLearningRate = 0.01; // Reduced initial learning rate
   private const double MinLearningRate = 0.001; // Minimum learning rate
 
-  public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
+  protected override Color[] _ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
     var colorsWithCounts = histogram.ToArray();
-    if (!colorsWithCounts.Any())
-      return [];
     
     // 1. Initialize units (palette colors)
     var palette = new List<Color>();
@@ -40,10 +38,10 @@ public class AduQuantizer(Func<Color, Color, int> distanceFunc, int iterationCou
       // Use exponential decay for learning rate with minimum threshold
       var learningRate = Math.Max(MinLearningRate, 
         InitialLearningRate * Math.Exp(-3.0 * iteration / iterationCount));
-      
+
       // Shuffle colors each iteration to avoid bias
       colorsWithCounts.Shuffle();
-      
+
       foreach (var (inputColor, count) in colorsWithCounts) {
         // Apply count-based weighting to the learning process
         var weightedLearningRate = learningRate * Math.Min(1.0, Math.Log(count + 1) / 10.0);
@@ -102,28 +100,8 @@ public class AduQuantizer(Func<Color, Color, int> distanceFunc, int iterationCou
         }
       }
     }
-
-    // Ensure no duplicate colors in the final palette
-    var uniquePalette = new HashSet<Color>();
-    var finalPalette = new List<Color>();
     
-    foreach (var color in palette) {
-      if (uniquePalette.Add(color)) {
-        finalPalette.Add(color);
-      }
-    }
-    
-    // If we lost colors due to duplicates, fill with remaining colors from histogram
-    if (finalPalette.Count < numberOfColors) {
-      foreach (var (color, _) in sortedColors) {
-        if (finalPalette.Count >= numberOfColors) break;
-        if (uniquePalette.Add(color)) {
-          finalPalette.Add(color);
-        }
-      }
-    }
-    
-    return finalPalette.ToArray();
+    return palette.ToArray();
   }
-
+  
 }

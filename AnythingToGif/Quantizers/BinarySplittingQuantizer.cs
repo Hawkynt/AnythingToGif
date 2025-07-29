@@ -7,15 +7,14 @@ using MathNet.Numerics.LinearAlgebra;
 namespace AnythingToGif.Quantizers;
 
 public class BinarySplittingQuantizer : QuantizerBase {
-  public override Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
-    var colorsWithCounts = histogram.ToList();
-    var cubes = new List<ColorCube> { new(colorsWithCounts) };
+  protected override Color[] _ReduceColorsTo(byte numberOfColors, IEnumerable<(Color color, uint count)> histogram) {
+    var cubes = new List<ColorCube> { new(histogram.ToList()) };
 
     while (cubes.Count < numberOfColors) {
       // Select the leaf j with the largest eigenvalue (or largest total squared variation)
       var largestEigenvalueCube = cubes.OrderByDescending(c => c.LargestEigenvalue).FirstOrDefault();
 
-      if (largestEigenvalueCube == null || largestEigenvalueCube.Colors.Count == 0) {
+      if (largestEigenvalueCube == null || largestEigenvalueCube.Colors.Count <= 1) {
         break;
       }
 
