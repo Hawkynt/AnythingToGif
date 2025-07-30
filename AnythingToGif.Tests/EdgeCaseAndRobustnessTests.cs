@@ -336,8 +336,8 @@ public class EdgeCaseAndRobustnessTests {
     
     var ditherers = new IDitherer[] { 
       NoDitherer.Instance, 
-      BayerDitherer.Bayer2x2, 
-      BayerDitherer.Bayer4x4 
+      OrderedDitherer.Bayer2x2, 
+      OrderedDitherer.Bayer4x4 
     };
     
     var colorOrderings = new[] { 

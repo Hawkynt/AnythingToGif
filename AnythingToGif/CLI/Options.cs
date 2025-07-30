@@ -73,6 +73,7 @@ internal class Options {
     [Description("Bayer 2x2")] Bayer2x2,
     [Description("Bayer 4x4")] Bayer4x4,
     [Description("Bayer 8x8")] Bayer8x8,
+    [Description("Halftone 8x8")] Halftone8x8,
     [Description("A-Dither XOR-Y149")] ADitherXorY149,
     [Description("A-Dither XOR-Y149 with Channel")] ADitherXorY149WithChannel,
     [Description("A-Dither XY Arithmetic")] ADitherXYArithmetic,
@@ -113,6 +114,9 @@ internal class Options {
 
   [Option('d', "ditherer", Default = DithererMode.FloydSteinberg, HelpText = "Ditherer to use.")]
   public DithererMode _Ditherer { get; set; }
+
+  [Option("bayer", Default = 0, HelpText = "Generate 2^n Bayer matrix (e.g., --bayer 4 creates 16x16 matrix). When specified, overrides --ditherer. Valid range: 1-8.")]
+  public int BayerIndex { get; set; }
 
   [Option('f', "useBackFilling", Default = false, HelpText = "Whether to use backfilling.")]
   public bool UseBackFilling { get; set; }
@@ -185,49 +189,61 @@ internal class Options {
     return q;
   };
 
-  public IDitherer Ditherer => this._Ditherer switch {
-    DithererMode.FloydSteinberg => MatrixBasedDitherer.FloydSteinberg,
-    DithererMode.EqualFloydSteinberg => MatrixBasedDitherer.EqualFloydSteinberg,
-    DithererMode.FalseFloydSteinberg => MatrixBasedDitherer.FalseFloydSteinberg,
-    DithererMode.JarvisJudiceNinke => MatrixBasedDitherer.JarvisJudiceNinke,
-    DithererMode.Stucki => MatrixBasedDitherer.Stucki,
-    DithererMode.Atkinson => MatrixBasedDitherer.Atkinson,
-    DithererMode.Burkes => MatrixBasedDitherer.Burkes,
-    DithererMode.Sierra => MatrixBasedDitherer.Sierra,
-    DithererMode.TwoRowSierra => MatrixBasedDitherer.TwoRowSierra,
-    DithererMode.SierraLite => MatrixBasedDitherer.SierraLite,
-    DithererMode.Pigeon => MatrixBasedDitherer.Pigeon,
-    DithererMode.StevensonArce => MatrixBasedDitherer.StevensonArce,
-    DithererMode.ShiauFan => MatrixBasedDitherer.ShiauFan,
-    DithererMode.ShiauFan2 => MatrixBasedDitherer.ShiauFan2,
-    DithererMode.Fan93 => MatrixBasedDitherer.Fan93,
-    DithererMode.Bayer2x2 => BayerDitherer.Bayer2x2,
-    DithererMode.Bayer4x4 => BayerDitherer.Bayer4x4,
-    DithererMode.Bayer8x8 => BayerDitherer.Bayer8x8,
-    DithererMode.ADitherXorY149 => ADitherer.XorY149,
-    DithererMode.ADitherXorY149WithChannel => ADitherer.XorY149WithChannel,
-    DithererMode.ADitherXYArithmetic => ADitherer.XYArithmetic,
-    DithererMode.ADitherXYArithmeticWithChannel => ADitherer.XYArithmeticWithChannel,
-    DithererMode.ADitherUniform => ADitherer.Uniform,
-    DithererMode.RiemersmaDefault => RiemersmaDitherer.Default,
-    DithererMode.RiemersmaSmall => RiemersmaDitherer.Small,
-    DithererMode.RiemersmaLarge => RiemersmaDitherer.Large,
-    DithererMode.RiemersmaLinear => RiemersmaDitherer.Linear,
-    DithererMode.WhiteNoise => NoiseDitherer.White,
-    DithererMode.WhiteNoiseLight => NoiseDitherer.WhiteLight,
-    DithererMode.WhiteNoiseStrong => NoiseDitherer.WhiteStrong,
-    DithererMode.BlueNoise => NoiseDitherer.Blue,
-    DithererMode.BlueNoiseLight => NoiseDitherer.BlueLight,
-    DithererMode.BlueNoiseStrong => NoiseDitherer.BlueStrong,
-    DithererMode.BrownNoise => NoiseDitherer.Brown,
-    DithererMode.BrownNoiseLight => NoiseDitherer.BrownLight,
-    DithererMode.BrownNoiseStrong => NoiseDitherer.BrownStrong,
-    DithererMode.PinkNoise => NoiseDitherer.Pink,
-    DithererMode.PinkNoiseLight => NoiseDitherer.PinkLight,
-    DithererMode.PinkNoiseStrong => NoiseDitherer.PinkStrong,
-    DithererMode.None => NoDitherer.Instance,
-    _ => NoDitherer.Instance
-  };
+  public IDitherer Ditherer {
+    get {
+      // If BayerN is specified and valid, use it instead of the regular ditherer
+      if (this.BayerIndex is >= 1 and <= 8) {
+        var size = 1 << this.BayerIndex; // 2^n
+        return OrderedDitherer.CreateBayer(size);
+      }
+      
+      // Otherwise use the regular ditherer selection
+      return this._Ditherer switch {
+        DithererMode.FloydSteinberg => MatrixBasedDitherer.FloydSteinberg,
+        DithererMode.EqualFloydSteinberg => MatrixBasedDitherer.EqualFloydSteinberg,
+        DithererMode.FalseFloydSteinberg => MatrixBasedDitherer.FalseFloydSteinberg,
+        DithererMode.JarvisJudiceNinke => MatrixBasedDitherer.JarvisJudiceNinke,
+        DithererMode.Stucki => MatrixBasedDitherer.Stucki,
+        DithererMode.Atkinson => MatrixBasedDitherer.Atkinson,
+        DithererMode.Burkes => MatrixBasedDitherer.Burkes,
+        DithererMode.Sierra => MatrixBasedDitherer.Sierra,
+        DithererMode.TwoRowSierra => MatrixBasedDitherer.TwoRowSierra,
+        DithererMode.SierraLite => MatrixBasedDitherer.SierraLite,
+        DithererMode.Pigeon => MatrixBasedDitherer.Pigeon,
+        DithererMode.StevensonArce => MatrixBasedDitherer.StevensonArce,
+        DithererMode.ShiauFan => MatrixBasedDitherer.ShiauFan,
+        DithererMode.ShiauFan2 => MatrixBasedDitherer.ShiauFan2,
+        DithererMode.Fan93 => MatrixBasedDitherer.Fan93,
+        DithererMode.Bayer2x2 => OrderedDitherer.Bayer2x2,
+        DithererMode.Bayer4x4 => OrderedDitherer.Bayer4x4,
+        DithererMode.Bayer8x8 => OrderedDitherer.Bayer8x8,
+        DithererMode.Halftone8x8 => OrderedDitherer.Halftone8x8,
+        DithererMode.ADitherXorY149 => ADitherer.XorY149,
+        DithererMode.ADitherXorY149WithChannel => ADitherer.XorY149WithChannel,
+        DithererMode.ADitherXYArithmetic => ADitherer.XYArithmetic,
+        DithererMode.ADitherXYArithmeticWithChannel => ADitherer.XYArithmeticWithChannel,
+        DithererMode.ADitherUniform => ADitherer.Uniform,
+        DithererMode.RiemersmaDefault => RiemersmaDitherer.Default,
+        DithererMode.RiemersmaSmall => RiemersmaDitherer.Small,
+        DithererMode.RiemersmaLarge => RiemersmaDitherer.Large,
+        DithererMode.RiemersmaLinear => RiemersmaDitherer.Linear,
+        DithererMode.WhiteNoise => NoiseDitherer.White,
+        DithererMode.WhiteNoiseLight => NoiseDitherer.WhiteLight,
+        DithererMode.WhiteNoiseStrong => NoiseDitherer.WhiteStrong,
+        DithererMode.BlueNoise => NoiseDitherer.Blue,
+        DithererMode.BlueNoiseLight => NoiseDitherer.BlueLight,
+        DithererMode.BlueNoiseStrong => NoiseDitherer.BlueStrong,
+        DithererMode.BrownNoise => NoiseDitherer.Brown,
+        DithererMode.BrownNoiseLight => NoiseDitherer.BrownLight,
+        DithererMode.BrownNoiseStrong => NoiseDitherer.BrownStrong,
+        DithererMode.PinkNoise => NoiseDitherer.Pink,
+        DithererMode.PinkNoiseLight => NoiseDitherer.PinkLight,
+        DithererMode.PinkNoiseStrong => NoiseDitherer.PinkStrong,
+        DithererMode.None => NoDitherer.Instance,
+        _ => NoDitherer.Instance
+      };
+    }
+  }
 
   public static void HandleParseError<T>(ParserResult<T> result, IEnumerable<Error> errors) {
     var helpText = HelpText.AutoBuild(result, h => {

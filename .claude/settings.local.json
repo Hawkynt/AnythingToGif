@@ -11,7 +11,8 @@
       "Bash(dotnet clean:*)",
       "Bash(dotnet run:*)",
       "Bash(echo:*)",
-      "Bash(dotnet script:*)"
+      "Bash(dotnet script:*)",
+      "WebFetch(domain:matejlou.blog)"
     ],
     "deny": []
   }
