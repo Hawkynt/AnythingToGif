@@ -10,7 +10,8 @@
       "Bash(taskkill:*)",
       "Bash(dotnet clean:*)",
       "Bash(dotnet run:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(dotnet script:*)"
     ],
     "deny": []
   }

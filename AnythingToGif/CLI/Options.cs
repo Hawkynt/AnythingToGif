@@ -81,7 +81,19 @@ internal class Options {
     [Description("Riemersma (Default)")] RiemersmaDefault,
     [Description("Riemersma (Small)")] RiemersmaSmall,
     [Description("Riemersma (Large)")] RiemersmaLarge,
-    [Description("Riemersma (Linear)")] RiemersmaLinear
+    [Description("Riemersma (Linear)")] RiemersmaLinear,
+    [Description("White Noise (50%)")] WhiteNoise,
+    [Description("White Noise (30%)")] WhiteNoiseLight,
+    [Description("White Noise (70%)")] WhiteNoiseStrong,
+    [Description("Blue Noise (50%)")] BlueNoise,
+    [Description("Blue Noise (30%)")] BlueNoiseLight,
+    [Description("Blue Noise (70%)")] BlueNoiseStrong,
+    [Description("Brown Noise (50%)")] BrownNoise,
+    [Description("Brown Noise (30%)")] BrownNoiseLight,
+    [Description("Brown Noise (70%)")] BrownNoiseStrong,
+    [Description("Pink Noise (50%)")] PinkNoise,
+    [Description("Pink Noise (30%)")] PinkNoiseLight,
+    [Description("Pink Noise (70%)")] PinkNoiseStrong
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -201,6 +213,18 @@ internal class Options {
     DithererMode.RiemersmaSmall => RiemersmaDitherer.Small,
     DithererMode.RiemersmaLarge => RiemersmaDitherer.Large,
     DithererMode.RiemersmaLinear => RiemersmaDitherer.Linear,
+    DithererMode.WhiteNoise => NoiseDitherer.White,
+    DithererMode.WhiteNoiseLight => NoiseDitherer.WhiteLight,
+    DithererMode.WhiteNoiseStrong => NoiseDitherer.WhiteStrong,
+    DithererMode.BlueNoise => NoiseDitherer.Blue,
+    DithererMode.BlueNoiseLight => NoiseDitherer.BlueLight,
+    DithererMode.BlueNoiseStrong => NoiseDitherer.BlueStrong,
+    DithererMode.BrownNoise => NoiseDitherer.Brown,
+    DithererMode.BrownNoiseLight => NoiseDitherer.BrownLight,
+    DithererMode.BrownNoiseStrong => NoiseDitherer.BrownStrong,
+    DithererMode.PinkNoise => NoiseDitherer.Pink,
+    DithererMode.PinkNoiseLight => NoiseDitherer.PinkLight,
+    DithererMode.PinkNoiseStrong => NoiseDitherer.PinkStrong,
     DithererMode.None => NoDitherer.Instance,
     _ => NoDitherer.Instance
   };
