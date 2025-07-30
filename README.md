@@ -187,19 +187,23 @@ Further Links for this part:
 Dithering techniques are applied to ensure the first frame provides a good base image. Methods include:
 
 - [X] None
-- [X] [Floyd-Steinberg](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering)
-- [X] [False Floyd-Steinberg](https://github.com/makew0rld)
-- [X] [Floyd-Steinberg (equally distributed)](https://github.com/kgjenkins/dither-dream)
-- [X] [Jarvis, Judice, and Ninke](https://www.graphicsacademy.com/what_ditherjarvis.php) [[1](https://www.researchgate.net/figure/Difference-between-Jarvis-Judice-and-Ninke-and-Floyd-Steinberg-results-from-watch-input_fig3_342085636)]
-- [X] Stucki
-- [X] Atkinson
-- [X] Burkes
-- [X] Sierra
-- [X] Two-Row Sierra
-- [X] Sierra Lite
-- [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
-- [X] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
-- [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8)
+- ErrorDiffusion
+  - [X] [Floyd-Steinberg](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering)
+  - [X] [False Floyd-Steinberg](https://github.com/makew0rld)
+  - [X] [Floyd-Steinberg (equally distributed)](https://github.com/kgjenkins/dither-dream)
+  - [X] [Jarvis, Judice, and Ninke](https://www.graphicsacademy.com/what_ditherjarvis.php) [[1](https://www.researchgate.net/figure/Difference-between-Jarvis-Judice-and-Ninke-and-Floyd-Steinberg-results-from-watch-input_fig3_342085636)]
+  - [X] Stucki
+  - [X] Atkinson
+  - [X] Burkes
+  - [X] Sierra
+  - [X] Two-Row Sierra
+  - [X] Sierra Lite
+  - [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
+  - [X] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
+- Matrix-based
+  - [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8)
+  - [ ] [Halftone](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
+  - [ ] [Interleaved Gradient Noise]
 - [X] [A-Dither](https://pippin.gimp.org/a_dither/) - Procedural spatial dithering with multiple patterns
   - XOR-Y149 pattern
   - XOR-Y149 with channel variation
@@ -218,16 +222,23 @@ Dithering techniques are applied to ensure the first frame provides a good base 
   - Each type available in Light (30%), Normal (50%), and Strong (70%) intensity variants
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
-- [ ] [Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
-- [ ] [Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
-- [ ] [Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Joel Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Joel Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [Joel Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Thomas Knoll](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [ ] [N-Closest](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
+- [ ] [N-Convex](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
+- [ ] [Barycentric](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
+- [ ] [Triangulated Irregular Network](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
+- [ ] [Natural Neighbour](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
 
 Further Links for this part:
 
 - [Dithering Matrices](https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html)
 - [DitherPunk](https://surma.dev/things/ditherpunk/)
 - [Cyotek](https://github.com/cyotek/Dithering/tree/master/src/Dithering)
+- [Tetrapal](https://github.com/matejlou/tetrapal)
+- [Dithermark](https://dithermark.com/resources/)
 
 ### Color distance calculation
 
@@ -241,6 +252,7 @@ Further Links for this part:
 - [X]  [CIE94GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
 - [X]  [CompuPhase](https://www.compuphase.com/cmetric.htm)
 - [X]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
+- [ ]  [Linear RGB](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
 
 Further Links for this part:
 
