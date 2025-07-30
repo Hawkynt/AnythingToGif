@@ -6,7 +6,7 @@ This is a versatile tool designed to convert a wide variety of visual media form
 
 ```
 AnythingToGif 1.0.2.0
-Copyright (C) 2024 Hawkynt
+Copyright (C) 2025 Hawkynt
 Converts anything to GIF format.
 
 Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
@@ -16,6 +16,8 @@ Usage: AnythingToGif [<input>] [<options>] | <input> <output> [<options>]
   -b, --firstSubImageInitsBackground    (Default: true) Whether the first sub-image initializes the background.
   -c, --colorOrdering                   (Default: MostUsedFirst) Color ordering mode.
   -d, --ditherer                        (Default: FloydSteinberg) Ditherer to use.
+  --bayer                               (Default: 0) Generate 2^n Bayer matrix (e.g., --bayer 4 creates 16x16 matrix).
+                                        When specified, overrides --ditherer. Valid range: 1-8.
   -f, --useBackFilling                  (Default: false) Whether to use backfilling.
   -i, --antIterations                   (Default: 25) Number of iterations for Ant-tree like refinement.
   -m, --metric                          (Default: Default) Color distance metric to use.
@@ -35,11 +37,11 @@ Color Distance Metrics:
   Manhattan: Manhattan
   ManhattanRGBOnly: Manhattan (RGB only)
   CompuPhase: CompuPhase
-  EuclideanBT709: Weighted Euclidean (BT709)
+  EuclideanBT709: Weighted Euclidean (BT.709)
   EuclideanNommyde: Weighted Euclidean (Nommyde)
   WeightedEuclideanLowRed: Weighted Euclidean (low red component)
   WeightedEuclideanHighRed: Weighted Euclidean (high red component)
-  ManhattanBT709: Weighted Manhattan (BT709)
+  ManhattanBT709: Weighted Manhattan (BT.709)
   ManhattanNommyde: Weighted Manhattan (Nommyde)
   WeightedManhattanLowRed: Weighted Manhattan (low red component)
   WeightedManhattanHighRed: Weighted Manhattan (high red component)
@@ -83,6 +85,7 @@ Ditherer Modes:
   Bayer2x2: Bayer 2x2
   Bayer4x4: Bayer 4x4
   Bayer8x8: Bayer 8x8
+  Halftone8x8: Halftone 8x8
   ADitherXorY149: A-Dither XOR-Y149
   ADitherXorY149WithChannel: A-Dither XOR-Y149 with Channel
   ADitherXYArithmetic: A-Dither XY Arithmetic
@@ -92,18 +95,18 @@ Ditherer Modes:
   RiemersmaSmall: Riemersma (Small)
   RiemersmaLarge: Riemersma (Large)
   RiemersmaLinear: Riemersma (Linear)
-  WhiteNoise: White Noise
-  WhiteNoiseLight: White Noise (Light)
-  WhiteNoiseStrong: White Noise (Strong)
-  BlueNoise: Blue Noise
-  BlueNoiseLight: Blue Noise (Light)
-  BlueNoiseStrong: Blue Noise (Strong)
-  BrownNoise: Brown Noise
-  BrownNoiseLight: Brown Noise (Light)
-  BrownNoiseStrong: Brown Noise (Strong)
-  PinkNoise: Pink Noise
-  PinkNoiseLight: Pink Noise (Light)
-  PinkNoiseStrong: Pink Noise (Strong)
+  WhiteNoise: White Noise (50%)
+  WhiteNoiseLight: White Noise (30%)
+  WhiteNoiseStrong: White Noise (70%)
+  BlueNoise: Blue Noise (50%)
+  BlueNoiseLight: Blue Noise (30%)
+  BlueNoiseStrong: Blue Noise (70%)
+  BrownNoise: Brown Noise (50%)
+  BrownNoiseLight: Brown Noise (30%)
+  BrownNoiseStrong: Brown Noise (70%)
+  PinkNoise: Pink Noise (50%)
+  PinkNoiseLight: Pink Noise (30%)
+  PinkNoiseStrong: Pink Noise (70%)
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
@@ -114,7 +117,6 @@ Color Ordering Modes:
   Random: Purely random
 
 Insufficient arguments try '--help' for help.
-
 ```
 
 ## Overview
@@ -205,7 +207,7 @@ Dithering techniques are applied to ensure the first frame provides a good base 
   - [X] [ShiauFan2](https://ditherit.com)
 - Matrix-based
   - [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8)
-  - [ ] [Halftone](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
+  - [X] [Halftone](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
   - [ ] [Interleaved Gradient Noise]
 - [Arithmetic Dither](https://pippin.gimp.org/a_dither/) - Procedural spatial dithering with multiple patterns
   - [X] XOR-Y149 pattern

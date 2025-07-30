@@ -46,7 +46,7 @@ public class SimplifiedDithererTests {
     var dithererNames = allDitherers.Select(d => this.GetDithererName(d)).ToArray();
     
     Assert.That(dithererNames, Contains.Item("NoDitherer.Instance"), "Should find NoDitherer.Instance");
-    Assert.That(dithererNames.Any(n => n.Contains("Bayer")), Is.True, "Should find Bayer ditherers");
+    Assert.That(dithererNames.Any(n => n.Contains("OrderedDitherer")), Is.True, "Should find OrderedDitherer ditherers");
     Assert.That(dithererNames.Any(n => n.Contains("FloydSteinberg")), Is.True, "Should find Floyd-Steinberg ditherer");
   }
 
@@ -95,9 +95,9 @@ public class SimplifiedDithererTests {
     
     var expectedDitherers = new[] {
       "NoDitherer.Instance",
-      "BayerDitherer.Bayer2x2",
-      "BayerDitherer.Bayer4x4", 
-      "BayerDitherer.Bayer8x8",
+      "OrderedDitherer.Bayer2x2",
+      "OrderedDitherer.Bayer4x4", 
+      "OrderedDitherer.Bayer8x8",
       "MatrixBasedDitherer.FloydSteinberg",
       "MatrixBasedDitherer.JarvisJudiceNinke",
       "MatrixBasedDitherer.Stucki"
@@ -145,19 +145,20 @@ public class SimplifiedDithererTests {
   }
 
   [Test]
-  public void BayerDitherers_HaveDifferentMatrixSizes() {
+  public void OrderedDitherers_HaveDifferentMatrixSizes() {
     var allDitherers = GetAllDitherers().ToArray();
-    var bayerDitherers = allDitherers
-      .Where(d => this.GetDithererName(d).Contains("Bayer"))
+    var orderedDitherers = allDitherers
+      .Where(d => this.GetDithererName(d).Contains("OrderedDitherer"))
       .ToArray();
     
-    Assert.That(bayerDitherers.Length, Is.GreaterThanOrEqualTo(3), 
-      "Should find at least 3 Bayer ditherers (2x2, 4x4, 8x8)");
+    Assert.That(orderedDitherers.Length, Is.GreaterThanOrEqualTo(4), 
+      "Should find at least 4 OrderedDitherers (Bayer2x2, Bayer4x4, Bayer8x8, Halftone8x8)");
     
-    var bayerNames = bayerDitherers.Select(this.GetDithererName).ToArray();
-    Assert.That(bayerNames, Contains.Item("BayerDitherer.Bayer2x2"));
-    Assert.That(bayerNames, Contains.Item("BayerDitherer.Bayer4x4"));
-    Assert.That(bayerNames, Contains.Item("BayerDitherer.Bayer8x8"));
+    var orderedNames = orderedDitherers.Select(this.GetDithererName).ToArray();
+    Assert.That(orderedNames, Contains.Item("OrderedDitherer.Bayer2x2"));
+    Assert.That(orderedNames, Contains.Item("OrderedDitherer.Bayer4x4"));
+    Assert.That(orderedNames, Contains.Item("OrderedDitherer.Bayer8x8"));
+    Assert.That(orderedNames, Contains.Item("OrderedDitherer.Halftone8x8"));
   }
 
   [Test]
