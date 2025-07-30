@@ -15,54 +15,7 @@ public readonly struct OrderedDitherer(byte[,] matrix) : IDitherer {
   /// <param name="size">The size of the matrix (must be power of 2)</param>
   /// <returns>An OrderedDitherer with the generated Bayer matrix</returns>
   /// <exception cref="ArgumentException">Thrown when size is not a power of 2</exception>
-  public static IDitherer CreateBayer(int size) {
-    if (size < 2 || (size & (size - 1)) != 0)
-      throw new ArgumentException("Size must be a power of 2 and at least 2", nameof(size));
-    
-    return new OrderedDitherer(GenerateBayerMatrix(size));
-  }
-
-  /// <summary>
-  /// Generates a Bayer dithering matrix of the specified size using recursive construction.
-  /// </summary>
-  /// <param name="size">The size of the matrix (must be power of 2)</param>
-  /// <returns>A 2D byte array containing the Bayer matrix</returns>
-  private static byte[,] GenerateBayerMatrix(int size) {
-    if (size == 2) {
-      // Base case: 2x2 Bayer matrix
-      return new byte[,] {
-        { 0, 2 },
-        { 3, 1 }
-      };
-    }
-    
-    var halfSize = size / 2;
-    var smallMatrix = GenerateBayerMatrix(halfSize);
-    var result = new byte[size, size];
-    
-    // Apply the recursive Bayer matrix construction formula:
-    // B(2n) = [ 4*B(n) + 0*U(n)   4*B(n) + 2*U(n) ]
-    //         [ 4*B(n) + 3*U(n)   4*B(n) + 1*U(n) ]
-    for (var y = 0; y < halfSize; ++y) {
-      for (var x = 0; x < halfSize; ++x) {
-        var baseValue = (byte)(4 * smallMatrix[y, x]);
-        
-        // Top-left: 4*B(n) + 0
-        result[y, x] = baseValue;
-        
-        // Top-right: 4*B(n) + 2  
-        result[y, x + halfSize] = (byte)(baseValue + 2);
-        
-        // Bottom-left: 4*B(n) + 3
-        result[y + halfSize, x] = (byte)(baseValue + 3);
-        
-        // Bottom-right: 4*B(n) + 1
-        result[y + halfSize, x + halfSize] = (byte)(baseValue + 1);
-      }
-    }
-    
-    return result;
-  }
+  public static IDitherer CreateBayer(int size) => new OrderedDitherer(BayerMatrixGenerator.Generate(size));
 
   // Bayer 2x2 dither matrix
   public static IDitherer Bayer2x2 { get; } = CreateBayer(2);

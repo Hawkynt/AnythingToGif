@@ -227,7 +227,7 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [ ] [Joel Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Joel Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Joel Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)
-- [ ] [Thomas Knoll](https://bisqwit.iki.fi/story/howto/dither/jy/)
+- [X] [Thomas Knoll](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [N-Closest](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
 - [ ] [N-Convex](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
 - [ ] [Barycentric](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)

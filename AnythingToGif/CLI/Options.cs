@@ -94,7 +94,11 @@ internal class Options {
     [Description("Brown Noise (70%)")] BrownNoiseStrong,
     [Description("Pink Noise (50%)")] PinkNoise,
     [Description("Pink Noise (30%)")] PinkNoiseLight,
-    [Description("Pink Noise (70%)")] PinkNoiseStrong
+    [Description("Pink Noise (70%)")] PinkNoiseStrong,
+    [Description("Knoll (Default)")] KnollDefault,
+    [Description("Knoll (8x8 Bayer)")] KnollBayer8x8,
+    [Description("Knoll (High Quality)")] KnollHighQuality,
+    [Description("Knoll (Fast)")] KnollFast
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -239,6 +243,10 @@ internal class Options {
         DithererMode.PinkNoise => NoiseDitherer.Pink,
         DithererMode.PinkNoiseLight => NoiseDitherer.PinkLight,
         DithererMode.PinkNoiseStrong => NoiseDitherer.PinkStrong,
+        DithererMode.KnollDefault => KnollDitherer.Default,
+        DithererMode.KnollBayer8x8 => KnollDitherer.Bayer8x8,
+        DithererMode.KnollHighQuality => KnollDitherer.HighQuality,
+        DithererMode.KnollFast => KnollDitherer.Fast,
         DithererMode.None => NoDitherer.Instance,
         _ => NoDitherer.Instance
       };
