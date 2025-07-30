@@ -92,6 +92,18 @@ Ditherer Modes:
   RiemersmaSmall: Riemersma (Small)
   RiemersmaLarge: Riemersma (Large)
   RiemersmaLinear: Riemersma (Linear)
+  WhiteNoise: White Noise
+  WhiteNoiseLight: White Noise (Light)
+  WhiteNoiseStrong: White Noise (Strong)
+  BlueNoise: Blue Noise
+  BlueNoiseLight: Blue Noise (Light)
+  BlueNoiseStrong: Blue Noise (Strong)
+  BrownNoise: Brown Noise
+  BrownNoiseLight: Brown Noise (Light)
+  BrownNoiseStrong: Brown Noise (Strong)
+  PinkNoise: Pink Noise
+  PinkNoiseLight: Pink Noise (Light)
+  PinkNoiseStrong: Pink Noise (Strong)
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
@@ -198,10 +210,14 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [X] [ShiauFan](https://ditherit.com)
 - [X] [ShiauFan2](https://ditherit.com)
 - [X] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)] - Space-filling curve based dithering with four variants (Default, Small, Large, Linear)
+- [X] **Noise-Based Dithering** - Statistical noise patterns for dithering:
+  - **White Noise**: Uniform random distribution across all frequencies, completely uncorrelated
+  - **Blue Noise**: High-frequency emphasis with good spatial distribution, avoids clustering artifacts
+  - **Brown Noise**: Low-frequency emphasis with Brownian motion characteristics, smoother patterns
+  - **Pink Noise**: 1/f noise with balanced frequency distribution between white and brown noise
+  - Each type available in Light (30%), Normal (50%), and Strong (70%) intensity variants
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
-- [ ] White Noise
-- [ ] Blue Noise
 - [ ] [Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)

@@ -225,3 +225,16 @@ Available metrics in `ColorDistanceMetrics/`:
 - Ordered dithering using Bayer matrices
 - Predictable, threshold-based approach
 - Good for consistent patterns and printing applications
+
+#### **Noise-Based Dithering** (`NoiseDitherer`)
+- **New Implementation**: Statistical noise patterns for high-quality dithering
+- **Algorithm**: Applies various types of statistical noise to pixel values before quantization
+- **Noise Types**:
+  - **White Noise**: Uniform random distribution, completely uncorrelated across frequencies
+  - **Blue Noise**: High-frequency emphasis using void-and-cluster method, excellent spatial distribution
+  - **Brown Noise**: Low-frequency emphasis with Brownian motion characteristics, smoother gradients
+  - **Pink Noise**: 1/f noise with balanced frequency distribution, natural-looking patterns
+- **Variants**: Each noise type available in Light (30%), Normal (50%), and Strong (70%) intensity
+- **Performance**: Deterministic using coordinate-based seeding for reproducible results
+- **Implementation Notes**: Blue noise pre-generates texture patterns; other types use real-time generation
+- **Advantages**: No error diffusion artifacts, superior spatial distribution, natural-looking results

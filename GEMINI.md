@@ -171,6 +171,25 @@ Advanced space-filling curve based dithering algorithm:
 #### A-Dithering (`ADitherer`)
 Competitive learning approach to dithering with adaptive error distribution.
 
+#### Noise-Based Dithering (`NoiseDitherer`)
+Statistical noise patterns for professional-quality dithering:
+- **White Noise**: Uniform random distribution across all frequencies
+  - Completely uncorrelated, pure randomness
+  - Good for breaking up visible patterns in uniform areas
+- **Blue Noise**: High-frequency emphasis with optimal spatial distribution
+  - Uses void-and-cluster algorithm for even point distribution
+  - Excellent for avoiding clustering artifacts
+  - Preferred for high-quality image reproduction
+- **Brown Noise**: Low-frequency emphasis with Brownian motion characteristics  
+  - Produces smoother, more natural gradients
+  - Correlated noise with organic appearance
+- **Pink Noise**: Balanced 1/f noise distribution
+  - Natural frequency balance between white and brown noise
+  - Mimics many natural phenomena
+- **Intensity Control**: Light (30%), Normal (50%), Strong (70%) variants for each type
+- **Deterministic**: Coordinate-based seeding ensures reproducible results
+- **Performance**: Blue noise pre-computes texture patterns; others generate in real-time
+
 ### High-Color GIF Innovation
 The core innovation of AnythingToGif lies in its ability to create GIFs with more than the traditional 256-color limitation:
 1. **Multiple Frames with Local Palettes**: Each frame can have its own 256-color palette
