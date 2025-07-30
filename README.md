@@ -200,25 +200,25 @@ Dithering techniques are applied to ensure the first frame provides a good base 
   - [X] Sierra Lite
   - [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
   - [X] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
+  - [X] [Fan](https://ditherit.com)
+  - [X] [ShiauFan](https://ditherit.com)
+  - [X] [ShiauFan2](https://ditherit.com)
 - Matrix-based
   - [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8)
   - [ ] [Halftone](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
   - [ ] [Interleaved Gradient Noise]
-- [X] [A-Dither](https://pippin.gimp.org/a_dither/) - Procedural spatial dithering with multiple patterns
-  - XOR-Y149 pattern
-  - XOR-Y149 with channel variation
-  - XY Arithmetic pattern  
-  - XY Arithmetic with channel variation
-  - Uniform pattern
-- [X] [Fan](https://ditherit.com)
-- [X] [ShiauFan](https://ditherit.com)
-- [X] [ShiauFan2](https://ditherit.com)
+- [Arithmetic Dither](https://pippin.gimp.org/a_dither/) - Procedural spatial dithering with multiple patterns
+  - [X] XOR-Y149 pattern
+  - [X] XOR-Y149 with channel variation
+  - [X] XY Arithmetic pattern  
+  - [X] XY Arithmetic with channel variation
+  - [X] Uniform pattern
 - [X] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)] - Space-filling curve based dithering with four variants (Default, Small, Large, Linear)
-- [X] **Noise-Based Dithering** - Statistical noise patterns for dithering:
-  - **White Noise**: Uniform random distribution across all frequencies, completely uncorrelated
-  - **Blue Noise**: High-frequency emphasis with good spatial distribution, avoids clustering artifacts
-  - **Brown Noise**: Low-frequency emphasis with Brownian motion characteristics, smoother patterns
-  - **Pink Noise**: 1/f noise with balanced frequency distribution between white and brown noise
+- Noise-Based Dithering - Statistical noise patterns for dithering:
+  - [X] **White Noise**: Uniform random distribution across all frequencies, completely uncorrelated
+  - [X] **Blue Noise**: High-frequency emphasis with good spatial distribution, avoids clustering artifacts
+  - [X] **Brown Noise**: Low-frequency emphasis with Brownian motion characteristics, smoother patterns
+  - [X] **Pink Noise**: 1/f noise with balanced frequency distribution between white and brown noise
   - Each type available in Light (30%), Normal (50%), and Strong (70%) intensity variants
 - [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
 - [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
@@ -243,16 +243,18 @@ Further Links for this part:
 ### Color distance calculation
 
 - [X]  [Weighted Euclidean](https://www.compuphase.com/cmetric.htm)
-- [X]  [EuclideanBT709](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [Euclidean BT.709](https://github.com/ibezkrovnyi/image-quantization)
 - [X]  [Manhattan](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [ManhattanBT709](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [ManhattanNommyde](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [Manhattan BT.709](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [Manhattan Nommyde](https://github.com/ibezkrovnyi/image-quantization)
 - [X]  [CIEDE2000](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [CIE94Textiles](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [CIE94GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [CIE94-Textiles](https://github.com/ibezkrovnyi/image-quantization)
+- [X]  [CIE94-GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
 - [X]  [CompuPhase](https://www.compuphase.com/cmetric.htm)
 - [X]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
 - [ ]  [Linear RGB](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
+- [X]  Weighted YUV
+- [X]  Weighted YCbCr
 
 Further Links for this part:
 
