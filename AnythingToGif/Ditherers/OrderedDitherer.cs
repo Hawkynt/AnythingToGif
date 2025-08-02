@@ -26,6 +26,9 @@ public readonly struct OrderedDitherer(byte[,] matrix) : IDitherer {
   // Bayer 8x8 dither matrix
   public static IDitherer Bayer8x8 { get; } = CreateBayer(8);
 
+  // Bayer 16x16 dither matrix
+  public static IDitherer Bayer16x16 { get; } = CreateBayer(16);
+
   // Halftone 8x8 matrix - creates clustered-dot pattern reminiscent of traditional photographic halftoning
   // Based on: https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/
   public static IDitherer Halftone8x8 { get; } = new OrderedDitherer(new byte[,] {
