@@ -99,7 +99,20 @@ internal class Options {
     [Description("Knoll (Default)")] KnollDefault,
     [Description("Knoll (8x8 Bayer)")] KnollBayer8x8,
     [Description("Knoll (High Quality)")] KnollHighQuality,
-    [Description("Knoll (Fast)")] KnollFast
+    [Description("Knoll (Fast)")] KnollFast,
+    [Description("N-Closest (Default)")] NClosestDefault,
+    [Description("N-Closest (Weighted Random 5)")] NClosestWeightedRandom5,
+    [Description("N-Closest (Round Robin 4)")] NClosestRoundRobin4,
+    [Description("N-Closest (Luminance 6)")] NClosestLuminance6,
+    [Description("N-Closest (Blue Noise 4)")] NClosestBlueNoise4,
+    [Description("N-Convex (Default)")] NConvexDefault,
+    [Description("N-Convex (Projection 6)")] NConvexProjection6,
+    [Description("N-Convex (Spatial Pattern 3)")] NConvexSpatialPattern3,
+    [Description("N-Convex (Weighted Random 5)")] NConvexWeightedRandom5,
+    [Description("Adaptive (Quality Optimized)")] AdaptiveQualityOptimized,
+    [Description("Adaptive (Balanced)")] AdaptiveBalanced,
+    [Description("Adaptive (Performance Optimized)")] AdaptivePerformanceOptimized,
+    [Description("Adaptive (Smart Selection)")] AdaptiveSmartSelection
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -249,6 +262,19 @@ internal class Options {
         DithererMode.KnollBayer8x8 => KnollDitherer.Bayer8x8,
         DithererMode.KnollHighQuality => KnollDitherer.HighQuality,
         DithererMode.KnollFast => KnollDitherer.Fast,
+        DithererMode.NClosestDefault => NClosestDitherer.Default,
+        DithererMode.NClosestWeightedRandom5 => NClosestDitherer.WeightedRandom5,
+        DithererMode.NClosestRoundRobin4 => NClosestDitherer.RoundRobin4,
+        DithererMode.NClosestLuminance6 => NClosestDitherer.Luminance6,
+        DithererMode.NClosestBlueNoise4 => NClosestDitherer.BlueNoise4,
+        DithererMode.NConvexDefault => NConvexDitherer.Default,
+        DithererMode.NConvexProjection6 => NConvexDitherer.Projection6,
+        DithererMode.NConvexSpatialPattern3 => NConvexDitherer.SpatialPattern3,
+        DithererMode.NConvexWeightedRandom5 => NConvexDitherer.WeightedRandom5,
+        DithererMode.AdaptiveQualityOptimized => AdaptiveDitherer.QualityOptimized,
+        DithererMode.AdaptiveBalanced => AdaptiveDitherer.Balanced,
+        DithererMode.AdaptivePerformanceOptimized => AdaptiveDitherer.PerformanceOptimized,
+        DithererMode.AdaptiveSmartSelection => AdaptiveDitherer.SmartSelection,
         DithererMode.None => NoDitherer.Instance,
         _ => NoDitherer.Instance
       };
