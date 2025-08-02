@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using Hawkynt.GifFileFormat;
 using NUnit.Framework;
 
@@ -74,8 +73,8 @@ public class GifWriterTests {
     var globalColorTable = new List<Color> { Color.Red, Color.Green, Color.Blue };
     var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
 
-    Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite, 
-                  globalColorTable: globalColorTable);
+    Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite,
+      globalColorTable: globalColorTable);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
@@ -104,10 +103,10 @@ public class GifWriterTests {
     var dimensions = new Dimensions(40, 40);
     var frames = new List<Frame>();
 
-    var disposalMethods = new[] { 
-      FrameDisposalMethod.Unspecified, 
-      FrameDisposalMethod.DoNotDispose, 
-      FrameDisposalMethod.RestoreToBackground 
+    var disposalMethods = new[] {
+      FrameDisposalMethod.Unspecified,
+      FrameDisposalMethod.DoNotDispose,
+      FrameDisposalMethod.RestoreToBackground
     };
 
     foreach (var disposal in disposalMethods) {
@@ -151,8 +150,8 @@ public class GifWriterTests {
 
     var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
 
-    Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite, 
-                  allowCompression: true);
+    Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite,
+      allowCompression: true);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
@@ -163,10 +162,10 @@ public class GifWriterTests {
     var dimensions = new Dimensions(10, 10);
     var frames = new Frame[] { };
 
-    Assert.Throws<ArgumentNullException>(() => 
+    Assert.Throws<ArgumentNullException>(() =>
       Writer.ToFile(null!, dimensions, frames, LoopCount.Infinite));
-    
-    Assert.Throws<ArgumentNullException>(() => 
+
+    Assert.Throws<ArgumentNullException>(() =>
       Writer.ToFile(new FileInfo("test.gif"), dimensions, null!, LoopCount.Infinite));
   }
 
