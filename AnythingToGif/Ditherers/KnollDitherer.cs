@@ -49,10 +49,9 @@ public readonly struct KnollDitherer(byte[,] matrix, int candidateCount = 16, fl
   /// <param name="candidateCount">Number of color candidates to generate per pixel</param>
   /// <param name="errorMultiplier">Error accumulation multiplier</param>
   /// <returns>A KnollDitherer with the generated Bayer matrix</returns>
-  public static IDitherer CreateFromBayerSize(int size, int candidateCount = 16, float errorMultiplier = 0.5f) {
-    var matrix = BayerMatrixGenerator.Generate(size);
-    return new KnollDitherer(matrix, candidateCount, errorMultiplier);
-  }
+  public static IDitherer CreateFromBayerSize(int size, int candidateCount = 16, float errorMultiplier = 0.5f) 
+    => new KnollDitherer(BayerMatrixGenerator.Generate(size), candidateCount, errorMultiplier)
+  ;
 
   public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette, Func<Color, Color, int>? colorDistanceMetric = null) {
     var width = source.Width;
