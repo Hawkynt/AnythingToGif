@@ -1,5 +1,8 @@
 # AnythingToGif
 
+[![License](https://img.shields.io/badge/License-LGPL_3.0-blue)](https://licenses.nuget.org/LGPL-3.0-or-later)
+![Language](https://img.shields.io/github/languages/top/Hawkynt/AnythingToGif?color=purple)
+
 This is a versatile tool designed to convert a wide variety of visual media formats into high-quality GIFs (with a hard 'G'), supporting TrueColor images. This utility excels in converting both still images and video files into GIFs, ensuring superior color fidelity and efficient processing.
 
 - [X] Command line interface
@@ -85,6 +88,7 @@ Ditherer Modes:
   Bayer2x2: Bayer 2x2
   Bayer4x4: Bayer 4x4
   Bayer8x8: Bayer 8x8
+  Bayer16x16: Bayer 16x16
   Halftone8x8: Halftone 8x8
   ADitherXorY149: A-Dither XOR-Y149
   ADitherXorY149WithChannel: A-Dither XOR-Y149 with Channel
@@ -107,6 +111,23 @@ Ditherer Modes:
   PinkNoise: Pink Noise (50%)
   PinkNoiseLight: Pink Noise (30%)
   PinkNoiseStrong: Pink Noise (70%)
+  KnollDefault: Knoll (Default)
+  KnollBayer8x8: Knoll (8x8 Bayer)
+  KnollHighQuality: Knoll (High Quality)
+  KnollFast: Knoll (Fast)
+  NClosestDefault: N-Closest (Default)
+  NClosestWeightedRandom5: N-Closest (Weighted Random 5)
+  NClosestRoundRobin4: N-Closest (Round Robin 4)
+  NClosestLuminance6: N-Closest (Luminance 6)
+  NClosestBlueNoise4: N-Closest (Blue Noise 4)
+  NConvexDefault: N-Convex (Default)
+  NConvexProjection6: N-Convex (Projection 6)
+  NConvexSpatialPattern3: N-Convex (Spatial Pattern 3)
+  NConvexWeightedRandom5: N-Convex (Weighted Random 5)
+  AdaptiveQualityOptimized: Adaptive (Quality Optimized)
+  AdaptiveBalanced: Adaptive (Balanced)
+  AdaptivePerformanceOptimized: Adaptive (Performance Optimized)
+  AdaptiveSmartSelection: Adaptive (Smart Selection)
 
 Color Ordering Modes:
   MostUsedFirst: Ordered by usage, the most used first
@@ -206,7 +227,7 @@ Dithering techniques are applied to ensure the first frame provides a good base 
   - [X] [ShiauFan](https://ditherit.com)
   - [X] [ShiauFan2](https://ditherit.com)
 - Matrix-based
-  - [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8)
+  - [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8, 16x16, arbitrary 2^n sizes via CLI)
   - [X] [Halftone](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
   - [ ] [Interleaved Gradient Noise]
 - [Arithmetic Dither](https://pippin.gimp.org/a_dither/) - Procedural spatial dithering with multiple patterns
@@ -227,9 +248,14 @@ Dithering techniques are applied to ensure the first frame provides a good base 
 - [ ] [Joel Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Joel Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
 - [ ] [Joel Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)
-- [X] [Thomas Knoll](https://bisqwit.iki.fi/story/howto/dither/jy/)
-- [ ] [N-Closest](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
-- [ ] [N-Convex](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
+- [X] [Thomas Knoll](https://bisqwit.iki.fi/story/howto/dither/jy/) - Advanced ordered dithering with candidate generation (4 variants: Default, Bayer8x8, High Quality, Fast)
+- [X] [N-Closest](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/) - Selects from N closest palette colors with multiple strategies (Random, Weighted Random, Round Robin, Luminance, Blue Noise)
+- [X] [N-Convex](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/) - Creates convex hull from N closest colors for better color mixing (Barycentric, Projection, Spatial Pattern, Weighted Random)
+- [X] **Adaptive Dithering** - Intelligent algorithm selection based on image analysis:
+  - **Quality Optimized**: Prioritizes visual quality over performance
+  - **Balanced**: Balances quality and performance considerations
+  - **Performance Optimized**: Optimizes for speed while maintaining acceptable quality
+  - **Smart Selection**: Uses ML-like scoring to select optimal algorithm based on image characteristics (color complexity, edge density, gradient smoothness, noise level, detail level)
 - [ ] [Barycentric](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
 - [ ] [Triangulated Irregular Network](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
 - [ ] [Natural Neighbour](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)

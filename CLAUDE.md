@@ -238,3 +238,9 @@ Available metrics in `ColorDistanceMetrics/`:
 - **Performance**: Deterministic using coordinate-based seeding for reproducible results
 - **Implementation Notes**: Blue noise pre-generates texture patterns; other types use real-time generation
 - **Advantages**: No error diffusion artifacts, superior spatial distribution, natural-looking results
+
+# important-instruction-reminders
+ALWAYS update CLI otions and README.md when implementing new features or algorithms.
+Update the algorithms list with [X] for implemented features
+Add descriptions of new algorithms and their variants
+Update any relevant technical sections
