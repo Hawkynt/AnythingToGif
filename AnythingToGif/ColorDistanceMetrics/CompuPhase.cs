@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace AnythingToGif.ColorDistanceMetrics;
 
-internal readonly struct CompuPhase : IColorDistanceMetric {
+public readonly struct CompuPhase : IColorDistanceMetric {
   public static readonly CompuPhase Instance = new();
 
   // https://www.compuphase.com/cmetric.htm

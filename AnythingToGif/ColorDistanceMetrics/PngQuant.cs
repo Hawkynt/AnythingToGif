@@ -8,7 +8,7 @@ namespace AnythingToGif.ColorDistanceMetrics;
 /// Particularly effective for semi-transparent colors.
 /// Based on: https://github.com/pornel/pngquant/blob/cc39b47799a7ff2ef17b529f9415ff6e6b213b8f/lib/pam.h#L148
 /// </summary>
-internal readonly struct PngQuant(Color whitePoint) : IColorDistanceMetric {
+public readonly struct PngQuant(Color whitePoint) : IColorDistanceMetric {
 
   /// <summary>
   /// White point values: higher = less important, lower = more important.

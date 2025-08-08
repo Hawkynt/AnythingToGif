@@ -7,7 +7,7 @@ namespace AnythingToGif.ColorDistanceMetrics;
 /// <summary>
 /// CIE94 color distance metric struct for high-performance calculations.
 /// </summary>
-internal readonly struct Cie94(double kL, double k1, double k2) : IColorDistanceMetric {
+public readonly struct Cie94(double kL, double k1, double k2) : IColorDistanceMetric {
   public static readonly Cie94 Textiles = new(kL: 2.0, k1: 0.048, k2: 0.014);
   public static readonly Cie94 GraphicArts = new(kL: 1.0, k1: 0.045, k2: 0.015);
 

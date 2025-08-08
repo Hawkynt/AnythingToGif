@@ -7,7 +7,7 @@ namespace AnythingToGif.ColorDistanceMetrics;
 /// <summary>
 /// CIEDE2000 color distance metric struct for high-performance calculations.
 /// </summary>
-internal readonly struct CieDe2000 : IColorDistanceMetric {
+public readonly struct CieDe2000 : IColorDistanceMetric {
   public static readonly CieDe2000 Instance = new();
 
   public int Calculate(Color self, Color other) {

@@ -4,7 +4,7 @@ using AnythingToGif.Extensions;
 
 namespace AnythingToGif.ColorDistanceMetrics;
 
-internal readonly struct WeightedYuv(float wy, float wu, float wv, float wa) : IColorDistanceMetric {
+public readonly struct WeightedYuv(float wy, float wu, float wv, float wa) : IColorDistanceMetric {
   public static readonly WeightedYuv Instance = new(6, 2, 2, 10);
 
   private readonly float divisor = wy + wu + wv + wa;
