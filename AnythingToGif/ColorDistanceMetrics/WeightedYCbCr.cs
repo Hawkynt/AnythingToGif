@@ -3,7 +3,7 @@ using AnythingToGif.Extensions;
 
 namespace AnythingToGif.ColorDistanceMetrics;
 
-internal readonly struct WeightedYCbCr(int wy, int wcb, int wcr, int wa, int divisor = 1) : IColorDistanceMetric {
+public readonly struct WeightedYCbCr(int wy, int wcb, int wcr, int wa, int divisor = 1) : IColorDistanceMetric {
   public static readonly WeightedYCbCr Instance = new(2, 1, 1, 1, 5);
   
   public int Calculate(Color self, Color other) {
