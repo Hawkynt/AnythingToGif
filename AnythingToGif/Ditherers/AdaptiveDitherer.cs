@@ -203,9 +203,16 @@ public readonly struct AdaptiveDitherer(AdaptiveDitherer.AdaptiveStrategy strate
         ? KnollDitherer.HighQuality
         : RiemersmaDitherer.Large;
 
-    // For high detail images, use error diffusion
-    if (characteristics.DetailLevel > 0.6 || characteristics.EdgeDensity > 0.5)
-      return MatrixBasedDitherer.JarvisJudiceNinke;
+    // For high detail images, use sophisticated error diffusion
+    if (characteristics.DetailLevel > 0.6 || characteristics.EdgeDensity > 0.5) {
+      // Choose based on complexity - more complex images get more sophisticated dithering
+      return characteristics.ColorComplexity switch {
+        > 0.8 => MatrixBasedDitherer.StevensonArce,  // Most sophisticated matrix ditherer
+        > 0.6 => MatrixBasedDitherer.JarvisJudiceNinke,
+        > 0.4 => MatrixBasedDitherer.Stucki,
+        _ => MatrixBasedDitherer.Sierra
+      };
+    }
 
     // For high color complexity, use advanced algorithms
     if (characteristics.ColorComplexity > 0.8)
@@ -223,15 +230,25 @@ public readonly struct AdaptiveDitherer(AdaptiveDitherer.AdaptiveStrategy strate
     // Balanced selection considering both quality and performance
 
     // For large images, prefer faster algorithms
-    if (characteristics.ImageSize > 1000000)
-      // > 1MP
+    if (characteristics.ImageSize > 1000000) {
+      // > 1MP - use faster matrix ditherers
       return characteristics.GradientSmoothness > 0.6
         ? OrderedDitherer.Bayer8x8
-        : MatrixBasedDitherer.Atkinson; // Faster than Floyd-Steinberg
+        : characteristics.DetailLevel switch {
+          > 0.7 => MatrixBasedDitherer.TwoRowSierra,  // Good balance of quality/speed
+          > 0.4 => MatrixBasedDitherer.Atkinson,      // Fast but decent quality
+          _ => MatrixBasedDitherer.SierraLite         // Fastest matrix ditherer
+        };
+    }
 
-    // For medium complexity, use standard algorithms
-    if (characteristics.ColorComplexity > 0.5 && characteristics.DetailLevel > 0.4)
-      return MatrixBasedDitherer.FloydSteinberg;
+    // For medium complexity, use standard algorithms with more variety
+    if (characteristics.ColorComplexity > 0.5 && characteristics.DetailLevel > 0.4) {
+      return characteristics.EdgeDensity switch {
+        > 0.6 => MatrixBasedDitherer.Burkes,        // Good for edges
+        > 0.3 => MatrixBasedDitherer.FloydSteinberg, // Standard choice
+        _ => MatrixBasedDitherer.FalseFloydSteinberg // Lighter variant
+      };
+    }
 
     // For low complexity, simpler algorithms suffice
     if (characteristics.ColorComplexity < 0.3)
@@ -250,9 +267,14 @@ public readonly struct AdaptiveDitherer(AdaptiveDitherer.AdaptiveStrategy strate
     if (characteristics.GradientSmoothness > 0.5)
       return OrderedDitherer.Bayer8x8;
 
-    // Use fast error diffusion for detailed images
-    if (characteristics.DetailLevel > 0.6)
-      return MatrixBasedDitherer.Atkinson; // Faster than Floyd-Steinberg
+    // Use fast error diffusion for detailed images - prioritize speed
+    if (characteristics.DetailLevel > 0.6) {
+      return characteristics.ImageSize switch {
+        > 2000000 => MatrixBasedDitherer.Simple,        // Fastest for very large images
+        > 500000 => MatrixBasedDitherer.SierraLite,     // Fast and reasonable quality
+        _ => MatrixBasedDitherer.Atkinson               // Good balance for smaller images
+      };
+    }
 
     // For high noise, use simple noise dithering
     if (characteristics.NoiseLevel > 0.4)
@@ -267,11 +289,48 @@ public readonly struct AdaptiveDitherer(AdaptiveDitherer.AdaptiveStrategy strate
 
     var candidates = new Dictionary<IDitherer, double>();
 
-    // Score different algorithms based on characteristics
-
+    // Score matrix-based ditherers based on characteristics
+    
     // Floyd-Steinberg: Good general purpose
     var fsScore = 0.7 + characteristics.DetailLevel * 0.3;
     candidates[MatrixBasedDitherer.FloydSteinberg] = fsScore;
+    
+    // Jarvis-Judice-Ninke: Better for high detail
+    var jjnScore = characteristics.DetailLevel * 0.8 + characteristics.EdgeDensity * 0.4;
+    if (characteristics.ImageSize > 1000000) jjnScore *= 0.8; // Penalize for large images
+    candidates[MatrixBasedDitherer.JarvisJudiceNinke] = jjnScore;
+    
+    // Stucki: Good balance
+    var stuckiScore = characteristics.DetailLevel * 0.6 + characteristics.ColorComplexity * 0.4;
+    if (characteristics.ImageSize > 1000000) stuckiScore *= 0.9; // Less penalty than JJN
+    candidates[MatrixBasedDitherer.Stucki] = stuckiScore;
+    
+    // Atkinson: Fast, good for high contrast
+    var atkinsonScore = characteristics.EdgeDensity * 0.7 + (1.0 - characteristics.GradientSmoothness) * 0.5;
+    if (characteristics.ImageSize > 1000000) atkinsonScore *= 1.1; // Bonus for large images (speed)
+    candidates[MatrixBasedDitherer.Atkinson] = atkinsonScore;
+    
+    // Sierra variants: Good for different scenarios
+    var sierraScore = characteristics.DetailLevel * 0.5 + characteristics.ColorComplexity * 0.3;
+    candidates[MatrixBasedDitherer.Sierra] = sierraScore;
+    candidates[MatrixBasedDitherer.TwoRowSierra] = sierraScore * 1.1; // Slightly prefer 2-row (faster)
+    candidates[MatrixBasedDitherer.SierraLite] = sierraScore * 1.2;   // Even more prefer lite version
+    
+    // Burkes: Good for edge preservation
+    var burkesScore = characteristics.EdgeDensity * 0.8 + characteristics.DetailLevel * 0.4;
+    candidates[MatrixBasedDitherer.Burkes] = burkesScore;
+    
+    // Stevenson-Arce: High quality but slow
+    var stevensonScore = characteristics.ColorComplexity * 0.6 + characteristics.DetailLevel * 0.5;
+    if (characteristics.ImageSize > 500000) stevensonScore *= 0.6; // Heavy penalty for large images
+    candidates[MatrixBasedDitherer.StevensonArce] = stevensonScore;
+    
+    // Simple variants for speed
+    if (characteristics.ImageSize > 2000000) {
+      var simpleScore = 0.8 + (1.0 - characteristics.ColorComplexity) * 0.3;
+      candidates[MatrixBasedDitherer.Simple] = simpleScore;
+      candidates[MatrixBasedDitherer.FalseFloydSteinberg] = simpleScore * 0.9;
+    }
 
     // Ordered dithering: Fast, good for gradients
     var orderScore = characteristics.GradientSmoothness * 0.8 +
