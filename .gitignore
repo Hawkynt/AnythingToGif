@@ -362,5 +362,14 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-.claude/
 *.pdf
+
+# Agents
+/.claude/
+/.gemini/
+/.swarm/
+/CLAUDE.md
+/GEMINI.md
+/LLXPRT.md
+/AGENTS.md
+/CRUSH.md
