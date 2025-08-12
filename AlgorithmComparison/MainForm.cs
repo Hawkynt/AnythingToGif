@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using AlgorithmComparison.Utilities;
@@ -762,16 +763,6 @@ The results will show which algorithm combinations work best for your specific i
 
     // Create thread-safe copy of test image for parallel processing
     if (_testImage == null) return;
-    
-    Bitmap testImageCopy;
-    try {
-      // Create a completely independent copy using pixel-by-pixel copying to avoid Graphics context sharing
-      testImageCopy = CreateIndependentBitmapCopy(_testImage);
-    }
-    catch (Exception ex) {
-      Invoke(new Action(() => MessageBox.Show($"Error creating test image copy: {ex.Message}", "Error")));
-      return;
-    }
 
     // Create all test combinations
     var testCombinations = new List<(string quantizerName, string dithererName, string metricName, IDitherer ditherer, IColorDistanceMetric metric)>();
@@ -785,8 +776,19 @@ The results will show which algorithm combinations work best for your specific i
     }
 
     var totalTests = testCombinations.Count;
-    var completedTests = 0;
+    var completedTests = 0; // This will be accessed via Interlocked operations
     var lockObject = new object();
+
+    // Configure parallel execution with aggressive settings
+    var parallelOptions = new ParallelOptions {
+      MaxDegreeOfParallelism = Math.Max(Environment.ProcessorCount, 8), // Use at least 8 threads, more if CPU has more cores
+      CancellationToken = new System.Threading.CancellationToken() // We'll handle cancellation manually
+    };
+    
+    // Add performance monitoring
+    var startTime = DateTime.Now;
+    var coreCount = Environment.ProcessorCount;
+    Invoke(new Action(() => _statusLabel.Text = $"Starting {totalTests} tests on {coreCount} cores with {parallelOptions.MaxDegreeOfParallelism} max threads..."));
 
     // Create results collection for thread-safe access
     var results = new List<ComparisonResult>();
@@ -807,12 +809,22 @@ The results will show which algorithm combinations work best for your specific i
         AddResultToDataTable(result);
       }
     }));
-
-    // Configure parallel execution
-    var parallelOptions = new ParallelOptions {
-      MaxDegreeOfParallelism = Environment.ProcessorCount,
-      CancellationToken = new System.Threading.CancellationToken() // We'll handle cancellation manually
-    };
+    
+    // Pre-create multiple bitmap copies to reduce bitmap creation overhead during parallel execution
+    var bitmapCopies = new Bitmap[Math.Min(parallelOptions.MaxDegreeOfParallelism, totalTests)];
+    try {
+      for (var i = 0; i < bitmapCopies.Length; i++) {
+        bitmapCopies[i] = CreateIndependentBitmapCopy(_testImage);
+      }
+    }
+    catch (Exception ex) {
+      // Clean up any created bitmaps
+      foreach (var bitmap in bitmapCopies) {
+        bitmap?.Dispose();
+      }
+      Invoke(new Action(() => MessageBox.Show($"Error creating test image copies: {ex.Message}", "Error")));
+      return;
+    }
 
     try {
       Parallel.For(0, testCombinations.Count, parallelOptions, i => {
@@ -824,39 +836,40 @@ The results will show which algorithm combinations work best for your specific i
         var result = results[i];
 
         try {
-          // Update status in both ComparisonResult and DataTable
+          // Update status in both ComparisonResult and DataTable (reduce UI thread contention)
           result.Status = "Processing...";
-          Invoke(new Action(() => UpdateResultInDataTable(result, i)));
-
-          // Create a fresh bitmap copy for THIS specific thread to avoid "object in use elsewhere"
-          using var threadLocalImageCopy = CreateIndependentBitmapCopy(testImageCopy);
+          
+          // Use pre-created bitmap copy for better performance (round-robin assignment)
+          var bitmapIndex = i % bitmapCopies.Length;
+          var threadLocalImageCopy = bitmapCopies[bitmapIndex];
           
           // Create fresh quantizer instance for each test to avoid state contamination
           var freshQuantizer = CreateFreshQuantizer(quantizerName);
           TestSingleCombinationThreadSafe(result, freshQuantizer, ditherer, metric, threadLocalImageCopy);
           result.Status = "Completed";
-          
-          // Update final results in DataTable
-          Invoke(new Action(() => UpdateResultInDataTable(result, i)));
         }
         catch (Exception ex) {
           result.Status = $"Error: {ex.Message}";
-          Invoke(new Action(() => UpdateResultInDataTable(result, i)));
         }
 
-        // Update progress thread-safely
-        lock (lockObject) {
-          completedTests++;
-          var progress = completedTests * 100 / totalTests;
-          var statusMessage = $"Completed {completedTests}/{totalTests}: {quantizerName} + {dithererName}";
-          _backgroundWorker.ReportProgress(progress, statusMessage);
-        }
-
-        // No need for frequent UI refreshes since DataTable updates are immediate
-        // Only refresh at completion for final visual update
-        if (completedTests == totalTests) {
+        // Update progress thread-safely with less contention
+        var currentCompleted = Interlocked.Increment(ref completedTests);
+        
+        // Batch UI updates to reduce thread contention
+        if (currentCompleted % 5 == 0 || currentCompleted == totalTests) {
           try {
-            Invoke(new Action(() => _resultsGrid.Refresh()));
+            var progress = currentCompleted * 100 / totalTests;
+            var statusMessage = $"Completed {currentCompleted}/{totalTests} ({progress}%) - Latest: {quantizerName} + {dithererName}";
+            _backgroundWorker.ReportProgress(progress, statusMessage);
+            
+            // Update multiple results at once to reduce UI thread calls
+            Invoke(new Action(() => {
+              // Update the last 5 results or all remaining results
+              var startIdx = Math.Max(0, currentCompleted - 5);
+              for (var j = startIdx; j < currentCompleted && j < results.Count; j++) {
+                UpdateResultInDataTable(results[j], j);
+              }
+            }));
           }
           catch (InvalidOperationException) {
             // Handle case where form is being disposed during background operation
@@ -868,8 +881,17 @@ The results will show which algorithm combinations work best for your specific i
       e.Cancel = true;
     }
     finally {
-      // Clean up the test image copy
-      testImageCopy?.Dispose();
+      // Clean up all pre-created bitmap copies
+      foreach (var bitmap in bitmapCopies) {
+        bitmap?.Dispose();
+      }
+      
+      // Performance reporting
+      var elapsed = DateTime.Now - startTime;
+      var testsPerSecond = totalTests / elapsed.TotalSeconds;
+      Invoke(new Action(() => {
+        _statusLabel.Text = $"Completed {totalTests} tests in {elapsed.TotalSeconds:F1}s ({testsPerSecond:F1} tests/sec)";
+      }));
     }
   }
 
