@@ -35,11 +35,12 @@ public class MatrixDithererComprehensiveTests {
       "FloydSteinberg", "EqualFloydSteinberg", "FalseFloydSteinberg", 
       "Simple", "JarvisJudiceNinke", "Stucki", "Atkinson", "Burkes",
       "Sierra", "TwoRowSierra", "SierraLite", "Pigeon", "StevensonArce",
-      "ShiauFan", "ShiauFan2", "Fan93"
+      "ShiauFan", "ShiauFan2", "Fan93", "TwoD", "Down", "DoubleDown",
+      "Diagonal", "VerticalDiamond", "HorizontalDiamond", "Diamond"
     };
 
-    Assert.That(matrixDitherers.Count, Is.GreaterThanOrEqualTo(15), 
-      "Should have at least 15 matrix-based dithering algorithms");
+    Assert.That(matrixDitherers.Count, Is.GreaterThanOrEqualTo(23), 
+      "Should have at least 23 matrix-based dithering algorithms");
 
     foreach (var expectedAlgorithm in expectedAlgorithms) {
       Assert.That(matrixDitherers.Any(md => md.Name == expectedAlgorithm), Is.True,
@@ -85,7 +86,10 @@ public class MatrixDithererComprehensiveTests {
       MatrixBasedDitherer.JarvisJudiceNinke,
       MatrixBasedDitherer.Atkinson,
       MatrixBasedDitherer.SierraLite,
-      MatrixBasedDitherer.Simple
+      MatrixBasedDitherer.Simple,
+      MatrixBasedDitherer.TwoD,
+      MatrixBasedDitherer.Down,
+      MatrixBasedDitherer.Diamond
     };
 
     foreach (var ditherer in testDitherers) {
