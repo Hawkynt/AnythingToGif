@@ -28,6 +28,15 @@ public readonly struct RiemersmaDitherer : IDitherer {
     var data = (byte*)target.Scan0;
     var wrapper = new PaletteWrapper(palette, colorDistanceMetric);
 
+    // Handle edge case: empty palette
+    if (palette.Count == 0) {
+      // Fill with zeros (no colors available)
+      var totalBytes = height * stride;
+      for (var i = 0; i < totalBytes; ++i)
+        data[i] = 0;
+      return;
+    }
+
     // Error history buffer - stores RGB errors
     var errorHistory = new (double r, double g, double b)[this._historySize];
     var historyIndex = 0;
@@ -40,19 +49,26 @@ public readonly struct RiemersmaDitherer : IDitherer {
     foreach (var (x, y) in traversalOrder) {
       var originalColor = source[x, y];
       
-      // Get accumulated error from history
+      // Get accumulated error from history with exponential decay
       var totalErrorR = 0.0;
       var totalErrorG = 0.0;
       var totalErrorB = 0.0;
       
-      var historyWeight = 1.0;
+      // Apply errors with exponential decay (most recent errors have highest weight)
       for (var i = 0; i < this._historySize; ++i) {
         var index = (historyIndex - i - 1 + this._historySize) % this._historySize;
-        var weight = historyWeight / (1.0 + i); // Exponential decay
+        // Exponential decay: newer errors (i=0) have weight ~1.0, older errors decay exponentially
+        var weight = Math.Exp(-i * 0.1); // Decay factor of 0.1 per step
         totalErrorR += errorHistory[index].r * weight;
         totalErrorG += errorHistory[index].g * weight;
         totalErrorB += errorHistory[index].b * weight;
       }
+      
+      // Apply damping factor to prevent error accumulation from becoming too extreme
+      var dampingFactor = 0.5;
+      totalErrorR *= dampingFactor;
+      totalErrorG *= dampingFactor;
+      totalErrorB *= dampingFactor;
 
       // Apply error to original color
       var adjustedR = Math.Max(0, Math.Min(255, originalColor.R + totalErrorR));
@@ -69,10 +85,10 @@ public readonly struct RiemersmaDitherer : IDitherer {
       var closestColorIndex = wrapper.FindClosestColorIndex(adjustedColor);
       var closestColor = palette[closestColorIndex];
 
-      // Calculate quantization error
-      var errorR = adjustedR - closestColor.R;
-      var errorG = adjustedG - closestColor.G;
-      var errorB = adjustedB - closestColor.B;
+      // Calculate quantization error based on original pixel, not adjusted pixel
+      var errorR = originalColor.R - closestColor.R;
+      var errorG = originalColor.G - closestColor.G;
+      var errorB = originalColor.B - closestColor.B;
 
       // Store error in history buffer
       errorHistory[historyIndex] = (errorR, errorG, errorB);
@@ -85,11 +101,15 @@ public readonly struct RiemersmaDitherer : IDitherer {
   }
 
   private static List<(int x, int y)> GenerateHilbertCurveOrder(int width, int height) {
-    var result = new List<(int, int)>();
+    // Pre-allocate list with expected capacity for better performance
+    var result = new List<(int, int)>(width * height);
+    
+    // Handle edge cases
+    if (width <= 0 || height <= 0) return result;
     
     // Find the smallest power of 2 that contains both width and height
     var n = 1;
-    while (n < width || n < height) {
+    while (n < Math.Max(width, height)) {
       n *= 2;
     }
 
