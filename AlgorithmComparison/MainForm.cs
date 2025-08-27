@@ -14,6 +14,7 @@ using AlgorithmComparison.Utilities;
 using AnythingToGif.ColorDistanceMetrics;
 using AnythingToGif.Ditherers;
 using AnythingToGif.Quantizers;
+using AnythingToGif.Quantizers.FixedPalettes;
 using AnythingToGif.Quantizers.Wrappers;
 
 namespace AlgorithmComparison;
@@ -1081,6 +1082,13 @@ The results will show which algorithm combinations work best for your specific i
     quantizers["VarianceBasedQuantizer"] = new VarianceBasedQuantizer();
     quantizers["BinarySplittingQuantizer"] = new BinarySplittingQuantizer();
     quantizers["VarianceCutQuantizer"] = new VarianceCutQuantizer();
+    quantizers["AduQuantizer"] = new AduQuantizer(Euclidean.Instance.Calculate);
+    
+    // Add fixed palette quantizers
+    quantizers["EGA16Quantizer"] = new Ega16Quantizer();
+    quantizers["VGA256Quantizer"] = new Vga256Quantizer();
+    quantizers["WebSafeQuantizer"] = new WebSafeQuantizer();
+    quantizers["Mac8BitQuantizer"] = new Mac8BitQuantizer();
     
     // Add wrapper quantizers that can enhance any base quantizer
     var baseQuantizer = new OctreeQuantizer(); // Use Octree as base for wrappers
@@ -1111,6 +1119,11 @@ The results will show which algorithm combinations work best for your specific i
       "VarianceBasedQuantizer" => new VarianceBasedQuantizer(),
       "BinarySplittingQuantizer" => new BinarySplittingQuantizer(),
       "VarianceCutQuantizer" => new VarianceCutQuantizer(),
+      "AduQuantizer" => new AduQuantizer(Euclidean.Instance.Calculate),
+      "EGA16Quantizer" => new Ega16Quantizer(),
+      "VGA256Quantizer" => new Vga256Quantizer(),
+      "WebSafeQuantizer" => new WebSafeQuantizer(),
+      "Mac8BitQuantizer" => new Mac8BitQuantizer(),
       "PCA+OctreeQuantizer" => new PcaQuantizerWrapper(new OctreeQuantizer()),
       "AntRefinement+OctreeQuantizer" => new AntRefinementWrapper(new OctreeQuantizer(), 3, Euclidean.Instance.Calculate),
       _ => throw new ArgumentException($"Unknown quantizer: {name}")
@@ -1120,29 +1133,92 @@ The results will show which algorithm combinations work best for your specific i
   private static Dictionary<string, IDitherer> GetAllDitherers() {
     var ditherers = new Dictionary<string, IDitherer>();
     
-    // Matrix-based ditherers
+    // Matrix-based ditherers (Error Diffusion)
     ditherers["Floyd-Steinberg"] = MatrixBasedDitherer.FloydSteinberg;
+    ditherers["Equal Floyd-Steinberg"] = MatrixBasedDitherer.EqualFloydSteinberg;
+    ditherers["False Floyd-Steinberg"] = MatrixBasedDitherer.FalseFloydSteinberg;
+    ditherers["Simple"] = MatrixBasedDitherer.Simple;
     ditherers["Jarvis-Judice-Ninke"] = MatrixBasedDitherer.JarvisJudiceNinke;
     ditherers["Stucki"] = MatrixBasedDitherer.Stucki;
     ditherers["Atkinson"] = MatrixBasedDitherer.Atkinson;
+    ditherers["Burkes"] = MatrixBasedDitherer.Burkes;
     ditherers["Sierra"] = MatrixBasedDitherer.Sierra;
+    ditherers["Two-Row Sierra"] = MatrixBasedDitherer.TwoRowSierra;
+    ditherers["Sierra Lite"] = MatrixBasedDitherer.SierraLite;
+    ditherers["Pigeon"] = MatrixBasedDitherer.Pigeon;
+    ditherers["Stevenson-Arce"] = MatrixBasedDitherer.StevensonArce;
+    ditherers["Shiau-Fan"] = MatrixBasedDitherer.ShiauFan;
+    ditherers["Shiau-Fan2"] = MatrixBasedDitherer.ShiauFan2;
+    ditherers["Fan93"] = MatrixBasedDitherer.Fan93;
+    ditherers["TwoD"] = MatrixBasedDitherer.TwoD;
+    ditherers["Down"] = MatrixBasedDitherer.Down;
+    ditherers["Double Down"] = MatrixBasedDitherer.DoubleDown;
+    ditherers["Diagonal"] = MatrixBasedDitherer.Diagonal;
+    ditherers["Vertical Diamond"] = MatrixBasedDitherer.VerticalDiamond;
+    ditherers["Horizontal Diamond"] = MatrixBasedDitherer.HorizontalDiamond;
+    ditherers["Diamond"] = MatrixBasedDitherer.Diamond;
     
     // Ordered ditherers
-    ditherers["Bayer2x2"] = OrderedDitherer.Bayer2x2;
-    ditherers["Bayer4x4"] = OrderedDitherer.Bayer4x4;
-    ditherers["Bayer8x8"] = OrderedDitherer.Bayer8x8;
+    ditherers["Bayer 2x2"] = OrderedDitherer.Bayer2x2;
+    ditherers["Bayer 4x4"] = OrderedDitherer.Bayer4x4;
+    ditherers["Bayer 8x8"] = OrderedDitherer.Bayer8x8;
+    ditherers["Bayer 16x16"] = OrderedDitherer.Bayer16x16;
+    ditherers["Halftone 8x8"] = OrderedDitherer.Halftone8x8;
+    
+    // Arithmetic ditherers
+    ditherers["A-Dither XOR-Y149"] = ADitherer.XorY149;
+    ditherers["A-Dither XOR-Y149 Channel"] = ADitherer.XorY149WithChannel;
+    ditherers["A-Dither XY Arithmetic"] = ADitherer.XYArithmetic;
+    ditherers["A-Dither XY Arithmetic Channel"] = ADitherer.XYArithmeticWithChannel;
+    ditherers["A-Dither Uniform"] = ADitherer.Uniform;
+    
+    // Riemersma ditherers
+    ditherers["Riemersma Default"] = RiemersmaDitherer.Default;
+    ditherers["Riemersma Small"] = RiemersmaDitherer.Small;
+    ditherers["Riemersma Large"] = RiemersmaDitherer.Large;
+    ditherers["Riemersma Linear"] = RiemersmaDitherer.Linear;
     
     // Noise ditherers
-    ditherers["WhiteNoise"] = NoiseDitherer.White;
-    ditherers["BlueNoise"] = NoiseDitherer.Blue;
-    ditherers["BrownNoise"] = NoiseDitherer.Brown;
+    ditherers["White Noise"] = NoiseDitherer.White;
+    ditherers["White Noise Light"] = NoiseDitherer.WhiteLight;
+    ditherers["White Noise Strong"] = NoiseDitherer.WhiteStrong;
+    ditherers["Blue Noise"] = NoiseDitherer.Blue;
+    ditherers["Blue Noise Light"] = NoiseDitherer.BlueLight;
+    ditherers["Blue Noise Strong"] = NoiseDitherer.BlueStrong;
+    ditherers["Brown Noise"] = NoiseDitherer.Brown;
+    ditherers["Brown Noise Light"] = NoiseDitherer.BrownLight;
+    ditherers["Brown Noise Strong"] = NoiseDitherer.BrownStrong;
+    ditherers["Pink Noise"] = NoiseDitherer.Pink;
+    ditherers["Pink Noise Light"] = NoiseDitherer.PinkLight;
+    ditherers["Pink Noise Strong"] = NoiseDitherer.PinkStrong;
     
-    // Advanced ditherers
-    ditherers["Riemersma"] = RiemersmaDitherer.Default;
-    ditherers["Knoll"] = KnollDitherer.Default;
+    // Knoll ditherers
+    ditherers["Knoll Default"] = KnollDitherer.Default;
+    ditherers["Knoll Bayer 8x8"] = KnollDitherer.Bayer8x8;
+    ditherers["Knoll High Quality"] = KnollDitherer.HighQuality;
+    ditherers["Knoll Fast"] = KnollDitherer.Fast;
+    
+    // N-Closest ditherers
+    ditherers["N-Closest Default"] = NClosestDitherer.Default;
+    ditherers["N-Closest Weighted Random 5"] = NClosestDitherer.WeightedRandom5;
+    ditherers["N-Closest Round Robin 4"] = NClosestDitherer.RoundRobin4;
+    ditherers["N-Closest Luminance 6"] = NClosestDitherer.Luminance6;
+    ditherers["N-Closest Blue Noise 4"] = NClosestDitherer.BlueNoise4;
+    
+    // N-Convex ditherers
+    ditherers["N-Convex Default"] = NConvexDitherer.Default;
+    ditherers["N-Convex Projection 6"] = NConvexDitherer.Projection6;
+    ditherers["N-Convex Spatial Pattern 3"] = NConvexDitherer.SpatialPattern3;
+    ditherers["N-Convex Weighted Random 5"] = NConvexDitherer.WeightedRandom5;
+    
+    // Adaptive ditherers
+    ditherers["Adaptive Quality Optimized"] = AdaptiveDitherer.QualityOptimized;
+    ditherers["Adaptive Balanced"] = AdaptiveDitherer.Balanced;
+    ditherers["Adaptive Performance Optimized"] = AdaptiveDitherer.PerformanceOptimized;
+    ditherers["Adaptive Smart Selection"] = AdaptiveDitherer.SmartSelection;
     
     // No dithering baseline
-    ditherers["NoDither"] = new NoDitherer();
+    ditherers["No Dithering"] = new NoDitherer();
     
     return ditherers;
   }
@@ -1154,10 +1230,16 @@ The results will show which algorithm combinations work best for your specific i
       ["CIE DE2000"] = CieDe2000.Instance,
       ["CIE94-Textiles"] = Cie94.Textiles,
       ["CIE94-GraphicArts"] = Cie94.GraphicArts,
+      ["WeightedEuclidean-RGBOnly"] = WeightedEuclidean.RGBOnly,
       ["WeightedEuclidean-BT709"] = WeightedEuclidean.BT709,
       ["WeightedEuclidean-Nommyde"] = WeightedEuclidean.Nommyde,
+      ["WeightedEuclidean-LowRed"] = WeightedEuclidean.LowRed,
+      ["WeightedEuclidean-HighRed"] = WeightedEuclidean.HighRed,
+      ["WeightedManhattan-RGBOnly"] = WeightedManhattan.RGBOnly,
       ["WeightedManhattan-BT709"] = WeightedManhattan.BT709,
       ["WeightedManhattan-Nommyde"] = WeightedManhattan.Nommyde,
+      ["WeightedManhattan-LowRed"] = WeightedManhattan.LowRed,
+      ["WeightedManhattan-HighRed"] = WeightedManhattan.HighRed,
       ["WeightedYUV"] = WeightedYuv.Instance,
       ["WeightedYCbCr"] = WeightedYCbCr.Instance,
       ["PngQuant"] = PngQuant.Instance,
