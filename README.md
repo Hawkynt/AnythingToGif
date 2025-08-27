@@ -85,6 +85,13 @@ Ditherer Modes:
   ShiauFan: ShiauFan
   ShiauFan2: ShiauFan2
   Fan93: Fan93
+  TwoD: 2D
+  Down: Down
+  DoubleDown: Doubled Down
+  Diagonal: Diagonal
+  VerticalDiamond: Vertical Diamond
+  HorizontalDiamond: Horizontal Diamond
+  Diamond: Diamond
   Bayer2x2: Bayer 2x2
   Bayer4x4: Bayer 4x4
   Bayer8x8: Bayer 8x8
@@ -226,6 +233,13 @@ Dithering techniques are applied to ensure the first frame provides a good base 
   - [X] [Fan](https://ditherit.com)
   - [X] [ShiauFan](https://ditherit.com)
   - [X] [ShiauFan2](https://ditherit.com)
+  - [X] [TwoD](https://github.com/sehugg/dithertron)
+  - [X] [Down](https://github.com/sehugg/dithertron)
+  - [X] [DoubleDown](https://github.com/sehugg/dithertron)
+  - [X] [Diagonal](https://github.com/sehugg/dithertron)
+  - [X] [VerticalDiamond](https://github.com/sehugg/dithertron)
+  - [X] [HorizontalDiamond](https://github.com/sehugg/dithertron)
+  - [X] [Diamond](https://github.com/sehugg/dithertron)
 - Matrix-based
   - [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8, 16x16, arbitrary 2^n sizes via CLI)
   - [X] [Halftone](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)

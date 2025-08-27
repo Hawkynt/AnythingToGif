@@ -118,6 +118,45 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     { 1, 3, 5 }
   }, 16);
 
+    public static IDitherer TwoD { get; } = new MatrixBasedDitherer(new byte[,] {
+      { X, 1 },
+      { 1, 0 }
+    }, 2); 
+
+    public static IDitherer Down { get; } = new MatrixBasedDitherer(new byte[,] {
+      { X },
+      { 1 }
+    }, 1);
+
+    public static IDitherer DoubleDown { get; } = new MatrixBasedDitherer(new byte[,] {
+      { X, 0 },
+      { 2, 0 },
+      { 1, 1 }
+    }, 4);
+
+    public static IDitherer Diagonal { get; } = new MatrixBasedDitherer(new byte[,] {
+      { X, 0 },
+      { 0, 1 }
+    }, 1);
+
+    public static IDitherer VerticalDiamond { get; } = new MatrixBasedDitherer(new byte[,] {
+      { 0, 0, X, 0, 0 },
+      { 0, 3, 6, 3, 0 },
+      { 1, 0, 2, 0, 1 }
+    }, 16);
+    
+    public static IDitherer HorizontalDiamond { get; } = new MatrixBasedDitherer(new byte[,] {
+      { X, 6, 2 },
+      { 0, 3, 0 },
+      { 0, 0, 1 }
+    }, 12);
+
+    public static IDitherer Diamond { get; } = new MatrixBasedDitherer(new byte[,] {
+      { 0, 0, X, 6, 2 },
+      { 0, 3, 6, 3, 0 },
+      { 1, 0, 2, 0, 1 }
+    }, 24);
+
   public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette, Func<Color, Color, int>? colorDistanceMetric = null) {
     var width = source.Width;
     var height = source.Height;
