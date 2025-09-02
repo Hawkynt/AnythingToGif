@@ -141,10 +141,10 @@ public readonly struct MatrixBasedDitherer : IDitherer {
 
     var sw = Stopwatch.StartNew();
     for (var y = 0; y < height; ++y) {
-      bool reverseRow = _useSerpentine && (y & 1) == 1;
-      int xStart = reverseRow ? width - 1 : 0;
-      int xEnd = reverseRow ? -1 : width;
-      int xStep = reverseRow ? -1 : 1;
+      var reverseRow = this._useSerpentine && (y & 1) == 1;
+      var xStart = reverseRow ? width - 1 : 0;
+      var xEnd = reverseRow ? -1 : width;
+      var xStep = reverseRow ? -1 : 1;
       
       for (var x = xStart; x != xEnd; x += xStep) {
         var offset = y * stride + x;

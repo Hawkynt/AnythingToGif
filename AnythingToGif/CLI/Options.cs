@@ -123,9 +123,12 @@ internal class Options {
   [Description("Dizzy Dithering Default")] DizzyDefault,
   [Description("Dizzy Dithering High Quality")] DizzyHighQuality,
   [Description("Dizzy Dithering Fast")] DizzyFast,
-  [Description("�� Smart AI (Default)")] SmartDefault,
-  [Description("�� Smart AI (High Quality)")] SmartHighQuality,
-  [Description("�� Smart AI (Fast)")] SmartFast
+  [Description("Smart AI (Default)")] SmartDefault,
+  [Description("Smart AI (High Quality)")] SmartHighQuality,
+  [Description("Smart AI (Fast)")] SmartFast,
+  [Description("Adaptive Matrix (Default)")] AdaptiveMatrixDefault,
+  [Description("Adaptive Matrix (Aggressive)")] AdaptiveMatrixAggressive,
+  [Description("Adaptive Matrix (Conservative)")] AdaptiveMatrixConservative
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -179,6 +182,9 @@ internal class Options {
   [Option("serpentine", Default = false, HelpText = "Apply serpentine (boustrophedon) scanning to matrix-based error diffusion ditherers to reduce directional artifacts.")]
   public bool UseSerpentine { get; set; }
 
+  [Option("disallowFillingColors", Default = false, HelpText = "Prevent quantizer to fill empty palette slots with additional colors (Black, White, RGB primaries, etc.). When enabled, only fills with transparent colors.")]
+  public bool DisallowFillingColors { get; set; }
+
   public FileSystemInfo InputPath => File.Exists(this._InputPath) ? new FileInfo(this._InputPath) : new DirectoryInfo(this._InputPath);
 
   public FileSystemInfo OutputPath => Directory.Exists(this._OutputPath) ? new DirectoryInfo(this._OutputPath) : new FileInfo(this._OutputPath);
@@ -227,6 +233,9 @@ internal class Options {
       _ => throw new("Unknown quantizer")
     };
 
+    if(q is QuantizerBase qb)
+      qb.AllowFillingColors = !this.DisallowFillingColors;
+    
     if (this.UsePca)
       q = new PcaQuantizerWrapper(q);
 
@@ -317,6 +326,9 @@ internal class Options {
         DithererMode.SmartDefault => SmartDitherer.Default,
         DithererMode.SmartHighQuality => SmartDitherer.HighQuality,
         DithererMode.SmartFast => SmartDitherer.Fast,
+        DithererMode.AdaptiveMatrixDefault => AdaptiveMatrixDitherer.Default,
+        DithererMode.AdaptiveMatrixAggressive => AdaptiveMatrixDitherer.Aggressive,
+        DithererMode.AdaptiveMatrixConservative => AdaptiveMatrixDitherer.Conservative,
         DithererMode.None => NoDitherer.Instance,
         _ => NoDitherer.Instance
       };
