@@ -13,10 +13,12 @@ public readonly struct MatrixBasedDitherer : IDitherer {
   private readonly byte _shift;
   private readonly byte _rowCount;
   private readonly byte _columnCount;
+  private readonly bool _useSerpentine;
 
-  private MatrixBasedDitherer(byte[,] matrix, byte divisor) {
+  private MatrixBasedDitherer(byte[,] matrix, byte divisor, bool useSerpentine = false) {
     this._matrix = matrix;
     this._divisor = divisor;
+    this._useSerpentine = useSerpentine;
     this._rowCount = (byte)this._matrix.GetLength(0);
     this._columnCount = (byte)this._matrix.GetLength(1);
 
@@ -118,6 +120,16 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     { 1, 3, 5 }
   }, 16);
 
+  /// <summary>
+  /// Creates a serpentine version of any MatrixBasedDitherer instance.
+  /// </summary>
+  public static IDitherer WithSerpentine(IDitherer baseDitherer) {
+    if (baseDitherer is MatrixBasedDitherer matrix) {
+      return new MatrixBasedDitherer(matrix._matrix, matrix._divisor, true);
+    }
+    throw new ArgumentException("Serpentine scanning only supported for MatrixBasedDitherer instances", nameof(baseDitherer));
+  }
+
   public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette, Func<Color, Color, int>? colorDistanceMetric = null) {
     var width = source.Width;
     var height = source.Height;
@@ -129,8 +141,13 @@ public readonly struct MatrixBasedDitherer : IDitherer {
 
     var sw = Stopwatch.StartNew();
     for (var y = 0; y < height; ++y) {
-      var offset = y * stride;
-      for (var x = 0; x < width; ++offset, ++x) {
+      bool reverseRow = _useSerpentine && (y & 1) == 1;
+      int xStart = reverseRow ? width - 1 : 0;
+      int xEnd = reverseRow ? -1 : width;
+      int xStep = reverseRow ? -1 : 1;
+      
+      for (var x = xStart; x != xEnd; x += xStep) {
+        var offset = y * stride + x;
         var oldColor = source[x, y];
 
         // Apply the accumulated error to the current pixel
