@@ -22,6 +22,7 @@ public class SingleImageHiColorGifConverter {
   public byte MaximumColorsPerSubImage { get; set; } = 255;
   public bool FirstSubImageInitsBackground { get; set; }
   public bool UseBackFilling { get; set; }
+  public int? MaxFrames { get; set; }
 
   /// <summary>
   /// The metric to use for calculating the distance between colors.
@@ -86,7 +87,14 @@ public class SingleImageHiColorGifConverter {
     var totalColorCount = histogram.Count;
     var maximumColorsPerSubImage = this.MaximumColorsPerSubImage;
     var neededFrames = totalColorCount / maximumColorsPerSubImage;
-    var availableFrames = availableTime == null ? neededFrames : Math.Min(neededFrames, (int)(availableTime.Value / frameDuration));
+    var availableFrames = neededFrames;
+    
+    if (this.MaxFrames.HasValue && this.MaxFrames.Value > 0)
+      availableFrames = Math.Min(availableFrames, this.MaxFrames.Value);
+    
+    if (availableTime != null)
+      availableFrames = Math.Min(availableFrames, (int)(availableTime.Value / frameDuration));
+    
     if (availableFrames < 1)
       availableFrames = 1;
 
