@@ -2,7 +2,7 @@
   "profiles": {
     "AnythingToGif": {
       "commandName": "Project",
-      "commandLineArgs": "--metric Euclidean --usePca Examples \"Examples\""
+      "commandLineArgs": "\"Examples\" --maxFrames 1 --ditherer SmartHighQuality --quantizer Ega16 --metric Euclidean Examples --useBackFilling --disallowFillingColors"
     }
   }
 }
