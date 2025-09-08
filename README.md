@@ -1,7 +1,11 @@
 # AnythingToGif
 
-[![License](https://img.shields.io/badge/License-LGPL_3.0-blue)](https://licenses.nuget.org/LGPL-3.0-or-later)
+![License](https://img.shields.io/github/license/Hawkynt/AnythingToGif)
 ![Language](https://img.shields.io/github/languages/top/Hawkynt/AnythingToGif?color=purple)
+[![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=main)![Activity](https://img.shields.io/github/commit-activity/y/Hawkynt/AnythingToGif?branch=main)](https://github.com/Hawkynt/AnythingToGif/commits/main)
+[![GitHub release](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif)](https://github.com/Hawkynt/AnythingToGif/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Hawkynt/AnythingToGif/total)](https://github.com/Hawkynt/AnythingToGif/releases)
+
 
 > This is a versatile tool designed to convert a wide variety of visual media formats into high-quality GIFs (with a hard 'G'), supporting TrueColor images. This utility excels in converting both still images and video files into GIFs, ensuring superior color fidelity and efficient processing.
 
