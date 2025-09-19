@@ -13,10 +13,12 @@ public readonly struct MatrixBasedDitherer : IDitherer {
   private readonly byte _shift;
   private readonly byte _rowCount;
   private readonly byte _columnCount;
+  private readonly bool _useSerpentine;
 
-  private MatrixBasedDitherer(byte[,] matrix, byte divisor) {
+  private MatrixBasedDitherer(byte[,] matrix, byte divisor, bool useSerpentine = false) {
     this._matrix = matrix;
     this._divisor = divisor;
+    this._useSerpentine = useSerpentine;
     this._rowCount = (byte)this._matrix.GetLength(0);
     this._columnCount = (byte)this._matrix.GetLength(1);
 
@@ -157,7 +159,18 @@ public readonly struct MatrixBasedDitherer : IDitherer {
       { 1, 0, 2, 0, 1 }
     }, 24);
 
-  public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette, Func<Color, Color, int>? colorDistanceMetric = null) {
+
+  /// <summary>
+  /// Creates a serpentine version of any MatrixBasedDitherer instance.
+  /// </summary>
+  public static IDitherer WithSerpentine(IDitherer baseDitherer) {
+    if (baseDitherer is MatrixBasedDitherer matrix) {
+      return new MatrixBasedDitherer(matrix._matrix, matrix._divisor, true);
+    }
+    throw new ArgumentException("Serpentine scanning only supported for MatrixBasedDitherer instances", nameof(baseDitherer));
+  }
+
+  public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette, Func<Color, Color, int>? colorDistanceMetric = null) {{
     var width = source.Width;
     var height = source.Height;
     var stride = target.Stride;
@@ -167,9 +180,16 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     var wrapper = new PaletteWrapper(palette, colorDistanceMetric);
 
     var sw = Stopwatch.StartNew();
-    for (var y = 0; y < height; ++y) {
-      var offset = y * stride;
-      for (var x = 0; x < width; ++offset, ++x) {
+    for (var y = 0; y < height; ++y)
+    {
+      var reverseRow = this._useSerpentine && (y & 1) == 1;
+      var xStart = reverseRow ? width - 1 : 0;
+      var xEnd = reverseRow ? -1 : width;
+      var xStep = reverseRow ? -1 : 1;
+
+      for (var x = xStart; x != xEnd; x += xStep)
+      {
+        var offset = y * stride + x;
         var oldColor = source[x, y];
 
         // Apply the accumulated error to the current pixel
@@ -185,7 +205,8 @@ public readonly struct MatrixBasedDitherer : IDitherer {
         var newColor = palette[closestColorIndex];
         data[offset] = closestColorIndex;
 
-        var quantError = new RgbError {
+        var quantError = new RgbError
+        {
           red = (short)(correctedColor.R - newColor.R),
           green = (short)(correctedColor.G - newColor.G),
           blue = (short)(correctedColor.B - newColor.B)
@@ -198,7 +219,8 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     Trace.WriteLine($"Took {sw.ElapsedMilliseconds}ms");
     return;
 
-    static int Clamp(int value) {
+    static int Clamp(int value)
+    {
       // Clamp to [0, 255] using bitwise operations
       value &= ~(value >> 31);          // Sets value to 0 if negative
       value -= 255;                     // Subtract 255, negative if value <= 255

@@ -6,7 +6,10 @@ using System.Drawing;
 namespace AnythingToGif.Quantizers;
 
 public abstract partial class QuantizerBase:IQuantizer {
+
   #region Implementation of IQuantizer
+
+  public bool AllowFillingColors { get; set; } = true;
 
   /// <inheritdoc />
   public Color[] ReduceColorsTo(byte numberOfColors, IEnumerable<Color> usedColors) {
@@ -55,6 +58,11 @@ public abstract partial class QuantizerBase:IQuantizer {
     var colorsToTake = Math.Min(distinctColors.Length, numberOfColors);
     for (; index < colorsToTake; ++index)
       result[index] = distinctColors[index];
+
+    // only fill with transparent colors for now
+    if (!this.AllowFillingColors)
+      while (index < numberOfColors)
+        result[index++] = Color.Transparent;
     
     // If still color entries left, add black, white, transparent
     if (index < numberOfColors) {
