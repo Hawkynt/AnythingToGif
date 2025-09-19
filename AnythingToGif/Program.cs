@@ -76,6 +76,10 @@ class Program {
           UseBackFilling = configuration.UseBackFilling,
           ColorOrdering = configuration.ColorOrdering,
           ColorDistanceMetric = configuration.Metric,
+          MinimumSubImageDuration = configuration.FrameDuration,
+          SubImageDurationTimeSlice = configuration.FrameDuration,
+          MaxFrames = configuration.MaxFrames > 0 ? configuration.MaxFrames : null,
+          TotalFrameDuration = configuration.TotalTime,
         };
 
         Dimensions? dimensions = null;
@@ -131,6 +135,10 @@ class Program {
           UseBackFilling = configuration.UseBackFilling,
           ColorOrdering = configuration.ColorOrdering,
           ColorDistanceMetric = configuration.Metric,
+          MinimumSubImageDuration = configuration.FrameDuration,
+          SubImageDurationTimeSlice = configuration.FrameDuration,
+          MaxFrames = configuration.MaxFrames > 0 ? configuration.MaxFrames : null,
+          TotalFrameDuration = configuration.TotalTime,
         };
 
         using var image = Image.FromFile(inputFile.FullName);

@@ -119,7 +119,23 @@ internal class Options {
     [Description("Adaptive (Quality Optimized)")] AdaptiveQualityOptimized,
     [Description("Adaptive (Balanced)")] AdaptiveBalanced,
     [Description("Adaptive (Performance Optimized)")] AdaptivePerformanceOptimized,
-    [Description("Adaptive (Smart Selection)")] AdaptiveSmartSelection
+    [Description("Adaptive (Smart Selection)")] AdaptiveSmartSelection,
+  [Description("Ostromoukhov Variable-Coefficient")] Ostromoukhov,
+  [Description("Yliluoma Ordered 1")] YliluomaOrdered1,
+  [Description("Yliluoma Ordered 2")] YliluomaOrdered2,
+  [Description("Yliluoma Ordered 3")] YliluomaOrdered3,
+  [Description("Structure-Aware Default")] StructureAwareDefault,
+  [Description("Structure-Aware Priority")] StructureAwarePriority,
+  [Description("Structure-Aware Large")] StructureAwareLarge,
+  [Description("Dizzy Dithering Default")] DizzyDefault,
+  [Description("Dizzy Dithering High Quality")] DizzyHighQuality,
+  [Description("Dizzy Dithering Fast")] DizzyFast,
+  [Description("Smart AI (Default)")] SmartDefault,
+  [Description("Smart AI (High Quality)")] SmartHighQuality,
+  [Description("Smart AI (Fast)")] SmartFast,
+  [Description("Adaptive Matrix (Default)")] AdaptiveMatrixDefault,
+  [Description("Adaptive Matrix (Aggressive)")] AdaptiveMatrixAggressive,
+  [Description("Adaptive Matrix (Conservative)")] AdaptiveMatrixConservative
   }
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
@@ -161,6 +177,21 @@ internal class Options {
   [Option('q', "quantizer", Default = QuantizerMode.Octree, HelpText = "Quantizer to use.")]
   public QuantizerMode _Quantizer { get; set; }
 
+  [Option("maxFrames", Default = 0, HelpText = "Maximum number of frames to generate for non-video data. 0 means no limit.")]
+  public int MaxFrames { get; set; }
+
+  [Option("frameDuration", Default = 10, HelpText = "Frame duration in milliseconds for non-video data (default: 10ms).")]
+  public int FrameDurationMs { get; set; }
+
+  [Option("totalTime", Default = 0.0, HelpText = "Total animation time in seconds for non-video data. 0 means use frame count.")]
+  public double TotalTimeSeconds { get; set; }
+
+  [Option("serpentine", Default = false, HelpText = "Apply serpentine (boustrophedon) scanning to matrix-based error diffusion ditherers to reduce directional artifacts.")]
+  public bool UseSerpentine { get; set; }
+
+  [Option("disallowFillingColors", Default = false, HelpText = "Prevent quantizer to fill empty palette slots with additional colors (Black, White, RGB primaries, etc.). When enabled, only fills with transparent colors.")]
+  public bool DisallowFillingColors { get; set; }
+
   public FileSystemInfo InputPath => File.Exists(this._InputPath) ? new FileInfo(this._InputPath) : new DirectoryInfo(this._InputPath);
 
   public FileSystemInfo OutputPath => Directory.Exists(this._OutputPath) ? new DirectoryInfo(this._OutputPath) : new FileInfo(this._OutputPath);
@@ -189,6 +220,10 @@ internal class Options {
     _ => throw new("Unknown color distance metric")
   };
 
+  public TimeSpan FrameDuration => TimeSpan.FromMilliseconds(this.FrameDurationMs);
+
+  public TimeSpan? TotalTime => this.TotalTimeSeconds > 0 ? TimeSpan.FromSeconds(this.TotalTimeSeconds) : null;
+
   public Func<IQuantizer> Quantizer => () => {
     IQuantizer q = this._Quantizer switch {
       QuantizerMode.Ega16 => new Ega16Quantizer(),
@@ -205,6 +240,9 @@ internal class Options {
       _ => throw new("Unknown quantizer")
     };
 
+    if(q is QuantizerBase qb)
+      qb.AllowFillingColors = !this.DisallowFillingColors;
+    
     if (this.UsePca)
       q = new PcaQuantizerWrapper(q);
 
@@ -223,7 +261,7 @@ internal class Options {
       }
       
       // Otherwise use the regular ditherer selection
-      return this._Ditherer switch {
+      var baseDitherer = this._Ditherer switch {
         DithererMode.FloydSteinberg => MatrixBasedDitherer.FloydSteinberg,
         DithererMode.EqualFloydSteinberg => MatrixBasedDitherer.EqualFloydSteinberg,
         DithererMode.FalseFloydSteinberg => MatrixBasedDitherer.FalseFloydSteinberg,
@@ -289,9 +327,28 @@ internal class Options {
         DithererMode.AdaptiveBalanced => AdaptiveDitherer.Balanced,
         DithererMode.AdaptivePerformanceOptimized => AdaptiveDitherer.PerformanceOptimized,
         DithererMode.AdaptiveSmartSelection => AdaptiveDitherer.SmartSelection,
+        DithererMode.Ostromoukhov => OstromoukhovDitherer.Instance,
+        DithererMode.YliluomaOrdered1 => YliluomaDitherer.Algorithm1,
+        DithererMode.YliluomaOrdered2 => YliluomaDitherer.Algorithm2,
+        DithererMode.YliluomaOrdered3 => YliluomaDitherer.Algorithm3,
+        DithererMode.StructureAwareDefault => StructureAwareDitherer.Default,
+        DithererMode.StructureAwarePriority => StructureAwareDitherer.Priority,
+        DithererMode.StructureAwareLarge => StructureAwareDitherer.Large,
+        DithererMode.DizzyDefault => DizzyDitherer.Default,
+        DithererMode.DizzyHighQuality => DizzyDitherer.HighQuality,
+        DithererMode.DizzyFast => DizzyDitherer.Fast,
+        DithererMode.SmartDefault => SmartDitherer.Default,
+        DithererMode.SmartHighQuality => SmartDitherer.HighQuality,
+        DithererMode.SmartFast => SmartDitherer.Fast,
+        DithererMode.AdaptiveMatrixDefault => AdaptiveMatrixDitherer.Default,
+        DithererMode.AdaptiveMatrixAggressive => AdaptiveMatrixDitherer.Aggressive,
+        DithererMode.AdaptiveMatrixConservative => AdaptiveMatrixDitherer.Conservative,
         DithererMode.None => NoDitherer.Instance,
         _ => NoDitherer.Instance
       };
+      
+      // Apply serpentine scanning if requested
+      return this.UseSerpentine ? MatrixBasedDitherer.WithSerpentine(baseDitherer) : baseDitherer;
     }
   }
 

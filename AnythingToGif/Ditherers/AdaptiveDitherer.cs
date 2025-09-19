@@ -242,7 +242,7 @@ public readonly struct AdaptiveDitherer(AdaptiveDitherer.AdaptiveStrategy strate
     }
 
     // For medium complexity, use standard algorithms with more variety
-    if (characteristics.ColorComplexity > 0.5 && characteristics.DetailLevel > 0.4) {
+    if (characteristics is { ColorComplexity: > 0.5, DetailLevel: > 0.4 }) {
       return characteristics.EdgeDensity switch {
         > 0.6 => MatrixBasedDitherer.Burkes,        // Good for edges
         > 0.3 => MatrixBasedDitherer.FloydSteinberg, // Standard choice

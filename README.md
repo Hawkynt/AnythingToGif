@@ -1,7 +1,11 @@
 # AnythingToGif
 
-[![License](https://img.shields.io/badge/License-LGPL_3.0-blue)](https://licenses.nuget.org/LGPL-3.0-or-later)
+![License](https://img.shields.io/github/license/Hawkynt/AnythingToGif)
 ![Language](https://img.shields.io/github/languages/top/Hawkynt/AnythingToGif?color=purple)
+[![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=main)![Activity](https://img.shields.io/github/commit-activity/y/Hawkynt/AnythingToGif?branch=main)](https://github.com/Hawkynt/AnythingToGif/commits/main)
+[![GitHub release](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif)](https://github.com/Hawkynt/AnythingToGif/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Hawkynt/AnythingToGif/total)](https://github.com/Hawkynt/AnythingToGif/releases)
+
 
 > This is a versatile tool designed to convert a wide variety of visual media formats into high-quality GIFs (with a hard 'G'), supporting TrueColor images. This utility excels in converting both still images and video files into GIFs, ensuring superior color fidelity and efficient processing.
 
@@ -270,6 +274,17 @@ Dithering techniques are applied to ensure the first frame provides a good base 
   - **Balanced**: Balances quality and performance considerations
   - **Performance Optimized**: Optimizes for speed while maintaining acceptable quality
   - **Smart Selection**: Uses ML-like scoring to select optimal algorithm based on image characteristics (color complexity, edge density, gradient smoothness, noise level, detail level)
+- [X] [Ostromoukhov Variable-Coefficient Error Diffusion](https://observablehq.com/@jobleonard/variable-coefficient-dithering) - Advanced error diffusion that varies the dithering kernel based on current pixel value to achieve blue-noise characteristics
+- [X] [Yliluoma Ordered Dithering](https://bisqwit.iki.fi/story/howto/dither/jy/) - Joel Yliluoma's arbitrary-palette positional dithering algorithms (1, 2, 3) optimized for better contrast and color fidelity
+- [X] **Serpentine/Boustrophedon Scanning** - Use `--serpentine` flag with any matrix-based error diffusion ditherer to apply alternating scan direction per row, eliminating directional artifacts. Works with all MatrixBasedDitherer variants including Floyd-Steinberg, Stucki, JJN, Atkinson, Burkes, Sierra, and others.
+- [X] **Structure-Aware Error Diffusion** - Modern error diffusion that preserves image structure and details using circular error distribution:
+  - **Default**: Standard structure-aware with 2-pixel radius
+  - **Priority**: Priority-based ordering with 3-pixel radius
+  - **Large**: Extended radius (4 pixels) for maximum quality
+- [X] [Dizzy Dithering](https://liamappelbe.medium.com/dizzy-dithering-2ae76dbceba1) - Novel 2024 error diffusion algorithm that produces blue noise characteristics through spiral pattern distribution:
+  - **Default**: Standard dizzy dithering with balanced settings
+  - **High Quality**: Reduced randomness for maximum quality
+  - **Fast**: Optimized for speed with smaller spiral radius
 - [ ] [Barycentric](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
 - [ ] [Triangulated Irregular Network](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
 - [ ] [Natural Neighbour](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
