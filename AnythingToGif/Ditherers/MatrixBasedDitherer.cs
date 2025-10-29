@@ -170,7 +170,7 @@ public readonly struct MatrixBasedDitherer : IDitherer {
     throw new ArgumentException("Serpentine scanning only supported for MatrixBasedDitherer instances", nameof(baseDitherer));
   }
 
-  public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette, Func<Color, Color, int>? colorDistanceMetric = null) {{
+  public unsafe void Dither(BitmapExtensions.IBitmapLocker source, BitmapData target, IReadOnlyList<Color> palette, Func<Color, Color, int>? colorDistanceMetric = null) {
     var width = source.Width;
     var height = source.Height;
     var stride = target.Stride;
