@@ -30,8 +30,7 @@ public class SimpleIntegrationTests {
 
   private Bitmap CreateTestImage(int width = 50, int height = 50) {
     var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-    using var graphics = Graphics.FromImage(bitmap);
-    
+
     // Create a simple gradient pattern
     for (int x = 0; x < width; x++) {
       for (int y = 0; y < height; y++) {
@@ -40,7 +39,7 @@ public class SimpleIntegrationTests {
         bitmap.SetPixel(x, y, Color.FromArgb(red, 0, blue));
       }
     }
-    
+
     return bitmap;
   }
 
@@ -48,9 +47,12 @@ public class SimpleIntegrationTests {
   public void BasicGifCreation_WorksCorrectly() {
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, "basic_test.gif"));
     var dimensions = new Dimensions(20, 20);
-    
-    using var bitmap = this.CreateTestImage(20, 20);
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
+
+    using var bitmap = new Bitmap(20, 20, PixelFormat.Format8bppIndexed);
+    var palette = bitmap.Palette;
+    palette.Entries[0] = Color.Red;
+    bitmap.Palette = palette;
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
     var frames = new[] { frame };
 
     Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
@@ -62,7 +64,7 @@ public class SimpleIntegrationTests {
   [Test]
   public void SingleImageHiColorConverter_ProducesFrames() {
     using var testImage = this.CreateTestImage(30, 30);
-    
+
     var converter = new SingleImageHiColorGifConverter {
       Quantizer = new OctreeQuantizer(),
       Ditherer = NoDitherer.Instance,
@@ -73,16 +75,11 @@ public class SimpleIntegrationTests {
 
     Assert.That(frames, Is.Not.Null);
     Assert.That(frames.Length, Is.GreaterThan(0));
-    
+
     // Verify frames have valid properties
     foreach (var frame in frames) {
-      Assert.That(frame.Image, Is.Not.Null);
-      Assert.That(frame.Duration, Is.GreaterThan(TimeSpan.Zero));
-    }
-    
-    // Clean up frames
-    foreach (var frame in frames) {
-      frame.Image.Dispose();
+      Assert.That(frame.IndexedPixels, Is.Not.Null);
+      Assert.That(frame.Delay, Is.GreaterThan(TimeSpan.Zero));
     }
   }
 
@@ -92,8 +89,8 @@ public class SimpleIntegrationTests {
     Assert.That(assembly, Is.Not.Null);
 
     var quantizerTypes = assembly.GetTypes()
-      .Where(t => typeof(IQuantizer).IsAssignableFrom(t) && 
-                  !t.IsInterface && 
+      .Where(t => typeof(IQuantizer).IsAssignableFrom(t) &&
+                  !t.IsInterface &&
                   !t.IsAbstract &&
                   t.IsPublic &&
                   t.GetConstructors().Any(c => c.GetParameters().Length == 0))
@@ -111,14 +108,14 @@ public class SimpleIntegrationTests {
 
   [Test]
   public void OctreeQuantizer_ReducesColors() {
-    var histogram = new[] { 
-      (Color.Red, 100u), (Color.Green, 80u), (Color.Blue, 60u), 
+    var histogram = new[] {
+      (Color.Red, 100u), (Color.Green, 80u), (Color.Blue, 60u),
       (Color.Yellow, 40u), (Color.Purple, 20u), (Color.Orange, 10u)
     };
     var quantizer = new OctreeQuantizer();
-    
+
     var result = quantizer.ReduceColorsTo(3, histogram);
-    
+
     Assert.That(result, Is.Not.Null);
     Assert.That(result.Length, Is.EqualTo(3));
     Assert.That(result.Distinct().Count(), Is.EqualTo(3));
@@ -126,13 +123,13 @@ public class SimpleIntegrationTests {
 
   [Test]
   public void MedianCutQuantizer_ReducesColors() {
-    var histogram = new[] { 
+    var histogram = new[] {
       (Color.Red, 50u), (Color.Green, 40u), (Color.Blue, 30u), (Color.Yellow, 20u)
     };
     var quantizer = new MedianCutQuantizer();
-    
+
     var result = quantizer.ReduceColorsTo(2, histogram);
-    
+
     Assert.That(result, Is.Not.Null);
     Assert.That(result.Length, Is.EqualTo(2));
     Assert.That(result.Distinct().Count(), Is.EqualTo(2));
@@ -140,14 +137,14 @@ public class SimpleIntegrationTests {
 
   [Test]
   public void WuQuantizer_ReducesColors() {
-    var histogram = new[] { 
-      (Color.Red, 60u), (Color.Green, 50u), (Color.Blue, 40u), 
+    var histogram = new[] {
+      (Color.Red, 60u), (Color.Green, 50u), (Color.Blue, 40u),
       (Color.White, 30u), (Color.Black, 20u)
     };
     var quantizer = new WuQuantizer();
-    
+
     var result = quantizer.ReduceColorsTo(4, histogram);
-    
+
     Assert.That(result, Is.Not.Null);
     Assert.That(result.Length, Is.EqualTo(4));
     Assert.That(result.Distinct().Count(), Is.EqualTo(4));
@@ -158,7 +155,7 @@ public class SimpleIntegrationTests {
     using var testBitmap = this.CreateTestImage(10, 10);
     var ditherer = NoDitherer.Instance;
     var palette = new[] { Color.Red, Color.Green, Color.Blue };
-    
+
     // Test that the ditherer instance exists and can be called
     Assert.That(ditherer, Is.Not.Null);
     Assert.DoesNotThrow(() => {
@@ -189,17 +186,12 @@ public class SimpleIntegrationTests {
     // Verify file was created
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(100)); // Should be substantial size
-    
-    // Clean up frames
-    foreach (var frame in frames) {
-      frame.Image.Dispose();
-    }
   }
 
   [Test]
   public void DifferentColorOrderings_ProduceValidResults() {
     using var testImage = this.CreateTestImage(25, 25);
-    
+
     var orderingModes = new[] {
       ColorOrderingMode.MostUsedFirst,
       ColorOrderingMode.FromCenter,
@@ -215,14 +207,9 @@ public class SimpleIntegrationTests {
       };
 
       var frames = converter.Convert(testImage).ToArray();
-      
+
       Assert.That(frames, Is.Not.Null, $"Color ordering {ordering} failed");
       Assert.That(frames.Length, Is.GreaterThan(0), $"Color ordering {ordering} produced no frames");
-      
-      // Clean up frames
-      foreach (var frame in frames) {
-        frame.Image.Dispose();
-      }
     }
   }
 
@@ -251,18 +238,18 @@ public class SimpleIntegrationTests {
 
   [Test]
   public void Frame_ConstructorsWork() {
-    using var bitmap = new Bitmap(10, 10);
+    using var bitmap = new Bitmap(10, 10, PixelFormat.Format8bppIndexed);
     var duration = TimeSpan.FromMilliseconds(200);
 
-    // Test simple constructor
-    var frame1 = new Frame(bitmap, duration);
-    Assert.That(frame1.Duration, Is.EqualTo(duration));
-    Assert.That(frame1.Offset, Is.EqualTo(Offset.None));
+    // Test simple factory
+    var frame1 = Frame.FromBitmap(bitmap, duration);
+    Assert.That(frame1.Delay, Is.EqualTo(duration));
+    Assert.That(frame1.Position, Is.EqualTo(Offset.None));
 
-    // Test constructor with offset
+    // Test factory with offset
     var offset = new Offset(5, 5);
-    var frame2 = new Frame(offset, bitmap, duration);
-    Assert.That(frame2.Offset, Is.EqualTo(offset));
-    Assert.That(frame2.Duration, Is.EqualTo(duration));
+    var frame2 = Frame.FromBitmap(bitmap, duration, position: offset);
+    Assert.That(frame2.Position, Is.EqualTo(offset));
+    Assert.That(frame2.Delay, Is.EqualTo(duration));
   }
 }

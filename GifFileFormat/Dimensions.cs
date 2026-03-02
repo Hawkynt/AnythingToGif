@@ -1,13 +1,9 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
 namespace Hawkynt.GifFileFormat;
 
-using System;
-
 public readonly record struct Dimensions(ushort Width, ushort Height) {
-
-  public static Dimensions Empty { get; } = new(0, 0);
-
   public Dimensions(int width, int height) : this((ushort)width, (ushort)height) {
     ArgumentOutOfRangeException.ThrowIfNegative(width);
     ArgumentOutOfRangeException.ThrowIfNegative(height);
@@ -15,10 +11,11 @@ public readonly record struct Dimensions(ushort Width, ushort Height) {
     ArgumentOutOfRangeException.ThrowIfGreaterThan(height, ushort.MaxValue);
   }
 
+  public static Dimensions Empty { get; } = new(0, 0);
+
   public static Dimensions FromSize(Size size) => new(size.Width, size.Height);
 
-  public static explicit operator Dimensions(Size size) => Dimensions.FromSize(size);
+  public static explicit operator Dimensions(Size size) => FromSize(size);
 
   public Dimensions With(Dimensions other) => new(Math.Max(this.Width, other.Width), Math.Max(this.Height, other.Height));
-
 }

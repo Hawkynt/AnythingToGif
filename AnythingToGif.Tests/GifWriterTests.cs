@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using Hawkynt.GifFileFormat;
 using NUnit.Framework;
@@ -28,11 +29,9 @@ public class GifWriterTests {
   public void ToFile_CreatesSingleFrameGif_Successfully() {
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, "single_frame.gif"));
     var dimensions = new Dimensions(100, 100);
-    using var bitmap = new Bitmap(100, 100);
-    using var graphics = Graphics.FromImage(bitmap);
-    graphics.Clear(Color.Red);
+    using var bitmap = _CreateIndexedBitmap(100, 100, Color.Red);
 
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
     var frames = new[] { frame };
 
     Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
@@ -49,29 +48,24 @@ public class GifWriterTests {
 
     var colors = new[] { Color.Red, Color.Green, Color.Blue };
     foreach (var color in colors) {
-      var bitmap = new Bitmap(50, 50);
-      using var graphics = Graphics.FromImage(bitmap);
-      graphics.Clear(color);
-      frames.Add(new Frame(bitmap, TimeSpan.FromMilliseconds(200)));
+      using var bitmap = _CreateIndexedBitmap(50, 50, color);
+      frames.Add(Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(200)));
     }
 
     Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
-    frames.ForEach(f => f.Image.Dispose());
   }
 
   [Test]
   public void ToFile_WithGlobalColorTable_CreatesValidGif() {
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, "global_color_table.gif"));
     var dimensions = new Dimensions(25, 25);
-    using var bitmap = new Bitmap(25, 25);
-    using var graphics = Graphics.FromImage(bitmap);
-    graphics.Clear(Color.Blue);
+    using var bitmap = _CreateIndexedBitmap(25, 25, Color.Blue);
 
     var globalColorTable = new List<Color> { Color.Red, Color.Green, Color.Blue };
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
 
     Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite,
       globalColorTable: globalColorTable);
@@ -84,12 +78,9 @@ public class GifWriterTests {
   public void ToFile_WithTransparency_CreatesValidGif() {
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, "transparent.gif"));
     var dimensions = new Dimensions(30, 30);
-    using var bitmap = new Bitmap(30, 30);
-    using var graphics = Graphics.FromImage(bitmap);
-    graphics.Clear(Color.Transparent);
-    graphics.FillRectangle(Brushes.Red, 5, 5, 20, 20);
+    using var bitmap = _CreateIndexedBitmap(30, 30, Color.Red);
 
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100), transparentColor: 0);
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100), transparentColorIndex: 0);
 
     Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
 
@@ -110,28 +101,23 @@ public class GifWriterTests {
     };
 
     foreach (var disposal in disposalMethods) {
-      var bitmap = new Bitmap(40, 40);
-      using var graphics = Graphics.FromImage(bitmap);
-      graphics.Clear(Color.Yellow);
-      frames.Add(new Frame(bitmap, TimeSpan.FromMilliseconds(150), disposal));
+      using var bitmap = _CreateIndexedBitmap(40, 40, Color.Yellow);
+      frames.Add(Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(150), disposal));
     }
 
     Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
-    frames.ForEach(f => f.Image.Dispose());
   }
 
   [Test]
   public void ToFile_WithCustomLoopCount_CreatesValidGif() {
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, "custom_loop.gif"));
     var dimensions = new Dimensions(20, 20);
-    using var bitmap = new Bitmap(20, 20);
-    using var graphics = Graphics.FromImage(bitmap);
-    graphics.Clear(Color.Purple);
+    using var bitmap = _CreateIndexedBitmap(20, 20, Color.Purple);
 
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
     var loopCount = (LoopCount)5;
 
     Writer.ToFile(outputFile, dimensions, new[] { frame }, loopCount);
@@ -144,11 +130,9 @@ public class GifWriterTests {
   public void ToFile_WithCompressionEnabled_CreatesValidGif() {
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, "compressed.gif"));
     var dimensions = new Dimensions(60, 60);
-    using var bitmap = new Bitmap(60, 60);
-    using var graphics = Graphics.FromImage(bitmap);
-    graphics.Clear(Color.Orange);
+    using var bitmap = _CreateIndexedBitmap(60, 60, Color.Orange);
 
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
 
     Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite,
       allowCompression: true);
@@ -160,7 +144,7 @@ public class GifWriterTests {
   [Test]
   public void ToFile_ThrowsArgumentNullException_WhenParametersAreNull() {
     var dimensions = new Dimensions(10, 10);
-    var frames = new Frame[] { };
+    var frames = Array.Empty<Frame>();
 
     Assert.Throws<ArgumentNullException>(() =>
       Writer.ToFile(null!, dimensions, frames, LoopCount.Infinite));
@@ -170,20 +154,20 @@ public class GifWriterTests {
   }
 
   [Test]
-  public void Frame_ConstructorsWork_Correctly() {
-    using var bitmap = new Bitmap(10, 10);
+  public void Frame_FromBitmapAndProperties_WorkCorrectly() {
+    using var bitmap = _CreateIndexedBitmap(10, 10, Color.Red);
     var duration = TimeSpan.FromMilliseconds(200);
 
-    var frame1 = new Frame(bitmap, duration);
-    Assert.That(frame1.Offset, Is.EqualTo(Offset.None));
-    Assert.That(frame1.Duration, Is.EqualTo(duration));
+    var frame1 = Frame.FromBitmap(bitmap, duration);
+    Assert.That(frame1.Position, Is.EqualTo(Offset.None));
+    Assert.That(frame1.Delay, Is.EqualTo(duration));
 
     var offset = new Offset(5, 5);
-    var frame2 = new Frame(offset, bitmap, duration, FrameDisposalMethod.DoNotDispose, 1, false);
-    Assert.That(frame2.Offset, Is.EqualTo(offset));
-    Assert.That(frame2.Disposal, Is.EqualTo(FrameDisposalMethod.DoNotDispose));
-    Assert.That(frame2.TransparentColor, Is.EqualTo(1));
-    Assert.That(frame2.UseLocalColorTable, Is.False);
+    var frame2 = Frame.FromBitmap(bitmap, duration, FrameDisposalMethod.DoNotDispose, 1, false, offset);
+    Assert.That(frame2.Position, Is.EqualTo(offset));
+    Assert.That(frame2.DisposalMethod, Is.EqualTo(FrameDisposalMethod.DoNotDispose));
+    Assert.That(frame2.TransparentColorIndex, Is.EqualTo(1));
+    Assert.That(frame2.LocalColorTable, Is.Null);
   }
 
   [Test]
@@ -201,5 +185,13 @@ public class GifWriterTests {
     var finite = (LoopCount)10;
     Assert.That(finite.IsSet, Is.True);
     Assert.That(finite.Value, Is.EqualTo(10));
+  }
+
+  private static Bitmap _CreateIndexedBitmap(int width, int height, Color fillColor) {
+    var bmp = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
+    var palette = bmp.Palette;
+    palette.Entries[0] = fillColor;
+    bmp.Palette = palette;
+    return bmp;
   }
 }

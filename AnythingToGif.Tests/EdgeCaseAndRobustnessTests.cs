@@ -40,21 +40,19 @@ public class EdgeCaseAndRobustnessTests {
     // Test with very small duration
     converter.TotalFrameDuration = TimeSpan.FromMilliseconds(1);
     converter.MinimumSubImageDuration = TimeSpan.FromMilliseconds(1);
-    
+
     Assert.DoesNotThrow(() => {
       var frames = converter.Convert(testImage).ToArray();
       Assert.That(frames.Length, Is.GreaterThan(0));
-      foreach (var frame in frames) frame.Image.Dispose();
     });
 
     // Test with very large duration
     converter.TotalFrameDuration = TimeSpan.FromHours(1);
     converter.MinimumSubImageDuration = TimeSpan.FromSeconds(1);
-    
+
     Assert.DoesNotThrow(() => {
       var frames = converter.Convert(testImage).ToArray();
       Assert.That(frames.Length, Is.GreaterThan(0));
-      foreach (var frame in frames) frame.Image.Dispose();
     });
   }
 
@@ -71,7 +69,6 @@ public class EdgeCaseAndRobustnessTests {
     Assert.DoesNotThrow(() => {
       var frames = converter.Convert(testImage).ToArray();
       Assert.That(frames.Length, Is.GreaterThan(0));
-      foreach (var frame in frames) frame.Image.Dispose();
     });
 
     // Test with maximum color count
@@ -79,7 +76,6 @@ public class EdgeCaseAndRobustnessTests {
     Assert.DoesNotThrow(() => {
       var frames = converter.Convert(testImage).ToArray();
       Assert.That(frames.Length, Is.GreaterThan(0));
-      foreach (var frame in frames) frame.Image.Dispose();
     });
   }
 
@@ -99,8 +95,6 @@ public class EdgeCaseAndRobustnessTests {
     var frames = converter.Convert(blackImage).ToArray();
     Assert.That(frames, Is.Not.Null);
     Assert.That(frames.Length, Is.GreaterThan(0));
-    
-    foreach (var frame in frames) frame.Image.Dispose();
   }
 
   [Test]
@@ -108,13 +102,13 @@ public class EdgeCaseAndRobustnessTests {
     // Create image with many colors and patterns
     using var complexImage = new Bitmap(50, 50);
     var random = new Random(42);
-    
+
     for (int x = 0; x < 50; x++) {
       for (int y = 0; y < 50; y++) {
         var color = Color.FromArgb(
-          random.Next(256), 
-          random.Next(256), 
-          random.Next(256), 
+          random.Next(256),
+          random.Next(256),
+          random.Next(256),
           random.Next(256));
         complexImage.SetPixel(x, y, color);
       }
@@ -129,18 +123,18 @@ public class EdgeCaseAndRobustnessTests {
     var frames = converter.Convert(complexImage).ToArray();
     Assert.That(frames, Is.Not.Null);
     Assert.That(frames.Length, Is.GreaterThan(0));
-    
-    foreach (var frame in frames) frame.Image.Dispose();
   }
 
   [Test]
   public void GifWriter_HandlesExtremelySmallImages() {
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, "tiny.gif"));
     var dimensions = new Dimensions(1, 1);
-    
-    using var bitmap = new Bitmap(1, 1);
-    bitmap.SetPixel(0, 0, Color.Red);
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
+
+    using var bitmap = new Bitmap(1, 1, PixelFormat.Format8bppIndexed);
+    var palette = bitmap.Palette;
+    palette.Entries[0] = Color.Red;
+    bitmap.Palette = palette;
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
 
     Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
 
@@ -152,12 +146,13 @@ public class EdgeCaseAndRobustnessTests {
   public void GifWriter_HandlesLargeImages() {
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, "large.gif"));
     var dimensions = new Dimensions(500, 500);
-    
-    using var bitmap = new Bitmap(500, 500);
-    using var graphics = Graphics.FromImage(bitmap);
-    graphics.Clear(Color.Blue);
-    
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
+
+    using var bitmap = new Bitmap(500, 500, PixelFormat.Format8bppIndexed);
+    var palette = bitmap.Palette;
+    palette.Entries[0] = Color.Blue;
+    bitmap.Palette = palette;
+
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
 
     Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
 
@@ -173,20 +168,19 @@ public class EdgeCaseAndRobustnessTests {
 
     // Create 100 frames
     for (int i = 0; i < 100; i++) {
-      var bitmap = new Bitmap(10, 10);
-      using var graphics = Graphics.FromImage(bitmap);
+      using var bitmap = new Bitmap(10, 10, PixelFormat.Format8bppIndexed);
+      var palette = bitmap.Palette;
       var hue = (i * 360.0f) / 100.0f;
       var color = ColorFromHSV(hue, 1.0f, 1.0f);
-      graphics.Clear(color);
-      frames.Add(new Frame(bitmap, TimeSpan.FromMilliseconds(50)));
+      palette.Entries[0] = color;
+      bitmap.Palette = palette;
+      frames.Add(Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(50)));
     }
 
     Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
-    
-    foreach (var frame in frames) frame.Image.Dispose();
   }
 
   [Test]
@@ -197,18 +191,17 @@ public class EdgeCaseAndRobustnessTests {
 
     var colors = new[] { Color.Red, Color.Green, Color.Blue };
     foreach (var color in colors) {
-      var bitmap = new Bitmap(20, 20);
-      using var graphics = Graphics.FromImage(bitmap);
-      graphics.Clear(color);
-      frames.Add(new Frame(bitmap, TimeSpan.FromMilliseconds(1))); // Very short duration
+      using var bitmap = new Bitmap(20, 20, PixelFormat.Format8bppIndexed);
+      var palette = bitmap.Palette;
+      palette.Entries[0] = color;
+      bitmap.Palette = palette;
+      frames.Add(Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(1)));
     }
 
     Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
-    
-    foreach (var frame in frames) frame.Image.Dispose();
   }
 
   [Test]
@@ -216,7 +209,7 @@ public class EdgeCaseAndRobustnessTests {
     // Test with single pixel
     using var singlePixel = new Bitmap(1, 1);
     singlePixel.SetPixel(0, 0, Color.Red);
-    
+
     Assert.DoesNotThrow(() => {
       var histogram = singlePixel.CreateHistogram();
       Assert.That(histogram, Is.Not.Null);
@@ -231,7 +224,7 @@ public class EdgeCaseAndRobustnessTests {
         transparentImage.SetPixel(x, y, Color.Transparent);
       }
     }
-    
+
     Assert.DoesNotThrow(() => {
       var histogram = transparentImage.CreateHistogram();
       Assert.That(histogram, Is.Not.Null);
@@ -241,7 +234,7 @@ public class EdgeCaseAndRobustnessTests {
   [Test]
   public void AllColorOrderings_WorkWithDifferentImageTypes() {
     var orderingModes = Enum.GetValues<ColorOrderingMode>();
-    
+
     // Test with gradient image
     using var gradientImage = new Bitmap(30, 30);
     for (int x = 0; x < 30; x++) {
@@ -263,7 +256,6 @@ public class EdgeCaseAndRobustnessTests {
       Assert.DoesNotThrow(() => {
         var frames = converter.Convert(gradientImage).ToArray();
         Assert.That(frames.Length, Is.GreaterThan(0), $"Color ordering {ordering} failed");
-        foreach (var frame in frames) frame.Image.Dispose();
       }, $"Color ordering {ordering} should not throw");
     }
   }
@@ -271,12 +263,12 @@ public class EdgeCaseAndRobustnessTests {
   [Test]
   public void MemoryStressTest_HandlesManyConversions() {
     var initialMemory = GC.GetTotalMemory(true);
-    
+
     for (int i = 0; i < 50; i++) {
       using var testImage = new Bitmap(25, 25);
       using var graphics = Graphics.FromImage(testImage);
       graphics.Clear(Color.FromArgb(i * 5, i * 3, i * 2));
-      
+
       var converter = new SingleImageHiColorGifConverter {
         Quantizer = new OctreeQuantizer(),
         Ditherer = NoDitherer.Instance,
@@ -285,10 +277,7 @@ public class EdgeCaseAndRobustnessTests {
 
       var frames = converter.Convert(testImage).ToArray();
       Assert.That(frames.Length, Is.GreaterThan(0));
-      
-      // Dispose frames immediately
-      foreach (var frame in frames) frame.Image.Dispose();
-      
+
       // Force garbage collection periodically
       if (i % 10 == 9) {
         GC.Collect();
@@ -299,7 +288,7 @@ public class EdgeCaseAndRobustnessTests {
     GC.Collect();
     GC.WaitForPendingFinalizers();
     var finalMemory = GC.GetTotalMemory(true);
-    
+
     // Memory should not have grown excessively (allowing for some overhead)
     var memoryGrowth = finalMemory - initialMemory;
     Assert.That(memoryGrowth, Is.LessThan(50 * 1024 * 1024), // Less than 50MB growth
@@ -311,12 +300,13 @@ public class EdgeCaseAndRobustnessTests {
     var specialFilename = "test with spaces & symbols #@$.gif";
     var outputFile = new FileInfo(Path.Combine(this._testOutputDirectory, specialFilename));
     var dimensions = new Dimensions(10, 10);
-    
-    using var bitmap = new Bitmap(10, 10);
-    using var graphics = Graphics.FromImage(bitmap);
-    graphics.Clear(Color.Magenta);
-    
-    var frame = new Frame(bitmap, TimeSpan.FromMilliseconds(100));
+
+    using var bitmap = new Bitmap(10, 10, PixelFormat.Format8bppIndexed);
+    var palette = bitmap.Palette;
+    palette.Entries[0] = Color.Magenta;
+    bitmap.Palette = palette;
+
+    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
 
     Assert.DoesNotThrow(() => {
       Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
@@ -328,21 +318,21 @@ public class EdgeCaseAndRobustnessTests {
 
   [Test]
   public void ComponentInteraction_AllCombinations_Work() {
-    var quantizers = new IQuantizer[] { 
-      new OctreeQuantizer(), 
-      new MedianCutQuantizer(), 
-      new WuQuantizer() 
+    var quantizers = new IQuantizer[] {
+      new OctreeQuantizer(),
+      new MedianCutQuantizer(),
+      new WuQuantizer()
     };
-    
-    var ditherers = new IDitherer[] { 
-      NoDitherer.Instance, 
-      OrderedDitherer.Bayer2x2, 
-      OrderedDitherer.Bayer4x4 
+
+    var ditherers = new IDitherer[] {
+      NoDitherer.Instance,
+      OrderedDitherer.Bayer2x2,
+      OrderedDitherer.Bayer4x4
     };
-    
-    var colorOrderings = new[] { 
-      ColorOrderingMode.MostUsedFirst, 
-      ColorOrderingMode.FromCenter 
+
+    var colorOrderings = new[] {
+      ColorOrderingMode.MostUsedFirst,
+      ColorOrderingMode.FromCenter
     };
 
     using var testImage = new Bitmap(20, 20);
@@ -361,9 +351,8 @@ public class EdgeCaseAndRobustnessTests {
 
           Assert.DoesNotThrow(() => {
             var frames = converter.Convert(testImage).ToArray();
-            Assert.That(frames.Length, Is.GreaterThan(0), 
+            Assert.That(frames.Length, Is.GreaterThan(0),
               $"Combination failed: {quantizer.GetType().Name} + {ditherer.GetType().Name} + {ordering}");
-            foreach (var frame in frames) frame.Image.Dispose();
           }, $"Should not throw with {quantizer.GetType().Name} + {ditherer.GetType().Name} + {ordering}");
         }
       }
