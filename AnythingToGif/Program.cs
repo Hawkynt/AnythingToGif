@@ -90,7 +90,7 @@ class Program {
           return;
 
         if (dimensions != null)
-          _WriteGif(outputFile, dimensions.Value, Enumerate(), true);
+          _WriteGif(outputFile, dimensions.Value, Enumerate());
         
         return;
 
@@ -112,7 +112,7 @@ class Program {
 
             var currentDuration = TimeSpan.Zero;
             foreach (var frame in converter.Convert(image)) {
-              currentDuration += frame.Duration;
+              currentDuration += frame.Delay;
               yield return frame;
             }
 
@@ -147,11 +147,11 @@ class Program {
         Console.WriteLine($"Converting image {inputFile.Name}");
         var subImages = converter.Convert(bitmap);
 
-        _WriteGif(outputFile, (Dimensions)image.Size, subImages, false);
+        _WriteGif(outputFile, (Dimensions)image.Size, subImages);
       }
 
-      void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames, bool disposeFramesAfterWrite)
-        => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: !configuration.NoCompression, disposeFramesAfterWrite: disposeFramesAfterWrite)
+      void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames)
+        => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: !configuration.NoCompression)
       ;
 
     }

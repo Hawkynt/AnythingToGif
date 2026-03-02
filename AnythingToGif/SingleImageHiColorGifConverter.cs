@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Drawing;
@@ -43,16 +43,16 @@ public class SingleImageHiColorGifConverter {
       if (!totalFrameDuration.HasValue)
         return;
 
-      var totalFrameTime = subImages.Sum(i => i.Duration);
+      var totalFrameTime = subImages.Sum(i => i.Delay);
       if (totalFrameTime >= totalFrameDuration.Value)
         return;
 
-      var duration = totalFrameDuration.Value - totalFrameTime + subImages[^1].Duration;
+      var duration = totalFrameDuration.Value - totalFrameTime + subImages[^1].Delay;
       var sliceTime = this.SubImageDurationTimeSlice;
       if (sliceTime.Ticks != 0)
         duration = TimeSpan.FromTicks(duration.Ticks / sliceTime.Ticks * sliceTime.Ticks);
 
-      subImages[^1] = subImages[^1] with { Duration = duration };
+      subImages[^1] = subImages[^1].WithDelay(duration);
     }
   }
 
@@ -88,13 +88,13 @@ public class SingleImageHiColorGifConverter {
     var maximumColorsPerSubImage = this.MaximumColorsPerSubImage;
     var neededFrames = totalColorCount / maximumColorsPerSubImage;
     var availableFrames = neededFrames;
-    
+
     if (this.MaxFrames.HasValue && this.MaxFrames.Value > 0)
       availableFrames = Math.Min(availableFrames, this.MaxFrames.Value);
-    
+
     if (availableTime != null)
       availableFrames = Math.Min(availableFrames, (int)(availableTime.Value / frameDuration));
-    
+
     if (availableFrames < 1)
       availableFrames = 1;
 
@@ -102,7 +102,8 @@ public class SingleImageHiColorGifConverter {
 
     var totalFrameTime = TimeSpan.Zero;
     if (this.FirstSubImageInitsBackground) {
-      yield return new(Offset.None, SingleImageHiColorGifConverter._CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer ?? NoDitherer.Instance, histogram, this.ColorOrdering, this.ColorDistanceMetric), frameDuration, FrameDisposalMethod.DoNotDispose);
+      using var bgBitmap = SingleImageHiColorGifConverter._CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer ?? NoDitherer.Instance, histogram, this.ColorOrdering, this.ColorDistanceMetric);
+      yield return Frame.FromBitmap(bgBitmap, frameDuration, FrameDisposalMethod.DoNotDispose);
       totalFrameTime += frameDuration;
       if (--availableFrames <= 0)
         yield break;
@@ -115,8 +116,9 @@ public class SingleImageHiColorGifConverter {
     colorSegments.AddRange(usedColors.Select(color => (color, histogram[color])));
 
     // create subimages in parallel
-    foreach (var frame in ParallelEnumerable.Range(0, availableFrames).AsOrdered().Select(CreateSubImage)) {
-      yield return new(Offset.None, frame, frameDuration, FrameDisposalMethod.DoNotDispose, 0);
+    foreach (var bmp in ParallelEnumerable.Range(0, availableFrames).AsOrdered().Select(CreateSubImage)) {
+      yield return Frame.FromBitmap(bmp, frameDuration, FrameDisposalMethod.DoNotDispose, transparentColorIndex: 0);
+      bmp.Dispose();
       totalFrameTime += frameDuration;
     }
 
@@ -176,10 +178,10 @@ public class SingleImageHiColorGifConverter {
   }
 
   private static Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode, Func<Color, Color, int>? colorDistanceMetric) {
-    var colors = 
+    var colors =
       maxColors >= histogram.Count
       ? histogram.Keys
-      : quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp => (kvp.Key, (uint)kvp.Value.Count))) 
+      : quantizer?.ReduceColorsTo(maxColors, histogram.Select(kvp => (kvp.Key, (uint)kvp.Value.Count)))
         ?? SingleImageHiColorGifConverter._SortHistogram(histogram, image.Size, mode).Take(maxColors)
       ;
 

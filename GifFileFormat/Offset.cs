@@ -1,7 +1,7 @@
-﻿namespace Hawkynt.GifFileFormat;
-
-using System;
+﻿using System;
 using System.Drawing;
+
+namespace Hawkynt.GifFileFormat;
 
 public readonly record struct Offset(ushort X, ushort Y) {
   public static Offset None = new(0, 0);
@@ -13,8 +13,11 @@ public readonly record struct Offset(ushort X, ushort Y) {
     ArgumentOutOfRangeException.ThrowIfGreaterThan(y, ushort.MaxValue);
   }
 
-  public static Offset FromPoint(Point point) => new(point.X, point.Y);
+  public static Offset FromPoint(Point point) {
+    return new Offset(point.X, point.Y);
+  }
 
-  public static explicit operator Offset(Point point) => Offset.FromPoint(point);
-
+  public static explicit operator Offset(Point point) {
+    return FromPoint(point);
+  }
 }
