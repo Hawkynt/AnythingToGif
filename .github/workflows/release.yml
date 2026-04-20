@@ -1,0 +1,88 @@
+name: Release
+
+# Tag pushes don't trigger ci.yml (it's branch-scoped), so this workflow
+# invokes ci.yml explicitly and gates the build on its success.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Manual release trigger'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  version:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: v
+        run: |
+          V=$(perl .github/workflows/scripts/version.pl)
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $V"
+
+  build:
+    needs: version
+    uses: ./.github/workflows/_build.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
+      release-kind: release
+      changelog-flag: --release ${{ github.ref_name }}
+
+  publish-github:
+    needs: [version, build]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.cli-artifact }}
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.ui-artifact }}
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.nuget-artifact }}
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*.nupkg
+          generate_release_notes: true
+
+  publish-nuget:
+    needs: [version, build]
+    # NuGet push is tag-gated: only cuts published packages from real releases.
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.nuget-artifact }}
+          path: artifacts
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Push to nuget.org
+        run: dotnet nuget push artifacts/*.nupkg -k "${{ secrets.NUGET_TOKEN }}" -s https://api.nuget.org/v3/index.json --skip-duplicate

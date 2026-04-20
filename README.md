@@ -1,9 +1,12 @@
 # AnythingToGif
 
+[![CI](https://github.com/Hawkynt/AnythingToGif/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Hawkynt/AnythingToGif/actions/workflows/ci.yml)
+[![Release](https://github.com/Hawkynt/AnythingToGif/actions/workflows/release.yml/badge.svg)](https://github.com/Hawkynt/AnythingToGif/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?label=release&sort=semver)](https://github.com/Hawkynt/AnythingToGif/releases/latest)
+[![Latest nightly](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?include_prereleases&label=nightly&sort=date)](https://github.com/Hawkynt/AnythingToGif/releases?q=prerelease%3Atrue)
 ![License](https://img.shields.io/github/license/Hawkynt/AnythingToGif)
 ![Language](https://img.shields.io/github/languages/top/Hawkynt/AnythingToGif?color=purple)
-[![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=main)![Activity](https://img.shields.io/github/commit-activity/y/Hawkynt/AnythingToGif?branch=main)](https://github.com/Hawkynt/AnythingToGif/commits/main)
-[![GitHub release](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif)](https://github.com/Hawkynt/AnythingToGif/releases/latest)
+[![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=master)![Activity](https://img.shields.io/github/commit-activity/y/Hawkynt/AnythingToGif?branch=master)](https://github.com/Hawkynt/AnythingToGif/commits/master)
 [![Downloads](https://img.shields.io/github/downloads/Hawkynt/AnythingToGif/total)](https://github.com/Hawkynt/AnythingToGif/releases)
 
 
