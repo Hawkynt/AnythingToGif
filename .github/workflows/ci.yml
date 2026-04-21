@@ -1,24 +1,35 @@
 name: CI
 
+# AnythingToGif now has a ProjectReference to
+# `..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj`
+# (temporary, while upstream merges happen). CI checks out both repos
+# side-by-side so the relative path resolves.
+
 on:
   push:
     branches: [master, main]
   pull_request:
     branches: [master, main]
-  # release.yml calls this via `uses: ./.github/workflows/ci.yml` so tag
-  # releases run the exact same test matrix as per-PR CI.
   workflow_call: {}
 
 jobs:
   test:
     name: windows-latest / .NET 8
-    # net8.0-windows requires a Windows runtime at test time; building on Linux
-    # with EnableWindowsTargeting works, but tests can't execute there.
+    # net8.0-windows with WinForms + FFmpeg native DLLs can only run on Windows.
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout AnythingToGif
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0                          # version.pl needs full history
+          path: AnythingToGif
+          fetch-depth: 0
+
+      - name: Checkout FrameworkExtensions (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkynt/C--FrameworkExtensions
+          path: C--FrameworkExtensions
+          fetch-depth: 1
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -26,31 +37,44 @@ jobs:
 
       - name: Stamp versions into csprojs
         shell: bash
+        working-directory: AnythingToGif
         run: perl .github/workflows/scripts/version.pl --stamp
 
       - name: Restore
-        run: dotnet restore AnythingToGif.sln
+        working-directory: AnythingToGif
+        run: dotnet restore AnythingToGif.sln -p:DisableILRepack=true
 
-      - name: Build
-        run: dotnet build AnythingToGif.sln --configuration Release --no-restore
+      - name: Build (without ILRepack so tests can see unmerged interfaces)
+        working-directory: AnythingToGif
+        run: dotnet build AnythingToGif.sln --configuration Release --no-restore -p:DisableILRepack=true
 
       - name: Test
-        run: dotnet test AnythingToGif.Tests/AnythingToGif.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=tests.trx"
+        working-directory: AnythingToGif
+        run: dotnet test AnythingToGif.Tests/AnythingToGif.Tests.csproj --configuration Release --no-build -p:DisableILRepack=true --logger "trx;LogFileName=tests.trx"
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: '**/TestResults/*.trx'
+          path: 'AnythingToGif/**/TestResults/*.trx'
 
   coverage:
     name: coverage
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout AnythingToGif
+        uses: actions/checkout@v4
         with:
+          path: AnythingToGif
           fetch-depth: 0
+
+      - name: Checkout FrameworkExtensions (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: Hawkynt/C--FrameworkExtensions
+          path: C--FrameworkExtensions
+          fetch-depth: 1
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -58,13 +82,16 @@ jobs:
 
       - name: Stamp versions into csprojs
         shell: bash
+        working-directory: AnythingToGif
         run: perl .github/workflows/scripts/version.pl --stamp
 
       - name: Test with coverage
-        run: dotnet test AnythingToGif.Tests/AnythingToGif.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage
+        working-directory: AnythingToGif
+        run: dotnet test AnythingToGif.Tests/AnythingToGif.Tests.csproj --configuration Release -p:DisableILRepack=true --collect:"XPlat Code Coverage" --results-directory ./coverage
 
       - name: Generate coverage report
         shell: bash
+        working-directory: AnythingToGif
         run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:HtmlInline_AzurePipelines
@@ -73,4 +100,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: ./coverage/report
+          path: AnythingToGif/coverage/report

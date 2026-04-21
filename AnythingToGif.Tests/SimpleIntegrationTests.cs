@@ -4,8 +4,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using AnythingToGif.Ditherers;
-using AnythingToGif.Quantizers;
+using Hawkynt.Drawing.ColorDomain;
 using Hawkynt.GifFileFormat;
 using NUnit.Framework;
 
@@ -66,8 +65,8 @@ public class SimpleIntegrationTests {
     using var testImage = this.CreateTestImage(30, 30);
 
     var converter = new SingleImageHiColorGifConverter {
-      Quantizer = new OctreeQuantizer(),
-      Ditherer = NoDitherer.Instance,
+      Quantizer = TestQuantizers.Octree(),
+      Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!,
       MaximumColorsPerSubImage = 32
     };
 
@@ -84,25 +83,13 @@ public class SimpleIntegrationTests {
   }
 
   [Test]
-  public void AllPublicQuantizers_CanBeInstantiated() {
-    var assembly = Assembly.GetAssembly(typeof(IQuantizer));
-    Assert.That(assembly, Is.Not.Null);
-
-    var quantizerTypes = assembly.GetTypes()
-      .Where(t => typeof(IQuantizer).IsAssignableFrom(t) &&
-                  !t.IsInterface &&
-                  !t.IsAbstract &&
-                  t.IsPublic &&
-                  t.GetConstructors().Any(c => c.GetParameters().Length == 0))
-      .ToArray();
-
-    Assert.That(quantizerTypes.Length, Is.GreaterThan(0), "Should find at least some public quantizers");
-
-    foreach (var type in quantizerTypes) {
-      Assert.DoesNotThrow(() => {
-        var instance = Activator.CreateInstance(type) as IQuantizer;
-        Assert.That(instance, Is.Not.Null, $"Failed to create instance of {type.Name}");
-      }, $"Failed to instantiate {type.Name}");
+  public void AllUpstreamQuantizers_CanBeResolvedThroughRegistry() {
+    // Concrete local quantizer classes have been deleted; the concept this test
+    // guards (every algorithm is instantiable) now belongs to the upstream
+    // QuantizerRegistry. Verify a representative set resolves from it.
+    foreach (var name in new[] { "Octree", "Wu", "Median Cut", "Variance Based", "Variance Cut", "Binary Splitting", "ADU", "EGA 16", "VGA 256", "Web Safe", "Mac 8-Bit" }) {
+      var q = ColorQuantizerRegistry.FindByName(name);
+      Assert.That(q, Is.Not.Null, $"Upstream registry must resolve '{name}'");
     }
   }
 
@@ -112,7 +99,7 @@ public class SimpleIntegrationTests {
       (Color.Red, 100u), (Color.Green, 80u), (Color.Blue, 60u),
       (Color.Yellow, 40u), (Color.Purple, 20u), (Color.Orange, 10u)
     };
-    var quantizer = new OctreeQuantizer();
+    var quantizer = TestQuantizers.Octree();
 
     var result = quantizer.ReduceColorsTo(3, histogram);
 
@@ -126,7 +113,7 @@ public class SimpleIntegrationTests {
     var histogram = new[] {
       (Color.Red, 50u), (Color.Green, 40u), (Color.Blue, 30u), (Color.Yellow, 20u)
     };
-    var quantizer = new MedianCutQuantizer();
+    var quantizer = TestQuantizers.MedianCut();
 
     var result = quantizer.ReduceColorsTo(2, histogram);
 
@@ -141,7 +128,7 @@ public class SimpleIntegrationTests {
       (Color.Red, 60u), (Color.Green, 50u), (Color.Blue, 40u),
       (Color.White, 30u), (Color.Black, 20u)
     };
-    var quantizer = new WuQuantizer();
+    var quantizer = TestQuantizers.Wu();
 
     var result = quantizer.ReduceColorsTo(4, histogram);
 
@@ -153,15 +140,15 @@ public class SimpleIntegrationTests {
   [Test]
   public void NoDitherer_ProcessesImage() {
     using var testBitmap = this.CreateTestImage(10, 10);
-    var ditherer = NoDitherer.Instance;
+    var ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!;
     var palette = new[] { Color.Red, Color.Green, Color.Blue };
 
     // Test that the ditherer instance exists and can be called
     Assert.That(ditherer, Is.Not.Null);
     Assert.DoesNotThrow(() => {
       // Just verify we can access the ditherer without actually running complex bitmap operations
-      var type = ditherer.GetType();
-      Assert.That(type.Name, Is.EqualTo("NoDitherer"));
+      Assert.That(ditherer, Is.InstanceOf<ColorDithererAdapter>());
+      Assert.That(((ColorDithererAdapter)ditherer).Inner, Is.InstanceOf<Hawkynt.ColorProcessing.Dithering.NoDithering>());
     });
   }
 
@@ -172,8 +159,8 @@ public class SimpleIntegrationTests {
 
     // Convert image to frames
     var converter = new SingleImageHiColorGifConverter {
-      Quantizer = new OctreeQuantizer(),
-      Ditherer = NoDitherer.Instance,
+      Quantizer = TestQuantizers.Octree(),
+      Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!,
       MaximumColorsPerSubImage = 64
     };
 
@@ -200,8 +187,8 @@ public class SimpleIntegrationTests {
 
     foreach (var ordering in orderingModes) {
       var converter = new SingleImageHiColorGifConverter {
-        Quantizer = new OctreeQuantizer(),
-        Ditherer = NoDitherer.Instance,
+        Quantizer = TestQuantizers.Octree(),
+        Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!,
         ColorOrdering = ordering,
         MaximumColorsPerSubImage = 16
       };

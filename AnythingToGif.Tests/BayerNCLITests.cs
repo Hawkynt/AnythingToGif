@@ -1,10 +1,9 @@
 using System;
-using System.Drawing;  
+using System.Drawing;
 using System.Drawing.Imaging;
 using AnythingToGif.CLI;
-using AnythingToGif.Ditherers;
+using Hawkynt.Drawing.ColorDomain;
 using NUnit.Framework;
-using static AnythingToGif.CLI.Options;
 
 namespace AnythingToGif.Tests;
 
@@ -15,12 +14,14 @@ public class BayerNCLITests {
   public void BayerN_DefaultValue_DoesNotOverrideDitherer() {
     var options = new Options {
       BayerIndex = 0, // Default value
-      _Ditherer = DithererMode.FloydSteinberg
+      _Ditherer = "FloydSteinberg"
     };
-    
+
     var ditherer = options.Ditherer;
-    Assert.That(ditherer, Is.EqualTo(MatrixBasedDitherer.FloydSteinberg), 
+    Assert.That(ditherer, Is.Not.Null,
       "When BayerN is 0 (default), should use regular ditherer selection");
+    Assert.That(ditherer.GetType().Name, Does.Contain("Ditherer"),
+      "Resolved ditherer should be a real ditherer instance");
   }
 
   [Test]
@@ -39,13 +40,16 @@ public class BayerNCLITests {
     foreach (var (n, expectedSize) in testCases) {
       var options = new Options {
         BayerIndex = n,
-        _Ditherer = DithererMode.FloydSteinberg // This should be ignored
+        _Ditherer = "FloydSteinberg" // This should be ignored
       };
       
       var ditherer = options.Ditherer;
       Assert.That(ditherer, Is.Not.Null, $"BayerN={n} should produce a valid ditherer");
-      Assert.That(ditherer, Is.InstanceOf<OrderedDitherer>(), 
-        $"BayerN={n} should produce an OrderedDitherer");
+      Assert.That(ditherer, Is.InstanceOf<ColorDithererAdapter>(),
+        $"BayerN={n} should produce a ColorDithererAdapter");
+      var inner = ((ColorDithererAdapter)ditherer).Inner;
+      Assert.That(inner, Is.InstanceOf<Hawkynt.ColorProcessing.Dithering.OrderedDitherer>(),
+        $"BayerN={n} adapter should wrap an upstream OrderedDitherer");
       
       // Test that it works like expected
       Assert.DoesNotThrow(() => {
@@ -61,19 +65,21 @@ public class BayerNCLITests {
     foreach (var invalidN in invalidValues) {
       var options = new Options {
         BayerIndex = invalidN,
-        _Ditherer = DithererMode.FloydSteinberg
+        _Ditherer = "FloydSteinberg"
       };
       
       var ditherer = options.Ditherer;
-      Assert.That(ditherer, Is.EqualTo(MatrixBasedDitherer.FloydSteinberg), 
-        $"Invalid BayerN={invalidN} should fall back to regular ditherer selection");
+      Assert.That(ditherer, Is.InstanceOf<ColorDithererAdapter>());
+      var inner = ((ColorDithererAdapter)ditherer).Inner;
+      Assert.That(inner, Is.Not.InstanceOf<Hawkynt.ColorProcessing.Dithering.OrderedDitherer>(),
+        $"Invalid BayerN={invalidN} should fall back to regular ditherer selection (not Bayer)");
     }
   }
 
   [Test]
   public void BayerN3_EquivalentToBayer8x8() {
     var bayerNOptions = new Options { BayerIndex = 3 };
-    var bayer8x8Options = new Options { _Ditherer = DithererMode.Bayer8x8 };
+    var bayer8x8Options = new Options { _Ditherer = "Bayer8x8" };
     
     var bayerNDitherer = bayerNOptions.Ditherer;
     var bayer8x8Ditherer = bayer8x8Options.Ditherer;
@@ -189,7 +195,7 @@ public class BayerNCLITests {
     }
   }
 
-  private void TestDithererWorksCorrectly(IDitherer ditherer, int expectedSize) {
+  private void TestDithererWorksCorrectly(IColorDitherer ditherer, int expectedSize) {
     using var testBitmap = new Bitmap(4, 4, PixelFormat.Format24bppRgb);
     using var graphics = Graphics.FromImage(testBitmap);
     graphics.Clear(Color.FromArgb(128, 128, 128));

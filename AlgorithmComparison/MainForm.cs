@@ -11,11 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using AlgorithmComparison.Utilities;
-using AnythingToGif.ColorDistanceMetrics;
-using AnythingToGif.Ditherers;
-using AnythingToGif.Quantizers;
-using AnythingToGif.Quantizers.FixedPalettes;
-using AnythingToGif.Quantizers.Wrappers;
+using Hawkynt.Drawing.ColorDomain;
 
 namespace AlgorithmComparison;
 
@@ -766,7 +762,7 @@ The results will show which algorithm combinations work best for your specific i
     if (_testImage == null) return;
 
     // Create all test combinations
-    var testCombinations = new List<(string quantizerName, string dithererName, string metricName, IDitherer ditherer, IColorDistanceMetric metric)>();
+    var testCombinations = new List<(string quantizerName, string dithererName, string metricName, IColorDitherer ditherer, Hawkynt.Drawing.ColorDomain.ColorMetric metric)>();
     
     foreach (var (quantizerName, _) in selectedQuantizers) {
       foreach (var (dithererName, ditherer) in selectedDitherers) {
@@ -918,7 +914,7 @@ The results will show which algorithm combinations work best for your specific i
     }
   }
 
-  private void TestSingleCombination(ComparisonResult result, IQuantizer quantizer, IDitherer ditherer, IColorDistanceMetric metric) {
+  private void TestSingleCombination(ComparisonResult result, IColorQuantizer quantizer, IColorDitherer ditherer, Hawkynt.Drawing.ColorDomain.ColorMetric metric) {
     if (_testImage == null) return;
 
     // Create palette
@@ -965,7 +961,7 @@ The results will show which algorithm combinations work best for your specific i
     return source.Clone(new Rectangle(0, 0, source.Width, source.Height), PixelFormat.Format24bppRgb);
   }
 
-  private void TestSingleCombinationThreadSafe(ComparisonResult result, IQuantizer quantizer, IDitherer ditherer, IColorDistanceMetric metric, Bitmap testImage) {
+  private void TestSingleCombinationThreadSafe(ComparisonResult result, IColorQuantizer quantizer, IColorDitherer ditherer, Hawkynt.Drawing.ColorDomain.ColorMetric metric, Bitmap testImage) {
     if (testImage == null) return;
 
     int paletteSizeValue = 16; // Default value
@@ -1006,7 +1002,7 @@ The results will show which algorithm combinations work best for your specific i
     result.HistogramDifference = ImageQualityMetrics.CalculateHistogramDifference(testImage, processedImage);
   }
 
-  private static Bitmap ApplyDithering(Bitmap source, IDitherer ditherer, Color[] palette) {
+  private static Bitmap ApplyDithering(Bitmap source, IColorDitherer ditherer, Color[] palette) {
     // Validate input parameters
     if (source == null || source.Width <= 0 || source.Height <= 0) {
       throw new ArgumentException("Invalid source bitmap");
@@ -1071,185 +1067,57 @@ The results will show which algorithm combinations work best for your specific i
     }
   }
 
-  private static Dictionary<string, IQuantizer> GetAllQuantizers() {
-    // Return quantizer names mapped to sample instances for UI population
-    var quantizers = new Dictionary<string, IQuantizer>();
-    
-    // Add core quantizers
-    quantizers["OctreeQuantizer"] = new OctreeQuantizer();
-    quantizers["MedianCutQuantizer"] = new MedianCutQuantizer();
-    quantizers["WuQuantizer"] = new WuQuantizer();
-    quantizers["VarianceBasedQuantizer"] = new VarianceBasedQuantizer();
-    quantizers["BinarySplittingQuantizer"] = new BinarySplittingQuantizer();
-    quantizers["VarianceCutQuantizer"] = new VarianceCutQuantizer();
-    quantizers["AduQuantizer"] = new AduQuantizer(Euclidean.Instance.Calculate);
-    
-    // Add fixed palette quantizers
-    quantizers["EGA16Quantizer"] = new Ega16Quantizer();
-    quantizers["VGA256Quantizer"] = new Vga256Quantizer();
-    quantizers["WebSafeQuantizer"] = new WebSafeQuantizer();
-    quantizers["Mac8BitQuantizer"] = new Mac8BitQuantizer();
-    
-    // Add wrapper quantizers that can enhance any base quantizer
-    var baseQuantizer = new OctreeQuantizer(); // Use Octree as base for wrappers
-    try {
-      quantizers["PCA+OctreeQuantizer"] = new PcaQuantizerWrapper(baseQuantizer);
-    } catch {
-      // Skip if PCA wrapper fails to initialize
+  private static Dictionary<string, IColorQuantizer> GetAllQuantizers() {
+    var quantizers = new Dictionary<string, IColorQuantizer>();
+    foreach (var descriptor in Hawkynt.ColorProcessing.Quantization.QuantizerRegistry.All) {
+      var q = ColorQuantizerRegistry.FindByName(descriptor.Name);
+      if (q != null)
+        quantizers[descriptor.Name] = q;
     }
-    
-    try {
-      quantizers["AntRefinement+OctreeQuantizer"] = new AntRefinementWrapper(
-        baseQuantizer, 3, Euclidean.Instance.Calculate); // 3 iterations for speed
-    } catch {
-      // Skip if Ant wrapper fails to initialize
+
+    var baseQuantizer = ColorQuantizerRegistry.FindByName("Octree");
+    if (baseQuantizer != null) {
+      try { quantizers["PCA+Octree"] = new PcaColorQuantizerWrapper(baseQuantizer); }
+      catch { /* skip if PCA wrapper fails */ }
+      try {
+        quantizers["KMeansRefinement+Octree"] = new KMeansColorRefinementWrapper(
+          baseQuantizer, 3, ColorMetric.Euclidean.AsFunc());
+      } catch { /* skip if k-means wrapper fails */ }
     }
-    
+
     return quantizers;
   }
 
   /// <summary>
-  /// Creates a fresh quantizer instance for each test to avoid state contamination
+  /// Creates a fresh quantizer instance for each test to avoid state contamination.
   /// </summary>
-  private static IQuantizer CreateFreshQuantizer(string name) {
-    return name switch {
-      "OctreeQuantizer" => new OctreeQuantizer(),
-      "MedianCutQuantizer" => new MedianCutQuantizer(),
-      "WuQuantizer" => new WuQuantizer(),
-      "VarianceBasedQuantizer" => new VarianceBasedQuantizer(),
-      "BinarySplittingQuantizer" => new BinarySplittingQuantizer(),
-      "VarianceCutQuantizer" => new VarianceCutQuantizer(),
-      "AduQuantizer" => new AduQuantizer(Euclidean.Instance.Calculate),
-      "EGA16Quantizer" => new Ega16Quantizer(),
-      "VGA256Quantizer" => new Vga256Quantizer(),
-      "WebSafeQuantizer" => new WebSafeQuantizer(),
-      "Mac8BitQuantizer" => new Mac8BitQuantizer(),
-      "PCA+OctreeQuantizer" => new PcaQuantizerWrapper(new OctreeQuantizer()),
-      "AntRefinement+OctreeQuantizer" => new AntRefinementWrapper(new OctreeQuantizer(), 3, Euclidean.Instance.Calculate),
-      _ => throw new ArgumentException($"Unknown quantizer: {name}")
-    };
-  }
+  private static IColorQuantizer CreateFreshQuantizer(string name) => name switch {
+    "PCA+Octree" => new PcaColorQuantizerWrapper(ColorQuantizerRegistry.FindByName("Octree")!),
+    "KMeansRefinement+Octree" => new KMeansColorRefinementWrapper(ColorQuantizerRegistry.FindByName("Octree")!, 3, ColorMetric.Euclidean.AsFunc()),
+    _ => ColorQuantizerRegistry.FindByName(name)
+         ?? throw new ArgumentException($"Unknown quantizer: {name}")
+  };
 
-  private static Dictionary<string, IDitherer> GetAllDitherers() {
-    var ditherers = new Dictionary<string, IDitherer>();
-    
-    // Matrix-based ditherers (Error Diffusion)
-    ditherers["Floyd-Steinberg"] = MatrixBasedDitherer.FloydSteinberg;
-    ditherers["Equal Floyd-Steinberg"] = MatrixBasedDitherer.EqualFloydSteinberg;
-    ditherers["False Floyd-Steinberg"] = MatrixBasedDitherer.FalseFloydSteinberg;
-    ditherers["Simple"] = MatrixBasedDitherer.Simple;
-    ditherers["Jarvis-Judice-Ninke"] = MatrixBasedDitherer.JarvisJudiceNinke;
-    ditherers["Stucki"] = MatrixBasedDitherer.Stucki;
-    ditherers["Atkinson"] = MatrixBasedDitherer.Atkinson;
-    ditherers["Burkes"] = MatrixBasedDitherer.Burkes;
-    ditherers["Sierra"] = MatrixBasedDitherer.Sierra;
-    ditherers["Two-Row Sierra"] = MatrixBasedDitherer.TwoRowSierra;
-    ditherers["Sierra Lite"] = MatrixBasedDitherer.SierraLite;
-    ditherers["Pigeon"] = MatrixBasedDitherer.Pigeon;
-    ditherers["Stevenson-Arce"] = MatrixBasedDitherer.StevensonArce;
-    ditherers["Shiau-Fan"] = MatrixBasedDitherer.ShiauFan;
-    ditherers["Shiau-Fan2"] = MatrixBasedDitherer.ShiauFan2;
-    ditherers["Fan93"] = MatrixBasedDitherer.Fan93;
-    ditherers["TwoD"] = MatrixBasedDitherer.TwoD;
-    ditherers["Down"] = MatrixBasedDitherer.Down;
-    ditherers["Double Down"] = MatrixBasedDitherer.DoubleDown;
-    ditherers["Diagonal"] = MatrixBasedDitherer.Diagonal;
-    ditherers["Vertical Diamond"] = MatrixBasedDitherer.VerticalDiamond;
-    ditherers["Horizontal Diamond"] = MatrixBasedDitherer.HorizontalDiamond;
-    ditherers["Diamond"] = MatrixBasedDitherer.Diamond;
-    
-    // Ordered ditherers
-    ditherers["Bayer 2x2"] = OrderedDitherer.Bayer2x2;
-    ditherers["Bayer 4x4"] = OrderedDitherer.Bayer4x4;
-    ditherers["Bayer 8x8"] = OrderedDitherer.Bayer8x8;
-    ditherers["Bayer 16x16"] = OrderedDitherer.Bayer16x16;
-    ditherers["Halftone 8x8"] = OrderedDitherer.Halftone8x8;
-    
-    // Arithmetic ditherers
-    ditherers["A-Dither XOR-Y149"] = ADitherer.XorY149;
-    ditherers["A-Dither XOR-Y149 Channel"] = ADitherer.XorY149WithChannel;
-    ditherers["A-Dither XY Arithmetic"] = ADitherer.XYArithmetic;
-    ditherers["A-Dither XY Arithmetic Channel"] = ADitherer.XYArithmeticWithChannel;
-    ditherers["A-Dither Uniform"] = ADitherer.Uniform;
-    
-    // Riemersma ditherers
-    ditherers["Riemersma Default"] = RiemersmaDitherer.Default;
-    ditherers["Riemersma Small"] = RiemersmaDitherer.Small;
-    ditherers["Riemersma Large"] = RiemersmaDitherer.Large;
-    ditherers["Riemersma Linear"] = RiemersmaDitherer.Linear;
-    
-    // Noise ditherers
-    ditherers["White Noise"] = NoiseDitherer.White;
-    ditherers["White Noise Light"] = NoiseDitherer.WhiteLight;
-    ditherers["White Noise Strong"] = NoiseDitherer.WhiteStrong;
-    ditherers["Blue Noise"] = NoiseDitherer.Blue;
-    ditherers["Blue Noise Light"] = NoiseDitherer.BlueLight;
-    ditherers["Blue Noise Strong"] = NoiseDitherer.BlueStrong;
-    ditherers["Brown Noise"] = NoiseDitherer.Brown;
-    ditherers["Brown Noise Light"] = NoiseDitherer.BrownLight;
-    ditherers["Brown Noise Strong"] = NoiseDitherer.BrownStrong;
-    ditherers["Pink Noise"] = NoiseDitherer.Pink;
-    ditherers["Pink Noise Light"] = NoiseDitherer.PinkLight;
-    ditherers["Pink Noise Strong"] = NoiseDitherer.PinkStrong;
-    
-    // Knoll ditherers
-    ditherers["Knoll Default"] = KnollDitherer.Default;
-    ditherers["Knoll Bayer 8x8"] = KnollDitherer.Bayer8x8;
-    ditherers["Knoll High Quality"] = KnollDitherer.HighQuality;
-    ditherers["Knoll Fast"] = KnollDitherer.Fast;
-    
-    // N-Closest ditherers
-    ditherers["N-Closest Default"] = NClosestDitherer.Default;
-    ditherers["N-Closest Weighted Random 5"] = NClosestDitherer.WeightedRandom5;
-    ditherers["N-Closest Round Robin 4"] = NClosestDitherer.RoundRobin4;
-    ditherers["N-Closest Luminance 6"] = NClosestDitherer.Luminance6;
-    ditherers["N-Closest Blue Noise 4"] = NClosestDitherer.BlueNoise4;
-    
-    // N-Convex ditherers
-    ditherers["N-Convex Default"] = NConvexDitherer.Default;
-    ditherers["N-Convex Projection 6"] = NConvexDitherer.Projection6;
-    ditherers["N-Convex Spatial Pattern 3"] = NConvexDitherer.SpatialPattern3;
-    ditherers["N-Convex Weighted Random 5"] = NConvexDitherer.WeightedRandom5;
-    
-    // Adaptive ditherers
-    ditherers["Adaptive Quality Optimized"] = AdaptiveDitherer.QualityOptimized;
-    ditherers["Adaptive Balanced"] = AdaptiveDitherer.Balanced;
-    ditherers["Adaptive Performance Optimized"] = AdaptiveDitherer.PerformanceOptimized;
-    ditherers["Adaptive Smart Selection"] = AdaptiveDitherer.SmartSelection;
-    
-    // No dithering baseline
-    ditherers["No Dithering"] = new NoDitherer();
-    
+  private static Dictionary<string, IColorDitherer> GetAllDitherers() {
+    var ditherers = new Dictionary<string, IColorDitherer>();
+    foreach (var descriptor in Hawkynt.ColorProcessing.Dithering.DithererRegistry.All) {
+      var d = ColorDithererRegistry.FindByName(descriptor.Name);
+      if (d != null)
+        ditherers[descriptor.Name] = d;
+    }
     return ditherers;
   }
 
-  private static Dictionary<string, IColorDistanceMetric> GetAllColorDistanceMetrics() {
-    return new Dictionary<string, IColorDistanceMetric> {
-      ["Euclidean"] = Euclidean.Instance,
-      ["Manhattan"] = Manhattan.Instance,
-      ["CIE DE2000"] = CieDe2000.Instance,
-      ["CIE94-Textiles"] = Cie94.Textiles,
-      ["CIE94-GraphicArts"] = Cie94.GraphicArts,
-      ["WeightedEuclidean-RGBOnly"] = WeightedEuclidean.RGBOnly,
-      ["WeightedEuclidean-BT709"] = WeightedEuclidean.BT709,
-      ["WeightedEuclidean-Nommyde"] = WeightedEuclidean.Nommyde,
-      ["WeightedEuclidean-LowRed"] = WeightedEuclidean.LowRed,
-      ["WeightedEuclidean-HighRed"] = WeightedEuclidean.HighRed,
-      ["WeightedManhattan-RGBOnly"] = WeightedManhattan.RGBOnly,
-      ["WeightedManhattan-BT709"] = WeightedManhattan.BT709,
-      ["WeightedManhattan-Nommyde"] = WeightedManhattan.Nommyde,
-      ["WeightedManhattan-LowRed"] = WeightedManhattan.LowRed,
-      ["WeightedManhattan-HighRed"] = WeightedManhattan.HighRed,
-      ["WeightedYUV"] = WeightedYuv.Instance,
-      ["WeightedYCbCr"] = WeightedYCbCr.Instance,
-      ["PngQuant"] = PngQuant.Instance,
-      ["CompuPhase"] = CompuPhase.Instance
-    };
+  private static Dictionary<string, ColorMetric> GetAllColorDistanceMetrics() {
+    var dict = new Dictionary<string, ColorMetric>();
+    foreach (ColorMetric m in Enum.GetValues(typeof(ColorMetric)))
+      dict[m.ToString()] = m;
+    return dict;
   }
 
-  private Dictionary<string, IQuantizer> GetSelectedQuantizers() {
+  private Dictionary<string, IColorQuantizer> GetSelectedQuantizers() {
     var allQuantizers = GetAllQuantizers();
-    var selected = new Dictionary<string, IQuantizer>();
+    var selected = new Dictionary<string, IColorQuantizer>();
     
     for (var i = 0; i < _quantizersList.Items.Count; i++) {
       if (_quantizersList.GetItemChecked(i)) {
@@ -1263,9 +1131,9 @@ The results will show which algorithm combinations work best for your specific i
     return selected.Count > 0 ? selected : allQuantizers.Take(1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
   }
 
-  private Dictionary<string, IDitherer> GetSelectedDitherers() {
+  private Dictionary<string, IColorDitherer> GetSelectedDitherers() {
     var allDitherers = GetAllDitherers();
-    var selected = new Dictionary<string, IDitherer>();
+    var selected = new Dictionary<string, IColorDitherer>();
     
     for (var i = 0; i < _ditherersList.Items.Count; i++) {
       if (_ditherersList.GetItemChecked(i)) {
@@ -1279,9 +1147,9 @@ The results will show which algorithm combinations work best for your specific i
     return selected.Count > 0 ? selected : allDitherers.Take(1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
   }
 
-  private Dictionary<string, IColorDistanceMetric> GetSelectedColorMetrics() {
+  private Dictionary<string, Hawkynt.Drawing.ColorDomain.ColorMetric> GetSelectedColorMetrics() {
     var allMetrics = GetAllColorDistanceMetrics();
-    var selected = new Dictionary<string, IColorDistanceMetric>();
+    var selected = new Dictionary<string, Hawkynt.Drawing.ColorDomain.ColorMetric>();
     
     for (var i = 0; i < _metricsList.Items.Count; i++) {
       if (_metricsList.GetItemChecked(i)) {
@@ -1295,7 +1163,7 @@ The results will show which algorithm combinations work best for your specific i
     return selected.Count > 0 ? selected : allMetrics.Take(1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
   }
 
-  private static IQuantizer? GetQuantizer(string name) {
+  private static IColorQuantizer? GetQuantizer(string name) {
     try {
       return CreateFreshQuantizer(name);
     } catch {
@@ -1303,7 +1171,7 @@ The results will show which algorithm combinations work best for your specific i
     }
   }
 
-  private static IDitherer? GetDitherer(string name) {
+  private static IColorDitherer? GetDitherer(string name) {
     var ditherers = GetAllDitherers();
     return ditherers.TryGetValue(name, out var ditherer) ? ditherer : null;
   }

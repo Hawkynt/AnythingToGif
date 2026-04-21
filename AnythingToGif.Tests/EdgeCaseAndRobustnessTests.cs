@@ -4,9 +4,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using AnythingToGif.Ditherers;
 using AnythingToGif.Extensions;
-using AnythingToGif.Quantizers;
+using Hawkynt.Drawing.ColorDomain;
 using Hawkynt.GifFileFormat;
 using NUnit.Framework;
 
@@ -33,8 +32,8 @@ public class EdgeCaseAndRobustnessTests {
   public void SingleImageConverter_HandlesBoundaryDurations() {
     using var testImage = new Bitmap(10, 10);
     var converter = new SingleImageHiColorGifConverter {
-      Quantizer = new OctreeQuantizer(),
-      Ditherer = NoDitherer.Instance
+      Quantizer = TestQuantizers.Octree(),
+      Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!
     };
 
     // Test with very small duration
@@ -60,8 +59,8 @@ public class EdgeCaseAndRobustnessTests {
   public void SingleImageConverter_HandlesBoundaryColorCounts() {
     using var testImage = new Bitmap(5, 5);
     var converter = new SingleImageHiColorGifConverter {
-      Quantizer = new OctreeQuantizer(),
-      Ditherer = NoDitherer.Instance
+      Quantizer = TestQuantizers.Octree(),
+      Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!
     };
 
     // Test with minimum color count
@@ -87,8 +86,8 @@ public class EdgeCaseAndRobustnessTests {
     graphics.Clear(Color.Black);
 
     var converter = new SingleImageHiColorGifConverter {
-      Quantizer = new OctreeQuantizer(),
-      Ditherer = NoDitherer.Instance,
+      Quantizer = TestQuantizers.Octree(),
+      Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!,
       MaximumColorsPerSubImage = 32
     };
 
@@ -115,8 +114,8 @@ public class EdgeCaseAndRobustnessTests {
     }
 
     var converter = new SingleImageHiColorGifConverter {
-      Quantizer = new OctreeQuantizer(),
-      Ditherer = NoDitherer.Instance,
+      Quantizer = TestQuantizers.Octree(),
+      Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!,
       MaximumColorsPerSubImage = 64
     };
 
@@ -247,8 +246,8 @@ public class EdgeCaseAndRobustnessTests {
 
     foreach (var ordering in orderingModes) {
       var converter = new SingleImageHiColorGifConverter {
-        Quantizer = new OctreeQuantizer(),
-        Ditherer = NoDitherer.Instance,
+        Quantizer = TestQuantizers.Octree(),
+        Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!,
         ColorOrdering = ordering,
         MaximumColorsPerSubImage = 16
       };
@@ -270,8 +269,8 @@ public class EdgeCaseAndRobustnessTests {
       graphics.Clear(Color.FromArgb(i * 5, i * 3, i * 2));
 
       var converter = new SingleImageHiColorGifConverter {
-        Quantizer = new OctreeQuantizer(),
-        Ditherer = NoDitherer.Instance,
+        Quantizer = TestQuantizers.Octree(),
+        Ditherer = ColorDithererRegistry.FindByName("NoDithering_Instance")!,
         MaximumColorsPerSubImage = 32
       };
 
@@ -318,16 +317,16 @@ public class EdgeCaseAndRobustnessTests {
 
   [Test]
   public void ComponentInteraction_AllCombinations_Work() {
-    var quantizers = new IQuantizer[] {
-      new OctreeQuantizer(),
-      new MedianCutQuantizer(),
-      new WuQuantizer()
+    var quantizers = new IColorQuantizer[] {
+      TestQuantizers.Octree(),
+      TestQuantizers.MedianCut(),
+      TestQuantizers.Wu()
     };
 
-    var ditherers = new IDitherer[] {
-      NoDitherer.Instance,
-      OrderedDitherer.Bayer2x2,
-      OrderedDitherer.Bayer4x4
+    var ditherers = new IColorDitherer[] {
+      ColorDithererRegistry.FindByName("NoDithering_Instance")!,
+      ColorDithererRegistry.FindByName("Ordered_Bayer2x2")!,
+      ColorDithererRegistry.FindByName("Ordered_Bayer4x4")!
     };
 
     var colorOrderings = new[] {

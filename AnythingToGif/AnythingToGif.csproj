@@ -28,8 +28,17 @@
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="7.0.0" />
     <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.*" />
-    <PackageReference Include="FrameworkExtensions.System.Drawing" Version="1.0.0.36" />
-    <PackageReference Include="ILRepack.FullAuto" Version="1.6.0">
+    <!-- TEMPORARY ProjectReference against the local upstream working copy while we
+         eliminate duplicated quant/dither code. Revert to PackageReference once the
+         upstream PRs (public IQuantizer.CreateKernel, AduMetric, NoiseMode.Additive)
+         are merged and a new FrameworkExtensions.System.Drawing version is published. -->
+    <ProjectReference Include="..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj" />
+    <!-- ILRepack merges referenced assemblies into AnythingToGif.dll; that
+         rewrites visible method signatures so AnythingToGif.Tests fails with
+         MissingMethodException. CI sets `DisableILRepack=true` to test
+         against the unmerged build; release builds keep ILRepack for the
+         shippable single-file output. -->
+    <PackageReference Include="ILRepack.FullAuto" Version="1.6.0" Condition="'$(DisableILRepack)' != 'true'">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
