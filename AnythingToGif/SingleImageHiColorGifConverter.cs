@@ -6,9 +6,8 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Threading.Tasks;
 using AnythingToGif;
-using AnythingToGif.Ditherers;
 using AnythingToGif.Extensions;
-using AnythingToGif.Quantizers;
+using Hawkynt.Drawing.ColorDomain;
 using Hawkynt.GifFileFormat;
 
 public class SingleImageHiColorGifConverter {
@@ -16,8 +15,8 @@ public class SingleImageHiColorGifConverter {
   public TimeSpan? TotalFrameDuration { get; set; }
   public TimeSpan MinimumSubImageDuration { get; set; } = TimeSpan.FromMilliseconds(10);
   public TimeSpan SubImageDurationTimeSlice { get; set; } = TimeSpan.FromMilliseconds(10);
-  public IQuantizer? Quantizer { get; set; }
-  public IDitherer Ditherer { get; set; } = NoDitherer.Instance;
+  public IColorQuantizer? Quantizer { get; set; }
+  public IColorDitherer Ditherer { get; set; } = ColorDithererRegistry.FindByName("NoDithering_Instance")!;
   public ColorOrderingMode ColorOrdering { get; set; } = ColorOrderingMode.MostUsedFirst;
   public byte MaximumColorsPerSubImage { get; set; } = 255;
   public bool FirstSubImageInitsBackground { get; set; }
@@ -25,11 +24,10 @@ public class SingleImageHiColorGifConverter {
   public int? MaxFrames { get; set; }
 
   /// <summary>
-  /// The metric to use for calculating the distance between colors.
+  /// Metric used by the back-fill <see cref="PaletteLookup"/> when mapping colors to
+  /// palette indices. <see langword="null"/> means upstream's default
+  /// (<see cref="ColorMetric.CompuPhase"/>).
   /// </summary>
-  /// <remarks>
-  ///   <see langword="null"/> means automatically, which uses the one implemented in <see cref="AnythingToGif.Extensions.ColorExtensions.FindClosestColorIndex"/>.
-  /// </remarks>
   public Func<Color, Color, int>? ColorDistanceMetric { get; set; } = null;
 
   public IEnumerable<Frame> Convert(Bitmap image) {
@@ -102,7 +100,7 @@ public class SingleImageHiColorGifConverter {
 
     var totalFrameTime = TimeSpan.Zero;
     if (this.FirstSubImageInitsBackground) {
-      using var bgBitmap = SingleImageHiColorGifConverter._CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer ?? NoDitherer.Instance, histogram, this.ColorOrdering, this.ColorDistanceMetric);
+      using var bgBitmap = SingleImageHiColorGifConverter._CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer, histogram, this.ColorOrdering, this.ColorDistanceMetric);
       yield return Frame.FromBitmap(bgBitmap, frameDuration, FrameDisposalMethod.DoNotDispose);
       totalFrameTime += frameDuration;
       if (--availableFrames <= 0)
@@ -158,10 +156,10 @@ public class SingleImageHiColorGifConverter {
         });
 
         if (otherSegments != null) {
-          var wrapper = new PaletteWrapper(paletteEntries, this.ColorDistanceMetric);
+          var lookup = new PaletteLookup(paletteEntries, this.ColorDistanceMetric);
           Parallel.ForEach(otherSegments, tuple => {
             var (color, positions) = tuple;
-            var closestColorIndex = (byte)wrapper.FindClosestColorIndex(color);
+            var closestColorIndex = (byte)lookup.FindClosestColorIndex(color);
             foreach (var point in positions)
               pixels[point.Y.FusedMultiplyAdd(stride, point.X)] = closestColorIndex;
           });
@@ -177,7 +175,7 @@ public class SingleImageHiColorGifConverter {
 
   }
 
-  private static Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IQuantizer? quantizer, IDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode, Func<Color, Color, int>? colorDistanceMetric) {
+  private static Bitmap _CreateBackgroundImage(Bitmap image, byte maxColors, IColorQuantizer? quantizer, IColorDitherer ditherer, IDictionary<Color, ICollection<Point>> histogram, ColorOrderingMode mode, Func<Color, Color, int>? colorDistanceMetric) {
     var colors =
       maxColors >= histogram.Count
       ? histogram.Keys

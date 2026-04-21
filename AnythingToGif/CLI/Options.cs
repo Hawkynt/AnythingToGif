@@ -1,23 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
-using AnythingToGif.ColorDistanceMetrics;
-using AnythingToGif.Ditherers;
-using AnythingToGif.Quantizers;
-using AnythingToGif.Quantizers.FixedPalettes;
-using AnythingToGif.Quantizers.Wrappers;
 using CommandLine;
 using CommandLine.Text;
+using Hawkynt.ColorProcessing;
+using Hawkynt.ColorProcessing.Dithering;
+using Hawkynt.Drawing.ColorDomain;
+using DithererRegistry = Hawkynt.ColorProcessing.Dithering.DithererRegistry;
+using QuantizerRegistry = Hawkynt.ColorProcessing.Quantization.QuantizerRegistry;
+using UpstreamOrderedDitherer = Hawkynt.ColorProcessing.Dithering.OrderedDitherer;
 
 namespace AnythingToGif.CLI;
 
 internal class Options {
 
   public enum ColorDistanceMetric {
-    [Description("Let application decide")]Default,
+    [Description("Let application decide")] Default,
     [Description("Euclidean")] Euclidean,
     [Description("Euclidean (RGB only)")] EuclideanRGBOnly,
     [Description("Manhattan")] Manhattan,
@@ -39,104 +41,57 @@ internal class Options {
     [Description("CIE94 Graphic Arts")] Cie94GraphicArts,
   }
 
-  public enum QuantizerMode {
-    [Description("EGA 16-colors")] Ega16,
-    [Description("VGA 256-colors")] Vga256,
-    [Description("Web Safe palette")] WebSafe,
-    [Description("Mac 8-bit system palette")] Mac8Bit,
-    [Description("Median-Cut")] MedianCut,
-    [Description("Octree")] Octree,
-    [Description("Greedy Orthogonal Bi-Partitioning (Wu)")] GreedyOrthogonalBiPartitioning,
-    [Description("Variance-Cut")] VarianceCut,
-    [Description("Variance-Based")] VarianceBased,
-    [Description("Binary Splitting")] BinarySplitting,
-    [Description("Adaptive Distributing Units")] Adu
-  }
+  /// <summary>Maps the CLI metric enum onto the upstream <see cref="ColorMetric"/>.</summary>
+  private static readonly Dictionary<ColorDistanceMetric, ColorMetric> _metricMap = new() {
+    [ColorDistanceMetric.Euclidean] = ColorMetric.Euclidean,
+    [ColorDistanceMetric.EuclideanRGBOnly] = ColorMetric.EuclideanRgbOnly,
+    [ColorDistanceMetric.EuclideanBT709] = ColorMetric.EuclideanBT709,
+    [ColorDistanceMetric.EuclideanNommyde] = ColorMetric.EuclideanNommyde,
+    [ColorDistanceMetric.WeightedEuclideanLowRed] = ColorMetric.WeightedEuclideanLowRed,
+    [ColorDistanceMetric.WeightedEuclideanHighRed] = ColorMetric.WeightedEuclideanHighRed,
+    [ColorDistanceMetric.Manhattan] = ColorMetric.Manhattan,
+    [ColorDistanceMetric.ManhattanRGBOnly] = ColorMetric.ManhattanRgbOnly,
+    [ColorDistanceMetric.ManhattanBT709] = ColorMetric.ManhattanBT709,
+    [ColorDistanceMetric.ManhattanNommyde] = ColorMetric.ManhattanNommyde,
+    [ColorDistanceMetric.WeightedManhattanLowRed] = ColorMetric.WeightedManhattanLowRed,
+    [ColorDistanceMetric.WeightedManhattanHighRed] = ColorMetric.WeightedManhattanHighRed,
+    [ColorDistanceMetric.CompuPhase] = ColorMetric.CompuPhase,
+    [ColorDistanceMetric.PNGQuant] = ColorMetric.PngQuant,
+    [ColorDistanceMetric.WeightedYuv] = ColorMetric.WeightedYuv,
+    [ColorDistanceMetric.WeightedYCbCr] = ColorMetric.WeightedYCbCr,
+    [ColorDistanceMetric.CieDe2000] = ColorMetric.CieDe2000,
+    [ColorDistanceMetric.Cie94Textiles] = ColorMetric.Cie94Textiles,
+    [ColorDistanceMetric.Cie94GraphicArts] = ColorMetric.Cie94GraphicArts,
+  };
 
-  public enum DithererMode {
-    [Description("None")] None,
-    [Description("Floyd-Steinberg")] FloydSteinberg,
-    [Description("Equally-Distributed Floyd-Steinberg")] EqualFloydSteinberg,
-    [Description("False Floyd-Steinberg")] FalseFloydSteinberg,
-    [Description("Jarvis-Judice-Ninke")] JarvisJudiceNinke,
-    [Description("Stucki")] Stucki,
-    [Description("Atkinson")] Atkinson,
-    [Description("Burkes")] Burkes,
-    [Description("Sierra")] Sierra,
-    [Description("2-row Sierra")] TwoRowSierra,
-    [Description("Sierra Lite")] SierraLite,
-    [Description("Pigeon")] Pigeon,
-    [Description("Stevenson-Arce")] StevensonArce,
-    [Description("ShiauFan")] ShiauFan,
-    [Description("ShiauFan2")] ShiauFan2,
-    [Description("Fan93")] Fan93,
-    [Description("TwoD")] TwoD,
-    [Description("Down")] Down,
-    [Description("DoubleDown")] DoubleDown,
-    [Description("Diagonal")] Diagonal,
-    [Description("VerticalDiamond")] VerticalDiamond,
-    [Description("HorizontalDiamond")] HorizontalDiamond,
-    [Description("Diamond")] Diamond,
-    [Description("Bayer 2x2")] Bayer2x2,
-    [Description("Bayer 4x4")] Bayer4x4,
-    [Description("Bayer 8x8")] Bayer8x8,
-    [Description("Bayer 16x16")] Bayer16x16,
-    [Description("Halftone 8x8")] Halftone8x8,
-    [Description("A-Dither XOR-Y149")] ADitherXorY149,
-    [Description("A-Dither XOR-Y149 with Channel")] ADitherXorY149WithChannel,
-    [Description("A-Dither XY Arithmetic")] ADitherXYArithmetic,
-    [Description("A-Dither XY Arithmetic with Channel")] ADitherXYArithmeticWithChannel,
-    [Description("A-Dither Uniform")] ADitherUniform,
-    [Description("Riemersma (Default)")] RiemersmaDefault,
-    [Description("Riemersma (Small)")] RiemersmaSmall,
-    [Description("Riemersma (Large)")] RiemersmaLarge,
-    [Description("Riemersma (Linear)")] RiemersmaLinear,
-    [Description("White Noise (50%)")] WhiteNoise,
-    [Description("White Noise (30%)")] WhiteNoiseLight,
-    [Description("White Noise (70%)")] WhiteNoiseStrong,
-    [Description("Blue Noise (50%)")] BlueNoise,
-    [Description("Blue Noise (30%)")] BlueNoiseLight,
-    [Description("Blue Noise (70%)")] BlueNoiseStrong,
-    [Description("Brown Noise (50%)")] BrownNoise,
-    [Description("Brown Noise (30%)")] BrownNoiseLight,
-    [Description("Brown Noise (70%)")] BrownNoiseStrong,
-    [Description("Pink Noise (50%)")] PinkNoise,
-    [Description("Pink Noise (30%)")] PinkNoiseLight,
-    [Description("Pink Noise (70%)")] PinkNoiseStrong,
-    [Description("Knoll (Default)")] KnollDefault,
-    [Description("Knoll (8x8 Bayer)")] KnollBayer8x8,
-    [Description("Knoll (High Quality)")] KnollHighQuality,
-    [Description("Knoll (Fast)")] KnollFast,
-    [Description("N-Closest (Default)")] NClosestDefault,
-    [Description("N-Closest (Weighted Random 5)")] NClosestWeightedRandom5,
-    [Description("N-Closest (Round Robin 4)")] NClosestRoundRobin4,
-    [Description("N-Closest (Luminance 6)")] NClosestLuminance6,
-    [Description("N-Closest (Blue Noise 4)")] NClosestBlueNoise4,
-    [Description("N-Convex (Default)")] NConvexDefault,
-    [Description("N-Convex (Projection 6)")] NConvexProjection6,
-    [Description("N-Convex (Spatial Pattern 3)")] NConvexSpatialPattern3,
-    [Description("N-Convex (Weighted Random 5)")] NConvexWeightedRandom5,
-    [Description("Adaptive (Quality Optimized)")] AdaptiveQualityOptimized,
-    [Description("Adaptive (Balanced)")] AdaptiveBalanced,
-    [Description("Adaptive (Performance Optimized)")] AdaptivePerformanceOptimized,
-    [Description("Adaptive (Smart Selection)")] AdaptiveSmartSelection,
-  [Description("Ostromoukhov Variable-Coefficient")] Ostromoukhov,
-  [Description("Yliluoma Ordered 1")] YliluomaOrdered1,
-  [Description("Yliluoma Ordered 2")] YliluomaOrdered2,
-  [Description("Yliluoma Ordered 3")] YliluomaOrdered3,
-  [Description("Structure-Aware Default")] StructureAwareDefault,
-  [Description("Structure-Aware Priority")] StructureAwarePriority,
-  [Description("Structure-Aware Large")] StructureAwareLarge,
-  [Description("Dizzy Dithering Default")] DizzyDefault,
-  [Description("Dizzy Dithering High Quality")] DizzyHighQuality,
-  [Description("Dizzy Dithering Fast")] DizzyFast,
-  [Description("Smart AI (Default)")] SmartDefault,
-  [Description("Smart AI (High Quality)")] SmartHighQuality,
-  [Description("Smart AI (Fast)")] SmartFast,
-  [Description("Adaptive Matrix (Default)")] AdaptiveMatrixDefault,
-  [Description("Adaptive Matrix (Aggressive)")] AdaptiveMatrixAggressive,
-  [Description("Adaptive Matrix (Conservative)")] AdaptiveMatrixConservative
-  }
+  /// <summary>
+  /// Aliases for quantizer short names that don't match upstream registry display names.
+  /// </summary>
+  private static readonly Dictionary<string, string> _quantizerAliases = new(StringComparer.OrdinalIgnoreCase) {
+    ["GreedyOrthogonalBiPartitioning"] = "Wu",
+    ["Adu"] = "ADU",
+    ["MedianCut"] = "Median Cut",
+    ["VarianceBased"] = "Variance Based",
+    ["VarianceCut"] = "Variance Cut",
+    ["BinarySplitting"] = "Binary Splitting",
+    ["Ega16"] = "EGA 16",
+    ["Vga256"] = "VGA 256",
+    ["WebSafe"] = "Web Safe",
+    ["Mac8Bit"] = "Mac 8-Bit",
+  };
+
+  /// <summary>
+  /// Disambiguates short ditherer names whose suffix-match would hit multiple registry entries.
+  /// </summary>
+  private static readonly Dictionary<string, string> _ditherAliases = new(StringComparer.OrdinalIgnoreCase) {
+    ["None"] = "NoDithering_Instance",
+    ["Bayer2x2"] = "Ordered_Bayer2x2",
+    ["Bayer4x4"] = "Ordered_Bayer4x4",
+    ["Bayer8x8"] = "Ordered_Bayer8x8",
+    ["Bayer16x16"] = "Ordered_Bayer16x16",
+    ["Default"] = "ErrorDiffusion_FloydSteinberg",
+    ["Instance"] = "Ostromoukhov_Instance",
+  };
 
   [Value(0, MetaName = "input", HelpText = "Input directory or file. If not specified, defaults to the current directory.", Required = false)]
   public string _InputPath { get; set; } = Directory.GetCurrentDirectory();
@@ -144,7 +99,7 @@ internal class Options {
   [Value(1, MetaName = "output", HelpText = "Output directory or file. If not specified, defaults to the current directory.", Required = false)]
   public string _OutputPath { get; set; } = Directory.GetCurrentDirectory();
 
-  [Option('a', "useAntRefinement", Default = false, HelpText = "Whether to apply Ant-tree like iterative refinement after initial quantization.")]
+  [Option('a', "useAntRefinement", Default = false, HelpText = "Whether to apply k-means-style iterative refinement after initial quantization.")]
   public bool UseAntRefinement { get; set; }
 
   [Option('b', "firstSubImageInitsBackground", Default = true, HelpText = "Whether the first sub-image initializes the background.")]
@@ -153,8 +108,8 @@ internal class Options {
   [Option('c', "colorOrdering", Default = ColorOrderingMode.MostUsedFirst, HelpText = "Color ordering mode.")]
   public ColorOrderingMode ColorOrdering { get; set; }
 
-  [Option('d', "ditherer", Default = DithererMode.FloydSteinberg, HelpText = "Ditherer to use.")]
-  public DithererMode _Ditherer { get; set; }
+  [Option('d', "ditherer", Default = "FloydSteinberg", HelpText = "Ditherer name. Use --help to list all available names (resolved against the upstream DithererRegistry).")]
+  public string _Ditherer { get; set; } = "FloydSteinberg";
 
   [Option("bayer", Default = 0, HelpText = "Generate 2^n Bayer matrix (e.g., --bayer 4 creates 16x16 matrix). When specified, overrides --ditherer. Valid range: 1-8.")]
   public int BayerIndex { get; set; }
@@ -162,7 +117,7 @@ internal class Options {
   [Option('f', "useBackFilling", Default = false, HelpText = "Whether to use backfilling.")]
   public bool UseBackFilling { get; set; }
 
-  [Option('i', "antIterations", Default = 25, HelpText = "Number of iterations for Ant-tree like refinement.")]
+  [Option('i', "antIterations", Default = 25, HelpText = "Number of iterations for k-means refinement.")]
   public int AntIterations { get; set; }
 
   [Option('m', "metric", Default = ColorDistanceMetric.Default, HelpText = "Color distance metric to use.")]
@@ -174,8 +129,8 @@ internal class Options {
   [Option('p', "usePca", Default = false, HelpText = "Use PCA (Principal Component Analysis) preprocessing before quantization.")]
   public bool UsePca { get; set; }
 
-  [Option('q', "quantizer", Default = QuantizerMode.Octree, HelpText = "Quantizer to use.")]
-  public QuantizerMode _Quantizer { get; set; }
+  [Option('q', "quantizer", Default = "Octree", HelpText = "Quantizer name (resolved against the upstream QuantizerRegistry). Use --help to list available names.")]
+  public string _Quantizer { get; set; } = "Octree";
 
   [Option("maxFrames", Default = 0, HelpText = "Maximum number of frames to generate for non-video data. 0 means no limit.")]
   public int MaxFrames { get; set; }
@@ -186,7 +141,7 @@ internal class Options {
   [Option("totalTime", Default = 0.0, HelpText = "Total animation time in seconds for non-video data. 0 means use frame count.")]
   public double TotalTimeSeconds { get; set; }
 
-  [Option("serpentine", Default = false, HelpText = "Apply serpentine (boustrophedon) scanning to matrix-based error diffusion ditherers to reduce directional artifacts.")]
+  [Option("serpentine", Default = false, HelpText = "Apply serpentine (boustrophedon) scanning to error-diffusion ditherers to reduce directional artifacts.")]
   public bool UseSerpentine { get; set; }
 
   [Option("disallowFillingColors", Default = false, HelpText = "Prevent quantizer to fill empty palette slots with additional colors (Black, White, RGB primaries, etc.). When enabled, only fills with transparent colors.")]
@@ -196,160 +151,78 @@ internal class Options {
 
   public FileSystemInfo OutputPath => Directory.Exists(this._OutputPath) ? new DirectoryInfo(this._OutputPath) : new FileInfo(this._OutputPath);
 
-  public Func<Color, Color, int>? Metric => this._Metric switch {
-    ColorDistanceMetric.Default => null,
-    ColorDistanceMetric.Euclidean => Euclidean.Instance.Calculate,
-    ColorDistanceMetric.EuclideanBT709 => WeightedEuclidean.BT709.Calculate,
-    ColorDistanceMetric.EuclideanNommyde => WeightedEuclidean.Nommyde.Calculate,
-    ColorDistanceMetric.EuclideanRGBOnly => WeightedEuclidean.RGBOnly.Calculate,
-    ColorDistanceMetric.WeightedEuclideanHighRed => WeightedEuclidean.HighRed.Calculate,
-    ColorDistanceMetric.WeightedEuclideanLowRed => WeightedEuclidean.LowRed.Calculate,
-    ColorDistanceMetric.Manhattan => Manhattan.Instance.Calculate,
-    ColorDistanceMetric.ManhattanBT709 => WeightedManhattan.BT709.Calculate,
-    ColorDistanceMetric.ManhattanNommyde => WeightedManhattan.Nommyde.Calculate,
-    ColorDistanceMetric.ManhattanRGBOnly => WeightedManhattan.RGBOnly.Calculate,
-    ColorDistanceMetric.WeightedManhattanHighRed => WeightedManhattan.HighRed.Calculate,
-    ColorDistanceMetric.WeightedManhattanLowRed => WeightedManhattan.LowRed.Calculate,
-    ColorDistanceMetric.CompuPhase => CompuPhase.Instance.Calculate,
-    ColorDistanceMetric.PNGQuant => PngQuant.Instance.Calculate,
-    ColorDistanceMetric.WeightedYCbCr => WeightedYCbCr.Instance.Calculate,
-    ColorDistanceMetric.WeightedYuv => WeightedYuv.Instance.Calculate,
-    ColorDistanceMetric.CieDe2000 => CieDe2000.Instance.Calculate,
-    ColorDistanceMetric.Cie94Textiles => Cie94.Textiles.Calculate,
-    ColorDistanceMetric.Cie94GraphicArts => Cie94.GraphicArts.Calculate,
-    _ => throw new("Unknown color distance metric")
-  };
+  /// <summary>
+  /// CLI-selected metric translated to a runtime delegate via upstream <see cref="ColorMetric"/>.
+  /// <see langword="null"/> when the user picked <see cref="ColorDistanceMetric.Default"/>.
+  /// </summary>
+  public Func<Color, Color, int>? Metric => _metricMap.TryGetValue(this._Metric, out var m) ? m.AsFunc() : null;
 
   public TimeSpan FrameDuration => TimeSpan.FromMilliseconds(this.FrameDurationMs);
 
   public TimeSpan? TotalTime => this.TotalTimeSeconds > 0 ? TimeSpan.FromSeconds(this.TotalTimeSeconds) : null;
 
-  public Func<IQuantizer> Quantizer => () => {
-    IQuantizer q = this._Quantizer switch {
-      QuantizerMode.Ega16 => new Ega16Quantizer(),
-      QuantizerMode.Vga256 => new Vga256Quantizer(),
-      QuantizerMode.WebSafe => new WebSafeQuantizer(),
-      QuantizerMode.Mac8Bit => new Mac8BitQuantizer(),
-      QuantizerMode.Octree => new OctreeQuantizer(),
-      QuantizerMode.MedianCut => new MedianCutQuantizer(),
-      QuantizerMode.GreedyOrthogonalBiPartitioning => new WuQuantizer(),
-      QuantizerMode.VarianceCut => new VarianceCutQuantizer(),
-      QuantizerMode.VarianceBased => new VarianceBasedQuantizer(),
-      QuantizerMode.BinarySplitting => new BinarySplittingQuantizer(),
-      QuantizerMode.Adu => new AduQuantizer(this.Metric ?? CompuPhase.Instance.Calculate),
-      _ => throw new("Unknown quantizer")
-    };
+  public Func<IColorQuantizer> Quantizer => () => {
+    var q = this.ResolveQuantizer(this._Quantizer ?? "Octree");
 
-    if(q is QuantizerBase qb)
-      qb.AllowFillingColors = !this.DisallowFillingColors;
-    
     if (this.UsePca)
-      q = new PcaQuantizerWrapper(q);
+      q = new PcaColorQuantizerWrapper(q);
 
     if (this.UseAntRefinement)
-      q = new AntRefinementWrapper(q, this.AntIterations, this.Metric ?? CompuPhase.Instance.Calculate);
+      q = new KMeansColorRefinementWrapper(q, this.AntIterations, this.Metric ?? ColorMetric.CompuPhase.AsFunc());
 
     return q;
   };
 
-  public IDitherer Ditherer {
+  public IColorDitherer Ditherer {
     get {
-      // If BayerN is specified and valid, use it instead of the regular ditherer
+      // --bayer N override: explicit Bayer matrix size 2^N
       if (this.BayerIndex is >= 1 and <= 8) {
-        var size = 1 << this.BayerIndex; // 2^n
-        return OrderedDitherer.CreateBayer(size);
+        var bayer = new UpstreamOrderedDitherer(BayerMatrix.Generate(1 << this.BayerIndex));
+        return MaybeSerpentine(new ColorDithererAdapter(bayer));
       }
-      
-      // Otherwise use the regular ditherer selection
-      var baseDitherer = this._Ditherer switch {
-        DithererMode.FloydSteinberg => MatrixBasedDitherer.FloydSteinberg,
-        DithererMode.EqualFloydSteinberg => MatrixBasedDitherer.EqualFloydSteinberg,
-        DithererMode.FalseFloydSteinberg => MatrixBasedDitherer.FalseFloydSteinberg,
-        DithererMode.JarvisJudiceNinke => MatrixBasedDitherer.JarvisJudiceNinke,
-        DithererMode.Stucki => MatrixBasedDitherer.Stucki,
-        DithererMode.Atkinson => MatrixBasedDitherer.Atkinson,
-        DithererMode.Burkes => MatrixBasedDitherer.Burkes,
-        DithererMode.Sierra => MatrixBasedDitherer.Sierra,
-        DithererMode.TwoRowSierra => MatrixBasedDitherer.TwoRowSierra,
-        DithererMode.SierraLite => MatrixBasedDitherer.SierraLite,
-        DithererMode.Pigeon => MatrixBasedDitherer.Pigeon,
-        DithererMode.StevensonArce => MatrixBasedDitherer.StevensonArce,
-        DithererMode.ShiauFan => MatrixBasedDitherer.ShiauFan,
-        DithererMode.ShiauFan2 => MatrixBasedDitherer.ShiauFan2,
-        DithererMode.Fan93 => MatrixBasedDitherer.Fan93,
-        DithererMode.TwoD => MatrixBasedDitherer.TwoD,
-        DithererMode.Down => MatrixBasedDitherer.Down,
-        DithererMode.DoubleDown => MatrixBasedDitherer.DoubleDown,
-        DithererMode.Diagonal => MatrixBasedDitherer.Diagonal,
-        DithererMode.VerticalDiamond => MatrixBasedDitherer.VerticalDiamond,
-        DithererMode.HorizontalDiamond => MatrixBasedDitherer.HorizontalDiamond,
-        DithererMode.Diamond => MatrixBasedDitherer.Diamond,
-        DithererMode.Bayer2x2 => OrderedDitherer.Bayer2x2,
-        DithererMode.Bayer4x4 => OrderedDitherer.Bayer4x4,
-        DithererMode.Bayer8x8 => OrderedDitherer.Bayer8x8,
-        DithererMode.Bayer16x16 => OrderedDitherer.Bayer16x16,
-        DithererMode.Halftone8x8 => OrderedDitherer.Halftone8x8,
-        DithererMode.ADitherXorY149 => ADitherer.XorY149,
-        DithererMode.ADitherXorY149WithChannel => ADitherer.XorY149WithChannel,
-        DithererMode.ADitherXYArithmetic => ADitherer.XYArithmetic,
-        DithererMode.ADitherXYArithmeticWithChannel => ADitherer.XYArithmeticWithChannel,
-        DithererMode.ADitherUniform => ADitherer.Uniform,
-        DithererMode.RiemersmaDefault => RiemersmaDitherer.Default,
-        DithererMode.RiemersmaSmall => RiemersmaDitherer.Small,
-        DithererMode.RiemersmaLarge => RiemersmaDitherer.Large,
-        DithererMode.RiemersmaLinear => RiemersmaDitherer.Linear,
-        DithererMode.WhiteNoise => NoiseDitherer.White,
-        DithererMode.WhiteNoiseLight => NoiseDitherer.WhiteLight,
-        DithererMode.WhiteNoiseStrong => NoiseDitherer.WhiteStrong,
-        DithererMode.BlueNoise => NoiseDitherer.Blue,
-        DithererMode.BlueNoiseLight => NoiseDitherer.BlueLight,
-        DithererMode.BlueNoiseStrong => NoiseDitherer.BlueStrong,
-        DithererMode.BrownNoise => NoiseDitherer.Brown,
-        DithererMode.BrownNoiseLight => NoiseDitherer.BrownLight,
-        DithererMode.BrownNoiseStrong => NoiseDitherer.BrownStrong,
-        DithererMode.PinkNoise => NoiseDitherer.Pink,
-        DithererMode.PinkNoiseLight => NoiseDitherer.PinkLight,
-        DithererMode.PinkNoiseStrong => NoiseDitherer.PinkStrong,
-        DithererMode.KnollDefault => KnollDitherer.Default,
-        DithererMode.KnollBayer8x8 => KnollDitherer.Bayer8x8,
-        DithererMode.KnollHighQuality => KnollDitherer.HighQuality,
-        DithererMode.KnollFast => KnollDitherer.Fast,
-        DithererMode.NClosestDefault => NClosestDitherer.Default,
-        DithererMode.NClosestWeightedRandom5 => NClosestDitherer.WeightedRandom5,
-        DithererMode.NClosestRoundRobin4 => NClosestDitherer.RoundRobin4,
-        DithererMode.NClosestLuminance6 => NClosestDitherer.Luminance6,
-        DithererMode.NClosestBlueNoise4 => NClosestDitherer.BlueNoise4,
-        DithererMode.NConvexDefault => NConvexDitherer.Default,
-        DithererMode.NConvexProjection6 => NConvexDitherer.Projection6,
-        DithererMode.NConvexSpatialPattern3 => NConvexDitherer.SpatialPattern3,
-        DithererMode.NConvexWeightedRandom5 => NConvexDitherer.WeightedRandom5,
-        DithererMode.AdaptiveQualityOptimized => AdaptiveDitherer.QualityOptimized,
-        DithererMode.AdaptiveBalanced => AdaptiveDitherer.Balanced,
-        DithererMode.AdaptivePerformanceOptimized => AdaptiveDitherer.PerformanceOptimized,
-        DithererMode.AdaptiveSmartSelection => AdaptiveDitherer.SmartSelection,
-        DithererMode.Ostromoukhov => OstromoukhovDitherer.Instance,
-        DithererMode.YliluomaOrdered1 => YliluomaDitherer.Algorithm1,
-        DithererMode.YliluomaOrdered2 => YliluomaDitherer.Algorithm2,
-        DithererMode.YliluomaOrdered3 => YliluomaDitherer.Algorithm3,
-        DithererMode.StructureAwareDefault => StructureAwareDitherer.Default,
-        DithererMode.StructureAwarePriority => StructureAwareDitherer.Priority,
-        DithererMode.StructureAwareLarge => StructureAwareDitherer.Large,
-        DithererMode.DizzyDefault => DizzyDitherer.Default,
-        DithererMode.DizzyHighQuality => DizzyDitherer.HighQuality,
-        DithererMode.DizzyFast => DizzyDitherer.Fast,
-        DithererMode.SmartDefault => SmartDitherer.Default,
-        DithererMode.SmartHighQuality => SmartDitherer.HighQuality,
-        DithererMode.SmartFast => SmartDitherer.Fast,
-        DithererMode.AdaptiveMatrixDefault => AdaptiveMatrixDitherer.Default,
-        DithererMode.AdaptiveMatrixAggressive => AdaptiveMatrixDitherer.Aggressive,
-        DithererMode.AdaptiveMatrixConservative => AdaptiveMatrixDitherer.Conservative,
-        DithererMode.None => NoDitherer.Instance,
-        _ => NoDitherer.Instance
-      };
-      
-      // Apply serpentine scanning if requested
-      return this.UseSerpentine ? MatrixBasedDitherer.WithSerpentine(baseDitherer) : baseDitherer;
+
+      var name = this._Ditherer ?? "FloydSteinberg";
+      return MaybeSerpentine(this.ResolveDitherer(name));
     }
+  }
+
+  /// <summary>
+  /// Resolves a ditherer name through the upstream <see cref="ColorDithererRegistry"/>,
+  /// applying our small alias map for legacy short names.
+  /// </summary>
+  internal IColorDitherer ResolveDitherer(string name) {
+    if (_ditherAliases.TryGetValue(name, out var canonical))
+      name = canonical;
+
+    var resolved = ColorDithererRegistry.FindByName(name);
+    if (resolved == null)
+      throw new ArgumentException($"Unknown ditherer '{name}'. Use --help to list available names.");
+    return resolved;
+  }
+
+  private IColorDitherer MaybeSerpentine(IColorDitherer d) {
+    if (!this.UseSerpentine)
+      return d;
+    if (d is ColorDithererAdapter a && a.Inner is ErrorDiffusion ed)
+      return new ColorDithererAdapter(ed.Serpentine);
+    return d; // serpentine only applies to error-diffusion ditherers; others pass through.
+  }
+
+  /// <summary>
+  /// Resolves a quantizer by name via the upstream <see cref="ColorQuantizerRegistry"/>,
+  /// with a tiny alias map for legacy CLI spellings. The <c>--disallowFillingColors</c>
+  /// flag is threaded into the adapter's palette-fill policy.
+  /// </summary>
+  internal IColorQuantizer ResolveQuantizer(string name) {
+    var allowFill = !this.DisallowFillingColors;
+
+    if (_quantizerAliases.TryGetValue(name, out var canonical))
+      name = canonical;
+
+    var resolved = ColorQuantizerRegistry.FindByName(name, allowFill);
+    if (resolved == null)
+      throw new ArgumentException($"Unknown quantizer '{name}'. Use --help to list available names.");
+    return resolved;
   }
 
   public static void HandleParseError<T>(ParserResult<T> result, IEnumerable<Error> errors) {
@@ -367,15 +240,23 @@ internal class Options {
       foreach (var mode in Enum.GetValues(typeof(ColorDistanceMetric)))
         h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((ColorDistanceMetric)mode)}");
       h.AddPostOptionsLine(string.Empty);
-      
-      h.AddPostOptionsLine("Quantizer Modes:");
-      foreach (var mode in Enum.GetValues(typeof(QuantizerMode)))
-        h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((QuantizerMode)mode)}");
+
+      h.AddPostOptionsLine("Quantizer names (upstream registry, sorted):");
+      foreach (var q in QuantizerRegistry.All)
+        h.AddPostOptionsLine($"  {q.Name}{(q.Author == null ? string.Empty : $" — {q.Author}")}");
+      h.AddPostOptionsLine(string.Empty);
+      h.AddPostOptionsLine("Quantizer aliases (legacy CLI names):");
+      foreach (var pair in _quantizerAliases.OrderBy(k => k.Key))
+        h.AddPostOptionsLine($"  {pair.Key} -> {pair.Value}");
       h.AddPostOptionsLine(string.Empty);
 
-      h.AddPostOptionsLine("Ditherer Modes:");
-      foreach (var mode in Enum.GetValues(typeof(DithererMode)))
-        h.AddPostOptionsLine($"  {mode}: {GetEnumDescription((DithererMode)mode)}");
+      h.AddPostOptionsLine("Ditherer names (upstream registry, sorted):");
+      foreach (var d in DithererRegistry.All)
+        h.AddPostOptionsLine($"  {d.Name}{(d.Description == null ? string.Empty : $" — {d.Description}")}");
+      h.AddPostOptionsLine(string.Empty);
+      h.AddPostOptionsLine("Ditherer aliases (short names + special):");
+      foreach (var pair in _ditherAliases.OrderBy(k => k.Key))
+        h.AddPostOptionsLine($"  {pair.Key} -> {pair.Value}");
       h.AddPostOptionsLine(string.Empty);
 
       h.AddPostOptionsLine("Color Ordering Modes:");
