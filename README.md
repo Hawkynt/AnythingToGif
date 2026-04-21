@@ -194,131 +194,15 @@ Further Links for this part:
 - [TrueColorGIF Application](https://github.com/donatj/tcgif)
 - [Technical Description](http://notes.tweakblogs.net/blog/8712/high-color-gif-images.html)
 
-### Color Quantization
+### Color Quantization, Dithering, and Color Metrics
 
-The initial frame requires an approximate palette that represents the full range of colors in the image. Several methods for color quantization are employed to achieve this, including:
+The first frame of a high-color GIF needs a 256-color palette that approximates the full image, and subsequent frames lean on dithering to smooth the banding that the palette's coarseness would otherwise produce. Both concerns — palette selection and the error-shaping that comes after — are handled by the **`FrameworkExtensions.System.Drawing`** library, which ships every quantizer, ditherer, and color-distance metric this tool exposes.
 
-- [x] [Median-cut (MC)](https://gowtham000.hashnode.dev/median-cut-a-popular-colour-quantization-strategy)
-- [x] [Octree (OC)](https://www.codeproject.com/Articles/109133/Octree-Color-Palette)
-- [X] [Variance-based method (WAN)](http://algorithmicbotany.org/papers/variance-based.pdf)
-- [X] [Binary splitting (BS)](https://opg.optica.org/josaa/fulltext.cfm?uri=josaa-11-11-2777&id=847)
-- [X] [Binary splitting with Ant-tree (BSAT)](https://link.springer.com/article/10.1007/s11554-018-0814-8)
-- [x] Greedy orthogonal bi-partitioning method (WU)
-- [ ] [Neuquant (NQ)](https://scientificgems.wordpress.com/stuff/neuquant-fast-high-quality-image-quantization/)
-- [X] [Adaptive distributing units (ADU)](https://www.tandfonline.com/doi/full/10.1179/1743131X13Y.0000000059?needAccess=true)
-- [X] [Variance-cut (VC)](https://ieeexplore.ieee.org/document/6718239)
-- [X] [WU combined with Ant-tree for color quantization (ATCQ or WUATCQ)](https://github.com/mattdesl/atcq)
-- [X] [BS combined with iterative ATCQ (BSITATCQ)](https://www.mdpi.com/2076-3417/10/21/7819)
-- [ ] Simulated Annealing
-- [X] Fixed Palettes
-- [ ] BSDS300
-- [x] [Principal Component Analysis]()
-- [ ] K-Means
+The upstream library documents each algorithm in detail (authors, year, references, parameter tables, code samples) and maintains the canonical list of reference links. Rather than duplicate that here, see:
 
-Further Links for this part:
-
-- [Quantizers](https://www.codeproject.com/Articles/66341/A-Simple-Yet-Quite-Powerful-Palette-Quantizer-in-C)
-
-### Dithering
-
-Dithering techniques are applied to ensure the first frame provides a good base image. Methods include:
-
-- [X] None
-- ErrorDiffusion
-  - [X] [Floyd-Steinberg](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering)
-  - [X] [False Floyd-Steinberg](https://github.com/makew0rld)
-  - [X] [Floyd-Steinberg (equally distributed)](https://github.com/kgjenkins/dither-dream)
-  - [X] [Jarvis, Judice, and Ninke](https://www.graphicsacademy.com/what_ditherjarvis.php) [[1](https://www.researchgate.net/figure/Difference-between-Jarvis-Judice-and-Ninke-and-Floyd-Steinberg-results-from-watch-input_fig3_342085636)]
-  - [X] Stucki
-  - [X] Atkinson
-  - [X] Burkes
-  - [X] Sierra
-  - [X] Two-Row Sierra
-  - [X] Sierra Lite
-  - [X] [Pigeon](https://hbfs.wordpress.com/2013/12/31/dithering/)
-  - [X] [Stevenson-Arce](https://github.com/hbldh/hitherdither)
-  - [X] [Fan](https://ditherit.com)
-  - [X] [ShiauFan](https://ditherit.com)
-  - [X] [ShiauFan2](https://ditherit.com)
-  - [X] [TwoD](https://github.com/sehugg/dithertron)
-  - [X] [Down](https://github.com/sehugg/dithertron)
-  - [X] [DoubleDown](https://github.com/sehugg/dithertron)
-  - [X] [Diagonal](https://github.com/sehugg/dithertron)
-  - [X] [VerticalDiamond](https://github.com/sehugg/dithertron)
-  - [X] [HorizontalDiamond](https://github.com/sehugg/dithertron)
-  - [X] [Diamond](https://github.com/sehugg/dithertron)
-- Matrix-based
-  - [X] [Bayer Matrix](https://github.com/dmnsgn/bayer) (2x2, 4x4, 8x8, 16x16, arbitrary 2^n sizes via CLI)
-  - [X] [Halftone](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
-  - [ ] [Interleaved Gradient Noise]
-- [Arithmetic Dither](https://pippin.gimp.org/a_dither/) - Procedural spatial dithering with multiple patterns
-  - [X] XOR-Y149 pattern
-  - [X] XOR-Y149 with channel variation
-  - [X] XY Arithmetic pattern  
-  - [X] XY Arithmetic with channel variation
-  - [X] Uniform pattern
-- [X] [Riemersma](https://www.compuphase.com/riemer.htm) [[1](https://github.com/ibezkrovnyi/image-quantization/blob/main/packages/image-q/src/image/riemersma.ts)] - Space-filling curve based dithering with four variants (Default, Small, Large, Linear)
-- Noise-Based Dithering - Statistical noise patterns for dithering:
-  - [X] **White Noise**: Uniform random distribution across all frequencies, completely uncorrelated
-  - [X] **Blue Noise**: High-frequency emphasis with good spatial distribution, avoids clustering artifacts
-  - [X] **Brown Noise**: Low-frequency emphasis with Brownian motion characteristics, smoother patterns
-  - [X] **Pink Noise**: 1/f noise with balanced frequency distribution between white and brown noise
-  - Each type available in Light (30%), Normal (50%), and Strong (70%) intensity variants
-- [ ] [Average](https://www.graphicsacademy.com/what_dithera.php)
-- [ ] [Random](https://www.graphicsacademy.com/what_ditherr.php)
-- [ ] [Joel Yliluoma's algorithm 1](https://bisqwit.iki.fi/story/howto/dither/jy/)
-- [ ] [Joel Yliluoma's algorithm 2](https://bisqwit.iki.fi/story/howto/dither/jy/)
-- [ ] [Joel Yliluoma's algorithm 3](https://bisqwit.iki.fi/story/howto/dither/jy/)
-- [X] [Thomas Knoll](https://bisqwit.iki.fi/story/howto/dither/jy/) - Advanced ordered dithering with candidate generation (4 variants: Default, Bayer8x8, High Quality, Fast)
-- [X] [N-Closest](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/) - Selects from N closest palette colors with multiple strategies (Random, Weighted Random, Round Robin, Luminance, Blue Noise)
-- [X] [N-Convex](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/) - Creates convex hull from N closest colors for better color mixing (Barycentric, Projection, Spatial Pattern, Weighted Random)
-- [X] **Adaptive Dithering** - Intelligent algorithm selection based on image analysis:
-  - **Quality Optimized**: Prioritizes visual quality over performance
-  - **Balanced**: Balances quality and performance considerations
-  - **Performance Optimized**: Optimizes for speed while maintaining acceptable quality
-  - **Smart Selection**: Uses ML-like scoring to select optimal algorithm based on image characteristics (color complexity, edge density, gradient smoothness, noise level, detail level)
-- [X] [Ostromoukhov Variable-Coefficient Error Diffusion](https://observablehq.com/@jobleonard/variable-coefficient-dithering) - Advanced error diffusion that varies the dithering kernel based on current pixel value to achieve blue-noise characteristics
-- [X] [Yliluoma Ordered Dithering](https://bisqwit.iki.fi/story/howto/dither/jy/) - Joel Yliluoma's arbitrary-palette positional dithering algorithms (1, 2, 3) optimized for better contrast and color fidelity
-- [X] **Serpentine/Boustrophedon Scanning** - Use `--serpentine` flag with any matrix-based error diffusion ditherer to apply alternating scan direction per row, eliminating directional artifacts. Works with all MatrixBasedDitherer variants including Floyd-Steinberg, Stucki, JJN, Atkinson, Burkes, Sierra, and others.
-- [X] **Structure-Aware Error Diffusion** - Modern error diffusion that preserves image structure and details using circular error distribution:
-  - **Default**: Standard structure-aware with 2-pixel radius
-  - **Priority**: Priority-based ordering with 3-pixel radius
-  - **Large**: Extended radius (4 pixels) for maximum quality
-- [X] [Dizzy Dithering](https://liamappelbe.medium.com/dizzy-dithering-2ae76dbceba1) - Novel 2024 error diffusion algorithm that produces blue noise characteristics through spiral pattern distribution:
-  - **Default**: Standard dizzy dithering with balanced settings
-  - **High Quality**: Reduced randomness for maximum quality
-  - **Fast**: Optimized for speed with smaller spiral radius
-- [ ] [Barycentric](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
-- [ ] [Triangulated Irregular Network](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
-- [ ] [Natural Neighbour](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
-
-Further Links for this part:
-
-- [Dithering Matrices](https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html)
-- [DitherPunk](https://surma.dev/things/ditherpunk/)
-- [Cyotek](https://github.com/cyotek/Dithering/tree/master/src/Dithering)
-- [Tetrapal](https://github.com/matejlou/tetrapal)
-- [Dithermark](https://dithermark.com/resources/)
-
-### Color distance calculation
-
-- [X]  [Weighted Euclidean](https://www.compuphase.com/cmetric.htm)
-- [X]  [Euclidean BT.709](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [Manhattan](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [Manhattan BT.709](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [Manhattan Nommyde](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [CIEDE2000](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [CIE94-Textiles](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [CIE94-GraphicArts](https://github.com/ibezkrovnyi/image-quantization)
-- [X]  [CompuPhase](https://www.compuphase.com/cmetric.htm)
-- [X]  [PNGQuant](https://github.com/ibezkrovnyi/image-quantization)
-- [ ]  [Linear RGB](https://matejlou.blog/2023/12/06/ordered-dithering-for-arbitrary-or-irregular-palettes/)
-- [X]  Weighted YUV
-- [X]  Weighted YCbCr
-
-Further Links for this part:
-
-- [Wikipedia](https://en.wikipedia.org/wiki/Color_difference)
+- [`FrameworkExtensions.System.Drawing` — Color Quantization](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#color-quantization) — Median-Cut, Octree, Wu, Variance-based / Variance-Cut, Binary Splitting, ADU, Neuquant, K-Means family, PngQuant, fixed palettes (EGA/VGA/WebSafe/Mac), and preprocessing/postprocessing wrappers (PCA, K-Means refinement, ACO)
+- [`FrameworkExtensions.System.Drawing` — Dithering](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#dithering) — 20+ error-diffusion kernels (Floyd-Steinberg, Stucki, JJN, Atkinson, Burkes, Sierra, Pigeon, Stevenson-Arce, ShiauFan, Fan93, …), ordered (Bayer / Halftone / ClusterDot), noise (white/blue/pink/brown/violet/grey/interleaved-gradient), arithmetic (`a_dither`), Riemersma, Knoll, N-Closest, N-Convex, Yliluoma 1-4, Ostromoukhov, Dbs, Dizzy, Barycentric, TIN, Natural Neighbour, Void-and-Cluster, plus adaptive/smart/structure-aware variants and serpentine scanning
+- [`FrameworkExtensions.System.Drawing` — Distance Calculators](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#distance-calculators-hawkyntcolorprocessingmetrics) — Euclidean / Chebyshev / Manhattan (3- and 4-channel, float and byte, weighted and unweighted), CIE76, CIE94, CIEDE2000, CMC, DIN99, CompuPhase, PngQuant
 
 ### GIF Format
 
