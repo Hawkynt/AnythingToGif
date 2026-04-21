@@ -1,9 +1,10 @@
 name: CI
 
-# AnythingToGif now has a ProjectReference to
-# `..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj`
+# AnythingToGif + GifFileFormat currently have ProjectReferences to
+#   ..\..\C--FrameworkExtensions\Corlib.Extensions\Corlib.Extensions.csproj
+#   ..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj
 # (temporary, while upstream merges happen). CI checks out both repos
-# side-by-side so the relative path resolves.
+# side-by-side so the relative paths resolve.
 
 on:
   push:

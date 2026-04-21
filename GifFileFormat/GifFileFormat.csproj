@@ -33,7 +33,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.*" />
+    <!-- Upstream FrameworkExtensions.Corlib. When a sibling working copy of
+         Hawkynt/FrameworkExtensions is checked out next to this repo, we
+         build against source (ProjectReference); otherwise we fall back to the
+         published NuGet package. CI always clones the sibling so the
+         ProjectReference path resolves. -->
+    <ProjectReference Include="..\..\C--FrameworkExtensions\Corlib.Extensions\Corlib.Extensions.csproj"
+                      Condition="Exists('..\..\C--FrameworkExtensions\Corlib.Extensions\Corlib.Extensions.csproj')" />
+    <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.*"
+                      Condition="!Exists('..\..\C--FrameworkExtensions\Corlib.Extensions\Corlib.Extensions.csproj')" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 

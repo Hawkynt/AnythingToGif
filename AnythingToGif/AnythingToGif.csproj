@@ -27,12 +27,19 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="7.0.0" />
-    <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.*" />
-    <!-- TEMPORARY ProjectReference against the local upstream working copy while we
-         eliminate duplicated quant/dither code. Revert to PackageReference once the
-         upstream PRs (public IQuantizer.CreateKernel, AduMetric, NoiseMode.Additive)
-         are merged and a new FrameworkExtensions.System.Drawing version is published. -->
-    <ProjectReference Include="..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj" />
+    <!-- Upstream FrameworkExtensions (Corlib + System.Drawing). When a sibling
+         working copy of Hawkynt/FrameworkExtensions is checked out next to
+         this repo, we build against source (ProjectReference); otherwise we
+         fall back to the published NuGet packages. CI always clones the sibling
+         repo so the ProjectReference path resolves. -->
+    <ProjectReference Include="..\..\C--FrameworkExtensions\Corlib.Extensions\Corlib.Extensions.csproj"
+                      Condition="Exists('..\..\C--FrameworkExtensions\Corlib.Extensions\Corlib.Extensions.csproj')" />
+    <PackageReference Include="FrameworkExtensions.Corlib" Version="1.0.2.*"
+                      Condition="!Exists('..\..\C--FrameworkExtensions\Corlib.Extensions\Corlib.Extensions.csproj')" />
+    <ProjectReference Include="..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj"
+                      Condition="Exists('..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj')" />
+    <PackageReference Include="FrameworkExtensions.System.Drawing" Version="1.0.0.*"
+                      Condition="!Exists('..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj')" />
     <!-- ILRepack merges referenced assemblies into AnythingToGif.dll; that
          rewrites visible method signatures so AnythingToGif.Tests fails with
          MissingMethodException. CI sets `DisableILRepack=true` to test
