@@ -1,13 +1,22 @@
 # AnythingToGif
 
+[![License](https://img.shields.io/github/license/Hawkynt/AnythingToGif)](https://github.com/Hawkynt/AnythingToGif/blob/master/LICENSE)
+[![Language](https://img.shields.io/github/languages/top/Hawkynt/AnythingToGif?color=8957D5)](https://github.com/Hawkynt/AnythingToGif)
+
 [![CI](https://github.com/Hawkynt/AnythingToGif/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Hawkynt/AnythingToGif/actions/workflows/ci.yml)
-[![Release](https://github.com/Hawkynt/AnythingToGif/actions/workflows/release.yml/badge.svg)](https://github.com/Hawkynt/AnythingToGif/actions/workflows/release.yml)
-[![Latest release](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?label=release&sort=semver)](https://github.com/Hawkynt/AnythingToGif/releases/latest)
-[![Latest nightly](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?include_prereleases&label=nightly&sort=date)](https://github.com/Hawkynt/AnythingToGif/releases?q=prerelease%3Atrue)
-![License](https://img.shields.io/github/license/Hawkynt/AnythingToGif)
-![Language](https://img.shields.io/github/languages/top/Hawkynt/AnythingToGif?color=purple)
-[![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=master)![Activity](https://img.shields.io/github/commit-activity/y/Hawkynt/AnythingToGif?branch=master)](https://github.com/Hawkynt/AnythingToGif/commits/master)
+![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=master)
+![Activity](https://img.shields.io/github/commit-activity/m/Hawkynt/AnythingToGif)
+
+[![Stars](https://img.shields.io/github/stars/Hawkynt/AnythingToGif?color=FFD700)](https://github.com/Hawkynt/AnythingToGif/stargazers)
+[![Forks](https://img.shields.io/github/forks/Hawkynt/AnythingToGif?color=008080)](https://github.com/Hawkynt/AnythingToGif/network/members)
+[![Issues](https://img.shields.io/github/issues/Hawkynt/AnythingToGif)](https://github.com/Hawkynt/AnythingToGif/issues)
+![Code Size](https://img.shields.io/github/languages/code-size/Hawkynt/AnythingToGif?color=4CAF50)
+![Repo Size](https://img.shields.io/github/repo-size/Hawkynt/AnythingToGif?color=FF9800)
+
+[![Release](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?sort=semver)](https://github.com/Hawkynt/AnythingToGif/releases/latest)
+[![Nightly](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?include_prereleases=true&sort=date&label=nightly&color=FF9800)](https://github.com/Hawkynt/AnythingToGif/releases)
 [![Downloads](https://img.shields.io/github/downloads/Hawkynt/AnythingToGif/total)](https://github.com/Hawkynt/AnythingToGif/releases)
+[![NuGet GifFileFormat](https://img.shields.io/nuget/v/Hawkynt.GifFileFormat?label=GifFileFormat)](https://www.nuget.org/packages/Hawkynt.GifFileFormat/)
 
 
 > This is a versatile tool designed to convert a wide variety of visual media formats into high-quality GIFs (with a hard 'G'), supporting TrueColor images. This utility excels in converting both still images and video files into GIFs, ensuring superior color fidelity and efficient processing.
@@ -201,7 +210,7 @@ The first frame of a high-color GIF needs a 256-color palette that approximates 
 The upstream library documents each algorithm in detail (authors, year, references, parameter tables, code samples) and maintains the canonical list of reference links. Rather than duplicate that here, see:
 
 - [`FrameworkExtensions.System.Drawing` — Color Quantization](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#color-quantization) — Median-Cut, Octree, Wu, Variance-based / Variance-Cut, Binary Splitting, ADU, Neuquant, K-Means family, PngQuant, fixed palettes (EGA/VGA/WebSafe/Mac), and preprocessing/postprocessing wrappers (PCA, K-Means refinement, ACO)
-- [`FrameworkExtensions.System.Drawing` — Dithering](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#dithering) — 20+ error-diffusion kernels (Floyd-Steinberg, Stucki, JJN, Atkinson, Burkes, Sierra, Pigeon, Stevenson-Arce, ShiauFan, Fan93, …), ordered (Bayer / Halftone / ClusterDot), noise (white/blue/pink/brown/violet/grey/interleaved-gradient), arithmetic (`a_dither`), Riemersma, Knoll, N-Closest, N-Convex, Yliluoma 1-4, Ostromoukhov, Dbs, Dizzy, Barycentric, TIN, Natural Neighbour, Void-and-Cluster, plus adaptive/smart/structure-aware variants and serpentine scanning
+- [`FrameworkExtensions.System.Drawing` — Dithering](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#dithering) — error-diffusion kernels (Floyd-Steinberg, Stucki, JJN, Atkinson, Burkes, Sierra, Pigeon, Stevenson-Arce, ShiauFan, Fan93, …), ordered (Bayer / Halftone / ClusterDot), noise (white/blue/pink/brown/violet/grey/interleaved-gradient), arithmetic (`a_dither`), Riemersma, Knoll, N-Closest, N-Convex, Yliluoma 1-4, Ostromoukhov, Dbs, Dizzy, Barycentric, TIN, Natural Neighbour, Void-and-Cluster, plus adaptive/smart/structure-aware variants and serpentine scanning
 - [`FrameworkExtensions.System.Drawing` — Distance Calculators](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#distance-calculators-hawkyntcolorprocessingmetrics) — Euclidean / Chebyshev / Manhattan (3- and 4-channel, float and byte, weighted and unweighted), CIE76, CIE94, CIEDE2000, CMC, DIN99, CompuPhase, PngQuant
 
 ### GIF Format
