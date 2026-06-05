@@ -1,10 +1,10 @@
 # AnythingToGif
 
-[![License](https://img.shields.io/github/license/Hawkynt/AnythingToGif)](https://github.com/Hawkynt/AnythingToGif/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/Hawkynt/AnythingToGif)](https://github.com/Hawkynt/AnythingToGif/blob/main/LICENSE)
 [![Language](https://img.shields.io/github/languages/top/Hawkynt/AnythingToGif?color=8957D5)](https://github.com/Hawkynt/AnythingToGif)
 
-[![CI](https://github.com/Hawkynt/AnythingToGif/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Hawkynt/AnythingToGif/actions/workflows/ci.yml)
-![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=master)
+[![CI](https://github.com/Hawkynt/AnythingToGif/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Hawkynt/AnythingToGif/actions/workflows/ci.yml)
+![Last Commit](https://img.shields.io/github/last-commit/Hawkynt/AnythingToGif?branch=main)
 ![Activity](https://img.shields.io/github/commit-activity/m/Hawkynt/AnythingToGif)
 
 [![Stars](https://img.shields.io/github/stars/Hawkynt/AnythingToGif?color=FFD700)](https://github.com/Hawkynt/AnythingToGif/stargazers)
@@ -209,15 +209,15 @@ The first frame of a high-color GIF needs a 256-color palette that approximates 
 
 The upstream library documents each algorithm in detail (authors, year, references, parameter tables, code samples) and maintains the canonical list of reference links. Rather than duplicate that here, see:
 
-- [`FrameworkExtensions.System.Drawing` — Color Quantization](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#color-quantization) — Median-Cut, Octree, Wu, Variance-based / Variance-Cut, Binary Splitting, ADU, Neuquant, K-Means family, PngQuant, fixed palettes (EGA/VGA/WebSafe/Mac), and preprocessing/postprocessing wrappers (PCA, K-Means refinement, ACO)
-- [`FrameworkExtensions.System.Drawing` — Dithering](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#dithering) — error-diffusion kernels (Floyd-Steinberg, Stucki, JJN, Atkinson, Burkes, Sierra, Pigeon, Stevenson-Arce, ShiauFan, Fan93, …), ordered (Bayer / Halftone / ClusterDot), noise (white/blue/pink/brown/violet/grey/interleaved-gradient), arithmetic (`a_dither`), Riemersma, Knoll, N-Closest, N-Convex, Yliluoma 1-4, Ostromoukhov, Dbs, Dizzy, Barycentric, TIN, Natural Neighbour, Void-and-Cluster, plus adaptive/smart/structure-aware variants and serpentine scanning
-- [`FrameworkExtensions.System.Drawing` — Distance Calculators](https://github.com/Hawkynt/C--FrameworkExtensions/blob/master/System.Drawing.Extensions/Readme.md#distance-calculators-hawkyntcolorprocessingmetrics) — Euclidean / Chebyshev / Manhattan (3- and 4-channel, float and byte, weighted and unweighted), CIE76, CIE94, CIEDE2000, CMC, DIN99, CompuPhase, PngQuant
+- [`FrameworkExtensions.System.Drawing` — Color Quantization](https://github.com/Hawkynt/C--FrameworkExtensions/blob/main/System.Drawing.Extensions/Readme.md#color-quantization) — Median-Cut, Octree, Wu, Variance-based / Variance-Cut, Binary Splitting, ADU, Neuquant, K-Means family, PngQuant, fixed palettes (EGA/VGA/WebSafe/Mac), and preprocessing/postprocessing wrappers (PCA, K-Means refinement, ACO)
+- [`FrameworkExtensions.System.Drawing` — Dithering](https://github.com/Hawkynt/C--FrameworkExtensions/blob/main/System.Drawing.Extensions/Readme.md#dithering) — error-diffusion kernels (Floyd-Steinberg, Stucki, JJN, Atkinson, Burkes, Sierra, Pigeon, Stevenson-Arce, ShiauFan, Fan93, …), ordered (Bayer / Halftone / ClusterDot), noise (white/blue/pink/brown/violet/grey/interleaved-gradient), arithmetic (`a_dither`), Riemersma, Knoll, N-Closest, N-Convex, Yliluoma 1-4, Ostromoukhov, Dbs, Dizzy, Barycentric, TIN, Natural Neighbour, Void-and-Cluster, plus adaptive/smart/structure-aware variants and serpentine scanning
+- [`FrameworkExtensions.System.Drawing` — Distance Calculators](https://github.com/Hawkynt/C--FrameworkExtensions/blob/main/System.Drawing.Extensions/Readme.md#distance-calculators-hawkyntcolorprocessingmetrics) — Euclidean / Chebyshev / Manhattan (3- and 4-channel, float and byte, weighted and unweighted), CIE76, CIE94, CIEDE2000, CMC, DIN99, CompuPhase, PngQuant
 
 ### GIF Format
 
 Due to the nature of this application, **AnythingToGif** requires fine-grained control over the bytes written to disk. This includes managing local palettes, transparency, frame delays, and frame disposal methods. To achieve this level of precision, the tool incorporates its own GIF writing code, built directly from the GIF specifications. This custom code ensures that every aspect of the GIF format is meticulously handled, allowing for the creation of high-color images and smooth animations. The output is rigorously checked using various GIF debugging tools, ensuring compatibility and optimal performance across different platforms and browsers.
 
-- [X] [Uncompressed Images](https://github.com/Distrotech/libungif/blob/master/UNCOMPRESSED_GIF)
+- [X] [Uncompressed Images](https://github.com/Distrotech/libungif/blob/main/UNCOMPRESSED_GIF)
 - [X] [LZW Compression](https://giflib.sourceforge.net/whatsinagif/lzw_image_data.html)
 - [ ] [Optimized compression](https://create.stephan-brumme.com/flexigif-lossless-gif-lzw-optimization/)
 - [X] Optimized frame-size and positioning
@@ -245,3 +245,14 @@ When converting video, AnythingToGif processes changed areas from frame to frame
 - [ ] **Differential frame encoding**: Only process the differencies between each frame.
 - [ ] **Constant FPS**: Switching between constant fps inserting dummy frames as needed or variable frame rate
 - [ ] **Concatenation**: Combining multiple files into one video.
+
+## ❤️ Support
+
+If this project saves you time or money, consider supporting its development:
+
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsor-EA4AAA?logo=githubsponsors)](https://github.com/sponsors/Hawkynt)
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal)](https://www.paypal.me/hawkynt)
+
+## 📜 License
+
+Licensed under LGPL-3.0-or-later — see [LICENSE](LICENSE).
