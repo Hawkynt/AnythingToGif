@@ -44,8 +44,10 @@
          rewrites visible method signatures so AnythingToGif.Tests fails with
          MissingMethodException. CI sets `DisableILRepack=true` to test
          against the unmerged build; release builds keep ILRepack for the
-         shippable single-file output. -->
-    <PackageReference Include="ILRepack.FullAuto" Version="1.6.0" Condition="'$(DisableILRepack)' != 'true'">
+         shippable single-file output. Self-contained publishes must skip it
+         too: they drop the native runtime DLLs (clretwrc.dll etc.) into the
+         output and ILRepack cannot merge non-.NET libraries. -->
+    <PackageReference Include="ILRepack.FullAuto" Version="1.6.0" Condition="'$(DisableILRepack)' != 'true' AND '$(SelfContained)' != 'true'">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
