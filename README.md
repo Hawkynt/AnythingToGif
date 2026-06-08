@@ -14,7 +14,7 @@
 ![Repo Size](https://img.shields.io/github/repo-size/Hawkynt/AnythingToGif?color=FF9800)
 
 [![Release](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?sort=semver)](https://github.com/Hawkynt/AnythingToGif/releases/latest)
-[![Nightly](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?include_prereleases=true&sort=date&label=nightly&color=FF9800)](https://github.com/Hawkynt/AnythingToGif/releases)
+[![Nightly](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?include_prereleases&sort=date&label=nightly&color=FF9800)](https://github.com/Hawkynt/AnythingToGif/releases)
 [![Downloads](https://img.shields.io/github/downloads/Hawkynt/AnythingToGif/total)](https://github.com/Hawkynt/AnythingToGif/releases)
 [![NuGet GifFileFormat](https://img.shields.io/nuget/v/Hawkynt.GifFileFormat?label=GifFileFormat)](https://www.nuget.org/packages/Hawkynt.GifFileFormat/)
 
