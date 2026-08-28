@@ -53,6 +53,15 @@ jobs:
       - name: Build (without ILRepack so tests can see unmerged interfaces)
         working-directory: AnythingToGif
         run: dotnet build AnythingToGif.sln --configuration Release --no-restore -p:DisableILRepack=true
+      # The package README must follow the house template, and its API reference must still match
+      # the assembly just built. The template lives in RepositoryTemplate; nothing is copied here.
+      # This job has no OS matrix, so the step is unconditional. The root is pinned to our own
+      # checkout: the sibling C--FrameworkExtensions is a build dependency, and its packages are
+      # this repository's business to build, not to lint.
+      - name: Check package READMEs
+        uses: Hawkynt/RepositoryTemplate/package-readme@v1
+        with:
+          root: AnythingToGif
 
       - name: Test
         working-directory: AnythingToGif
