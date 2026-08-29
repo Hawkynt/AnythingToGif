@@ -1,124 +1,31 @@
 name: CI
 
-# AnythingToGif + GifFileFormat currently have ProjectReferences to
-#   ..\..\C--FrameworkExtensions\Corlib.Extensions\Corlib.Extensions.csproj
-#   ..\..\C--FrameworkExtensions\System.Drawing.Extensions\System.Drawing.Extensions.csproj
-# (temporary, while upstream merges happen). CI checks out both repos
-# side-by-side so the relative paths resolve.
-
+# The gate a pull request has to pass. Nothing runs on a push to main: a pull request must be green
+# to merge, so re-running the same matrix on the merge commit proves nothing and costs a machine —
+# nightly.yml builds main after the merge instead. workflow_call stays because release.yml runs this
+# as its own first gate.
 on:
   pull_request:
     branches: [main]
   workflow_call: {}
   workflow_dispatch: {}
 
-# Pushing three times to a branch used to queue three full matrices and run all of them. A newer
-# pull-request run supersedes the older one; a push to main is not cancelled, because main wants a
-# recorded result for every commit rather than only for the newest.
-concurrency:
-  group: ci-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
-# Force JavaScript-based actions to run on Node 24 instead of the deprecated Node 20 ahead of
-# the 2026-06-16 hard cutover, until we bump each action to a Node-24-native major version.
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 jobs:
-  test:
-    name: windows-latest / .NET 8
-    # net8.0-windows with WinForms + FFmpeg native DLLs can only run on Windows.
-    runs-on: windows-latest
-    steps:
-      - name: Checkout AnythingToGif
-        uses: actions/checkout@v4
-        with:
-          path: AnythingToGif
-          fetch-depth: 0
-
-      - name: Checkout FrameworkExtensions (sibling)
-        uses: actions/checkout@v4
-        with:
-          repository: Hawkynt/C--FrameworkExtensions
-          path: C--FrameworkExtensions
-          fetch-depth: 1
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
-
-      - name: Stamp versions into csprojs
-        shell: bash
-        working-directory: AnythingToGif
-        run: perl .github/workflows/scripts/version.pl --stamp
-
-      - name: Restore
-        working-directory: AnythingToGif
-        run: dotnet restore AnythingToGif.sln -p:DisableILRepack=true
-
-      - name: Build (without ILRepack so tests can see unmerged interfaces)
-        working-directory: AnythingToGif
-        run: dotnet build AnythingToGif.sln --configuration Release --no-restore -p:DisableILRepack=true
-      # The package README must follow the house template, and its API reference must still match
-      # the assembly just built. The template lives in RepositoryTemplate; nothing is copied here.
-      # This job has no OS matrix, so the step is unconditional. The root is pinned to our own
-      # checkout: the sibling C--FrameworkExtensions is a build dependency, and its packages are
-      # this repository's business to build, not to lint.
-      - name: Check package READMEs
-        uses: Hawkynt/RepositoryTemplate/package-readme@v1
-        with:
-          root: AnythingToGif
-
-      - name: Test
-        working-directory: AnythingToGif
-        run: dotnet test AnythingToGif.Tests/AnythingToGif.Tests.csproj --configuration Release --no-build -p:DisableILRepack=true --logger "trx;LogFileName=tests.trx"
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: 'AnythingToGif/**/TestResults/*.trx'
-
-  coverage:
-    name: coverage
-    runs-on: windows-latest
-    steps:
-      - name: Checkout AnythingToGif
-        uses: actions/checkout@v4
-        with:
-          path: AnythingToGif
-          fetch-depth: 0
-
-      - name: Checkout FrameworkExtensions (sibling)
-        uses: actions/checkout@v4
-        with:
-          repository: Hawkynt/C--FrameworkExtensions
-          path: C--FrameworkExtensions
-          fetch-depth: 1
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
-
-      - name: Stamp versions into csprojs
-        shell: bash
-        working-directory: AnythingToGif
-        run: perl .github/workflows/scripts/version.pl --stamp
-
-      - name: Test with coverage
-        working-directory: AnythingToGif
-        run: dotnet test AnythingToGif.Tests/AnythingToGif.Tests.csproj --configuration Release -p:DisableILRepack=true --collect:"XPlat Code Coverage" --results-directory ./coverage
-
-      - name: Generate coverage report
-        shell: bash
-        working-directory: AnythingToGif
-        run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator -reports:./coverage/**/coverage.cobertura.xml -targetdir:./coverage/report -reporttypes:HtmlInline_AzurePipelines
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: AnythingToGif/coverage/report
+  ci:
+    uses: Hawkynt/RepositoryTemplate/.github/workflows/dotnet-ci.yml@v1
+    with:
+      solution: AnythingToGif.sln
+      test-target: AnythingToGif.Tests/AnythingToGif.Tests.csproj
+      dotnet-version: '8.x'
+      # net8.0-windows with WinForms and FFmpeg native DLLs can only run on Windows.
+      runs-on: windows-latest
+      # Built without ILRepack so the tests can see the unmerged interfaces.
+      build-args: '-p:DisableILRepack=true'
+      # AnythingToGif and GifFileFormat still carry ProjectReferences into C--FrameworkExtensions,
+      # so the sibling has to sit next to this checkout for the relative paths to resolve.
+      checkout-path: AnythingToGif
+      working-directory: AnythingToGif
+      siblings: '[{"repository":"Hawkynt/C--FrameworkExtensions","path":"C--FrameworkExtensions"}]'
+      # Pinned to our own checkout: the sibling's packages are this repo's business to build, not
+      # to lint. Left at the default it reported 86 errors about READMEs we do not own.
+      package-readme-root: AnythingToGif
