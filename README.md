@@ -21,6 +21,45 @@
 
 > This is a versatile tool designed to convert a wide variety of visual media formats into high-quality GIFs (with a hard 'G'), supporting TrueColor images. This utility excels in converting both still images and video files into GIFs, ensuring superior color fidelity and efficient processing.
 
+## 🧭 Vision
+
+GIF is widely believed to be a 256-colour format. It is not — a GIF may carry many local colour
+tables, one per rendering block, each drawn from the full 24-bit space, and nothing but convention
+stops a decoder from showing millions of colours. AnythingToGif is built on that: it partitions an
+image's colours across frames and emits a GIF that is true-colour in practice while remaining a
+perfectly ordinary GIF everywhere it is opened.
+
+The interesting trade is quality against size, and the direction is to keep making that trade
+controllable — orderings, ditherers, refinement passes — rather than picking one and hiding it.
+
+## ✨ Features
+
+- High-colour GIF output, well past the 256 colours the format is assumed to be limited to
+- Still images and video, with changed-area processing between video frames
+- A range of quantizers, ditherers (including generated Bayer matrices) and colour orderings
+- Optional ant-tree iterative refinement after the initial quantization
+- A command-line interface over all of it
+
+## 📦 Installation
+
+Download the executable from the [latest release](../../releases/latest) (or a `nightly-*`
+prerelease). The GIF file-format primitives are also published on nuget.org as `GifFileFormat`.
+
+## 🚀 Quick start
+
+```bash
+# a single image
+AnythingToGif input.png output.gif
+
+# a video, using the defaults
+AnythingToGif clip.mp4 clip.gif
+```
+
+Every knob has a default that produces something reasonable; the [CLI reference](#-cli-reference)
+below lists them.
+
+## ⌨️ CLI reference
+
 - [X] Command line interface
 
 ```
@@ -163,7 +202,7 @@ Color Ordering Modes:
 Insufficient arguments try '--help' for help.
 ```
 
-## Overview
+## 📚 Overview
 
 In the 1990s, the GIF file format was the dominant image format on the web, known for its efficiency, portability, and support for animation and transparency. However, due to concerns over patent claims on the LZW compression algorithm, the PNG format was introduced as a replacement, offering several advantages over GIF. Despite these advantages, it was often believed that GIFs were limited to 256-color palettes, making them unsuitable for full-color images. This belief is only partially correct. GIFs can indeed contain many colors by utilizing multiple graphic rendering blocks, each with its own local color table.
 
@@ -231,13 +270,13 @@ Further Links for this part:
 - [GIF Explorer](https://www.matthewflickinger.com/lab/whatsinagif/gif_explorer.asp)
 - [Palette Paper](https://iplab.dmi.unict.it/iplab/wp-content/uploads/2023/09/Animated_Gif_Optimization_By_Adaptive_Color_Local_Table_Management-1.pdf)
 
-## Practical Considerations
+## 📐 Practical considerations
 
 While high-color GIFs can accurately represent complex images, they often result in large file sizes due to the numerous frames required. One approach to mitigate this is to encode more image information into the first few frames, creating an approximation of the full image and refining it in subsequent frames. This results in larger files because fewer pixels are transparent, but it improves the visual quality of the initial rendering.
 
 Reducing the number of distinct colors in the image can also help manage file size and loading times. For example, using just 5 frames allows for (5 * 255) + 1 = 1276 (2551 for 10 frames ~0.1sec, 5101 for 20 frames ~0.2sec, 2.550.001 for 100 frames ~1sec) different colors, which is a significant improvement over the traditional 256-color palette.
 
-## Converting video
+## 🎞️ Converting video
 
 When converting video, AnythingToGif processes changed areas from frame to frame, introducing new frames as necessary using the same algorithms applied to still images. This ensures high-quality color reproduction and smooth transitions at the cost of a higher framerate whenever needed.
 
@@ -245,6 +284,13 @@ When converting video, AnythingToGif processes changed areas from frame to frame
 - [ ] **Differential frame encoding**: Only process the differencies between each frame.
 - [ ] **Constant FPS**: Switching between constant fps inserting dummy frames as needed or variable frame rate
 - [ ] **Concatenation**: Combining multiple files into one video.
+
+## 🛠️ Building
+
+```bash
+dotnet build -c Release
+dotnet test
+```
 
 ## ❤️ Support
 

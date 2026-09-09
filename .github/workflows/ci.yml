@@ -14,6 +14,7 @@ jobs:
   ci:
     uses: Hawkynt/RepositoryTemplate/.github/workflows/dotnet-ci.yml@v1
     with:
+      repo-readme: true
       solution: AnythingToGif.sln
       test-target: AnythingToGif.Tests/AnythingToGif.Tests.csproj
       dotnet-version: '8.x'
