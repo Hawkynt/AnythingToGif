@@ -5,7 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Hawkynt.Drawing.ColorDomain;
-using Hawkynt.GifFileFormat;
+using AnythingToGif.Gif;
+using FileFormat.Gif;
 using NUnit.Framework;
 
 namespace AnythingToGif.Tests;
@@ -51,10 +52,10 @@ public class SimpleIntegrationTests {
     var palette = bitmap.Palette;
     palette.Entries[0] = Color.Red;
     bitmap.Palette = palette;
-    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
+    var frame = GifFrameFactory.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
     var frames = new[] { frame };
 
-    Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
+    GifOutput.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
@@ -168,7 +169,7 @@ public class SimpleIntegrationTests {
     var dimensions = new Dimensions(testImage.Width, testImage.Height);
 
     // Write GIF file
-    Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
+    GifOutput.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
 
     // Verify file was created
     Assert.That(outputFile.Exists, Is.True);
@@ -229,13 +230,13 @@ public class SimpleIntegrationTests {
     var duration = TimeSpan.FromMilliseconds(200);
 
     // Test simple factory
-    var frame1 = Frame.FromBitmap(bitmap, duration);
+    var frame1 = GifFrameFactory.FromBitmap(bitmap, duration);
     Assert.That(frame1.Delay, Is.EqualTo(duration));
     Assert.That(frame1.Position, Is.EqualTo(Offset.None));
 
     // Test factory with offset
     var offset = new Offset(5, 5);
-    var frame2 = Frame.FromBitmap(bitmap, duration, position: offset);
+    var frame2 = GifFrameFactory.FromBitmap(bitmap, duration, position: offset);
     Assert.That(frame2.Position, Is.EqualTo(offset));
     Assert.That(frame2.Delay, Is.EqualTo(duration));
   }

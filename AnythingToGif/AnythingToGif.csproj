@@ -55,7 +55,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GifFileFormat\GifFileFormat.csproj" />
+    <!-- The GIF container and codec. Was a GifFileFormat project in this repository; that was a
+         second, independent implementation of the same format PNGCrushCS already shipped, so the
+         two were merged and this consumes the surviving one. -->
+    <PackageReference Include="Hawkynt.FileFormats.Images" Version="0.0.0-PENDING" />
   </ItemGroup>
 
   <ItemGroup>
