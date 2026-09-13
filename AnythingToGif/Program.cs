@@ -7,7 +7,8 @@ using AnythingToGif.CLI;
 using AnythingToGif.Extensions;
 using CommandLine;
 using FFmpeg.AutoGen;
-using Hawkynt.GifFileFormat;
+using AnythingToGif.Gif;
+using FileFormat.Gif;
 
 class Program {
 
@@ -147,11 +148,11 @@ class Program {
         Console.WriteLine($"Converting image {inputFile.Name}");
         var subImages = converter.Convert(bitmap);
 
-        _WriteGif(outputFile, (Dimensions)image.Size, subImages);
+        _WriteGif(outputFile, image.Size.ToDimensions(), subImages);
       }
 
       void _WriteGif(FileInfo file, Dimensions dimensions, IEnumerable<Frame> frames)
-        => Writer.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: !configuration.NoCompression)
+        => GifOutput.ToFile(file, dimensions, frames, LoopCount.NotSet, allowCompression: !configuration.NoCompression)
       ;
 
     }

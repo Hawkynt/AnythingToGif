@@ -6,7 +6,8 @@ using System.IO;
 using System.Linq;
 using AnythingToGif.Extensions;
 using Hawkynt.Drawing.ColorDomain;
-using Hawkynt.GifFileFormat;
+using AnythingToGif.Gif;
+using FileFormat.Gif;
 using NUnit.Framework;
 
 namespace AnythingToGif.Tests;
@@ -133,9 +134,9 @@ public class EdgeCaseAndRobustnessTests {
     var palette = bitmap.Palette;
     palette.Entries[0] = Color.Red;
     bitmap.Palette = palette;
-    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
+    var frame = GifFrameFactory.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
 
-    Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
+    GifOutput.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
@@ -151,9 +152,9 @@ public class EdgeCaseAndRobustnessTests {
     palette.Entries[0] = Color.Blue;
     bitmap.Palette = palette;
 
-    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
+    var frame = GifFrameFactory.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
 
-    Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
+    GifOutput.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
@@ -173,10 +174,10 @@ public class EdgeCaseAndRobustnessTests {
       var color = ColorFromHSV(hue, 1.0f, 1.0f);
       palette.Entries[0] = color;
       bitmap.Palette = palette;
-      frames.Add(Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(50)));
+      frames.Add(GifFrameFactory.FromBitmap(bitmap, TimeSpan.FromMilliseconds(50)));
     }
 
-    Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
+    GifOutput.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
@@ -194,10 +195,10 @@ public class EdgeCaseAndRobustnessTests {
       var palette = bitmap.Palette;
       palette.Entries[0] = color;
       bitmap.Palette = palette;
-      frames.Add(Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(1)));
+      frames.Add(GifFrameFactory.FromBitmap(bitmap, TimeSpan.FromMilliseconds(1)));
     }
 
-    Writer.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
+    GifOutput.ToFile(outputFile, dimensions, frames, LoopCount.Infinite);
 
     Assert.That(outputFile.Exists, Is.True);
     Assert.That(outputFile.Length, Is.GreaterThan(0));
@@ -305,10 +306,10 @@ public class EdgeCaseAndRobustnessTests {
     palette.Entries[0] = Color.Magenta;
     bitmap.Palette = palette;
 
-    var frame = Frame.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
+    var frame = GifFrameFactory.FromBitmap(bitmap, TimeSpan.FromMilliseconds(100));
 
     Assert.DoesNotThrow(() => {
-      Writer.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
+      GifOutput.ToFile(outputFile, dimensions, new[] { frame }, LoopCount.Infinite);
     });
 
     Assert.That(outputFile.Exists, Is.True);

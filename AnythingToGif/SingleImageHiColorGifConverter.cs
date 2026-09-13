@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 using AnythingToGif;
 using AnythingToGif.Extensions;
 using Hawkynt.Drawing.ColorDomain;
-using Hawkynt.GifFileFormat;
+using AnythingToGif.Gif;
+using FileFormat.Gif;
 
 public class SingleImageHiColorGifConverter {
 
@@ -101,7 +102,7 @@ public class SingleImageHiColorGifConverter {
     var totalFrameTime = TimeSpan.Zero;
     if (this.FirstSubImageInitsBackground) {
       using var bgBitmap = SingleImageHiColorGifConverter._CreateBackgroundImage(image, maximumColorsPerSubImage, this.Quantizer, this.Ditherer, histogram, this.ColorOrdering, this.ColorDistanceMetric);
-      yield return Frame.FromBitmap(bgBitmap, frameDuration, FrameDisposalMethod.DoNotDispose);
+      yield return GifFrameFactory.FromBitmap(bgBitmap, frameDuration, FrameDisposalMethod.DoNotDispose);
       totalFrameTime += frameDuration;
       if (--availableFrames <= 0)
         yield break;
@@ -115,7 +116,7 @@ public class SingleImageHiColorGifConverter {
 
     // create subimages in parallel
     foreach (var bmp in ParallelEnumerable.Range(0, availableFrames).AsOrdered().Select(CreateSubImage)) {
-      yield return Frame.FromBitmap(bmp, frameDuration, FrameDisposalMethod.DoNotDispose, transparentColorIndex: 0);
+      yield return GifFrameFactory.FromBitmap(bmp, frameDuration, FrameDisposalMethod.DoNotDispose, transparentColorIndex: 0);
       bmp.Dispose();
       totalFrameTime += frameDuration;
     }

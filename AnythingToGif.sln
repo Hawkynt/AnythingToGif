@@ -13,8 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{093FFB
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GifFileFormat", "GifFileFormat\GifFileFormat.csproj", "{059030E7-DC59-45A1-8B34-F22BBDBE3317}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{8C6F8FAF-89F6-4BD5-B63A-C362387A5FCD}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\Build.yml = .github\workflows\Build.yml
@@ -41,10 +39,6 @@ Global
 		{30313E0F-9E1F-46CE-A024-D830DB2027C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30313E0F-9E1F-46CE-A024-D830DB2027C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30313E0F-9E1F-46CE-A024-D830DB2027C9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{059030E7-DC59-45A1-8B34-F22BBDBE3317}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{059030E7-DC59-45A1-8B34-F22BBDBE3317}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{059030E7-DC59-45A1-8B34-F22BBDBE3317}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{059030E7-DC59-45A1-8B34-F22BBDBE3317}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5DAF4378-A23B-43F4-A190-04E3D20F66E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5DAF4378-A23B-43F4-A190-04E3D20F66E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DAF4378-A23B-43F4-A190-04E3D20F66E1}.Release|Any CPU.ActiveCfg = Release|Any CPU

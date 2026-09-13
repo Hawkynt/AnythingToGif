@@ -3,9 +3,8 @@ name: Build artifacts
 # Called by release.yml and nightly.yml. Produces:
 #   * AnythingToGif-cli-win-x64-<version>.zip           -- CLI
 #   * AnythingToGif-AlgorithmComparison-win-x64-<v>.zip -- WinForms UI
-#   * Hawkynt.GifFileFormat.<version>.nupkg             -- NuGet (release only)
 #
-# AnythingToGif + GifFileFormat currently have ProjectReferences to the sibling
+# AnythingToGif currently has ProjectReferences to the sibling
 # Hawkynt/C--FrameworkExtensions repo (Corlib.Extensions + System.Drawing.Extensions,
 # temporary). Both repos are checked out side-by-side so relative paths resolve.
 on:
@@ -31,9 +30,6 @@ on:
       ui-artifact:
         description: "UI artifact name"
         value: ${{ jobs.build-exe.outputs.ui-artifact }}
-      nuget-artifact:
-        description: "NuGet artifact name (release only)"
-        value: ${{ jobs.pack-nuget.outputs.artifact-name }}
 
 # Force JavaScript-based actions to run on Node 24 instead of the deprecated Node 20 ahead of
 # the 2026-06-16 hard cutover, until we bump each action to a Node-24-native major version.
@@ -110,66 +106,3 @@ jobs:
         with:
           name: AnythingToGif-AlgorithmComparison-win-x64-${{ inputs.version }}
           path: AnythingToGif/AnythingToGif-AlgorithmComparison-win-x64-${{ inputs.version }}.zip
-
-  pack-nuget:
-    if: inputs.release-kind == 'release'
-    runs-on: windows-latest
-    outputs:
-      artifact-name: GifFileFormat-nupkg-${{ inputs.version }}
-    steps:
-      - name: Checkout AnythingToGif
-        uses: actions/checkout@v4
-        with:
-          path: AnythingToGif
-          ref: ${{ inputs.ref || github.ref }}
-          fetch-depth: 0
-
-      - name: Checkout FrameworkExtensions (sibling)
-        uses: actions/checkout@v4
-        with:
-          repository: Hawkynt/C--FrameworkExtensions
-          path: C--FrameworkExtensions
-          fetch-depth: 1
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
-
-      - name: Stamp versions into csprojs
-        shell: bash
-        working-directory: AnythingToGif
-        run: perl .github/workflows/scripts/version.pl --stamp
-
-      # Guard: GifFileFormat is shipped as a standalone NuGet. Since we build
-      # against the sibling-checked-out upstream source (ProjectReference wins
-      # over the PackageReference fallback), `dotnet pack` emits a dependency on
-      # the *local* upstream csproj <Version>. If that version is ahead of what's
-      # on nuget.org, consumers will fail to resolve the dep at install time.
-      # Fail the release early unless the upstream version has been published.
-      - name: Verify upstream FrameworkExtensions.Corlib version is on nuget.org
-        shell: bash
-        working-directory: .
-        run: |
-          UPSTREAM_VERSION=$(grep -oP '(?<=<Version>)[^<]+' C--FrameworkExtensions/Corlib.Extensions/Corlib.Extensions.csproj | head -1)
-          echo "Upstream Corlib.Extensions Version: $UPSTREAM_VERSION"
-          # Query nuget.org for available versions; require at least one published
-          # version to match the upstream MAJOR.MINOR.PATCH prefix.
-          PREFIX=$(echo "$UPSTREAM_VERSION" | cut -d. -f1-3)
-          AVAILABLE=$(curl -fsSL "https://api.nuget.org/v3-flatcontainer/frameworkextensions.corlib/index.json" | grep -oP '"[0-9]+\.[0-9]+\.[0-9]+[^"]*"' | tr -d '"')
-          if echo "$AVAILABLE" | grep -qE "^${PREFIX//./\\.}(\$|\\.)"; then
-            echo "Published versions match prefix $PREFIX — release safe."
-          else
-            echo "::error::Upstream FrameworkExtensions.Corlib $UPSTREAM_VERSION (prefix $PREFIX) is not published on nuget.org. Publish upstream first, or release will emit a nupkg with an unresolvable dependency."
-            echo "Available versions:"
-            echo "$AVAILABLE"
-            exit 1
-          fi
-
-      - name: Pack NuGet
-        working-directory: AnythingToGif
-        run: dotnet pack GifFileFormat/GifFileFormat.csproj --configuration Release --output artifacts
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: GifFileFormat-nupkg-${{ inputs.version }}
-          path: AnythingToGif/artifacts/*.nupkg

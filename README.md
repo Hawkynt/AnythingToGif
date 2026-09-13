@@ -16,7 +16,6 @@
 [![Release](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif)](https://github.com/Hawkynt/AnythingToGif/releases/latest)
 [![Nightly](https://img.shields.io/github/v/release/Hawkynt/AnythingToGif?include_prereleases&sort=date&filter=nightly-*&label=nightly&color=FF9800)](https://github.com/Hawkynt/AnythingToGif/releases)
 [![Downloads](https://img.shields.io/github/downloads/Hawkynt/AnythingToGif/total)](https://github.com/Hawkynt/AnythingToGif/releases)
-[![NuGet GifFileFormat](https://img.shields.io/nuget/v/Hawkynt.GifFileFormat?label=GifFileFormat)](https://www.nuget.org/packages/Hawkynt.GifFileFormat/)
 
 
 > This is a versatile tool designed to convert a wide variety of visual media formats into high-quality GIFs (with a hard 'G'), supporting TrueColor images. This utility excels in converting both still images and video files into GIFs, ensuring superior color fidelity and efficient processing.
@@ -43,7 +42,10 @@ controllable — orderings, ditherers, refinement passes — rather than picking
 ## 📦 Installation
 
 Download the executable from the [latest release](../../releases/latest) (or a `nightly-*`
-prerelease). The GIF file-format primitives are also published on nuget.org as `GifFileFormat`.
+prerelease). The GIF container and codec come from
+[`Hawkynt.FileFormats.Images`](https://www.nuget.org/packages/Hawkynt.FileFormats.Images/); the
+`Hawkynt.GifFileFormat` package this repository used to publish was a second, independent
+implementation of the same format and is deprecated in its favour.
 
 ## 🚀 Quick start
 

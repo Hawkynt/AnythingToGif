@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AnythingToGif\AnythingToGif.csproj" />
-    <ProjectReference Include="..\GifFileFormat\GifFileFormat.csproj" />
   </ItemGroup>
 
 </Project>
