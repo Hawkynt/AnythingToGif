@@ -22,7 +22,7 @@ jobs:
       runs-on: windows-latest
       # Built without ILRepack so the tests can see the unmerged interfaces.
       build-args: '-p:DisableILRepack=true'
-      # AnythingToGif and GifFileFormat still carry ProjectReferences into C--FrameworkExtensions,
+      # AnythingToGif still carries ProjectReferences into C--FrameworkExtensions,
       # so the sibling has to sit next to this checkout for the relative paths to resolve.
       checkout-path: AnythingToGif
       working-directory: AnythingToGif

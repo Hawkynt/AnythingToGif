@@ -1,7 +1,7 @@
 name: Nightly
 
-# Fires after CI passes on master/main. Nightly ships the CLI zip only;
-# NuGet push stays gated on real tag releases.
+# Fires after CI passes on master/main. Nightly ships the CLI zip only; the UI zip and the
+# GitHub Release are cut by release.yml.
 on:
   push:
     branches: [main]
