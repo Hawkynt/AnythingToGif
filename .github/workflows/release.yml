@@ -46,9 +46,7 @@ jobs:
       changelog-flag: --release v${{ needs.version.outputs.version }}
 
   publish-github:
-    # Waits on publish-nuget too: a release tagged v<version> whose packages never reached nuget.org
-    # is a release in name only. Without this a rejected push still produced a green GitHub release.
-    needs: [version, build, publish-nuget]
+    needs: [version, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,11 +63,6 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build.outputs.ui-artifact }}
-          path: dist
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.nuget-artifact }}
           path: dist
 
       # Notes = a short curated header + the commit-prefix changelog (+ - * # !),
@@ -90,31 +83,4 @@ jobs:
           name: v${{ needs.version.outputs.version }}
           files: |
             dist/*.zip
-            dist/*.nupkg
           body_path: RELEASE_NOTES.md
-
-  publish-nuget:
-    needs: [version, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      # Lets the job mint the short-lived OIDC token that nuget.org's Trusted Publishing exchanges
-      # for a one-hour API key. Without it the login step cannot mint a token and the push falls
-      # back to the stored NUGET_TOKEN.
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.nuget-artifact }}
-          path: artifacts
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
-
-      - name: Publish to NuGet.org (Trusted Publishing + acceptance check)
-        uses: Hawkynt/RepositoryTemplate/nuget-publish@v1
-        with:
-          packages-path: artifacts
-          user: ${{ secrets.NUGET_USER }}
-          nuget-token: ${{ secrets.NUGET_TOKEN }}
