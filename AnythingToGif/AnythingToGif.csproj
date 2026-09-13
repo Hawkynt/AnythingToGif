@@ -58,7 +58,7 @@
     <!-- The GIF container and codec. Was a GifFileFormat project in this repository; that was a
          second, independent implementation of the same format PNGCrushCS already shipped, so the
          two were merged and this consumes the surviving one. -->
-    <PackageReference Include="Hawkynt.FileFormats.Images" Version="1.0.0.749" />
+    <PackageReference Include="Hawkynt.FileFormats.Images" Version="1.0.0.750" />
   </ItemGroup>
 
   <ItemGroup>
